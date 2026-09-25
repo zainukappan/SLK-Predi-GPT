@@ -42,6 +42,8 @@ Local mode uses server-side PGlite, a PostgreSQL engine persisted in `.local/pos
 
 ## Configure Supabase for production
 
+On Vercel, set all keys from `.env.example` in the **Production** environment and rebuild after changing `NEXT_PUBLIC_` values. Use `APP_ORIGIN=https://sbkpredictions.vercel.app` for this site's deployment. Set `DATABASE_SSL_CA` to the full trusted Supabase PEM certificate and remove filesystem-based SSL parameters from `DATABASE_URL`; the server enables certificate validation with this CA. Never upload the owner migration connection. Public Supabase URL/publishable key variables are configuration, while `DATABASE_URL` is a secret.
+
 This working copy is now connected to Supabase via ignored `.env.local` and `.env.migration` files; the prior demo settings are saved in `.local/demo.env`. No sample rows were uploaded. These files are machine-specific and are not included in Git. Register your real organizer account, confirm the email, and sign in before following bootstrap step 6 below.
 
 For IPv4-only networks, use your project's Supabase **session pooler** on port 5432, with username `sbk_app.PROJECT_REF` for runtime and `postgres.PROJECT_REF` for migrations. If the system does not trust the database certificate, obtain the official Supabase CA and add a URL-encoded absolute `sslrootcert` path alongside `sslmode=verify-full`. This machine uses an ignored `.local/supabase-ca.crt`; provision an appropriate path on any other host. Never commit credentials or disable TLS verification.

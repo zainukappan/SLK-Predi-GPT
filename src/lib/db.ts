@@ -74,8 +74,17 @@ export async function transaction<T>(
   }
   if (!process.env.DATABASE_URL)
     throw new Error("Database configuration missing");
+  const databaseUrl = new URL(process.env.DATABASE_URL);
+  const certificate = process.env.DATABASE_SSL_CA;
+  if (certificate) {
+    // pg connection-string SSL parameters override Pool.ssl; use the supplied
+    // trusted CA consistently on hosts without a local certificate file.
+    for (const key of ["sslmode", "sslrootcert", "sslcert", "sslkey"])
+      databaseUrl.searchParams.delete(key);
+  }
   state.pool ??= new Pool({
-    connectionString: process.env.DATABASE_URL,
+    connectionString: databaseUrl.toString(),
+    ...(certificate ? { ssl: { ca: certificate, rejectUnauthorized: true } } : {}),
     max: 10,
     connectionTimeoutMillis: 10000,
     idleTimeoutMillis: 30000,
