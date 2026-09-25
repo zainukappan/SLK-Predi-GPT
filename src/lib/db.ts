@@ -31,23 +31,29 @@ export async function localDB() {
       await db.query(
         "INSERT INTO public.sbk_schema_migrations(name) VALUES('001_initial.sql') ON CONFLICT DO NOTHING",
       );
-    for (const file of (await readdir("migrations"))
-      .filter((f) => f.endsWith(".sql"))
-      .sort()) {
+    const files = [
+      ...(await readdir("migrations")).map((name) => ({ name, path: "migrations/" + name })),
+      ...(
+        await readdir("supabase/migrations").catch(() => [] as string[])
+      ).map((name) => ({ name, path: "supabase/migrations/" + name })),
+    ]
+      .filter((f) => f.name.endsWith(".sql"))
+      .sort((a, b) => a.name.localeCompare(b.name));
+    for (const file of files) {
       if (
         (
           await db.query(
             "SELECT 1 FROM public.sbk_schema_migrations WHERE name=$1",
-            [file],
+            [file.name],
           )
         ).rows.length
       )
         continue;
       await db.transaction(async (tx) => {
-        await tx.exec(await readFile("migrations/" + file, "utf8"));
+        await tx.exec(await readFile(file.path, "utf8"));
         await tx.query(
           "INSERT INTO public.sbk_schema_migrations(name) VALUES($1)",
-          [file],
+          [file.name],
         );
       });
     }

@@ -20,6 +20,7 @@ export const schemas = {
     membership: z.enum(["approved", "rejected", "suspended"]),
     note: text,
   }),
+  promote: z.object({ member_id: uuid }),
   teams: z.object({
     id: uuid.optional(),
     name_en: name,
@@ -332,6 +333,10 @@ export async function mutate(
         "INSERT INTO sbk.membership_reviews(member_id,admin_id,action,note) VALUES($1,$2,$3,$4)",
         [value.member_id, id, value.membership, value.note],
       );
+      return {};
+    }
+    if (kind === "promote") {
+      await db.query("SELECT sbk.promote_member($1)", [value.member_id]);
       return {};
     }
     if (kind === "results") {

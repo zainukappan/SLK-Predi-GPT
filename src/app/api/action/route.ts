@@ -4,6 +4,7 @@ import { z } from "zod";
 import { authenticate, currentUser, logout, supabase } from "@/lib/auth";
 import { limited, localMode } from "@/lib/db";
 import { mutate, previewResult, schemas } from "@/lib/service";
+import { createManagedMember } from "@/lib/admin-members";
 export const dynamic = "force-dynamic";
 export async function POST(request: NextRequest) {
   try {
@@ -21,7 +22,8 @@ export async function POST(request: NextRequest) {
       const v = z
         .object({
           email: z
-            .email()
+            .string()
+            .trim()
             .max(254)
             .transform((v) => v.toLowerCase()),
           password: z.string().min(10).max(128).optional(),
@@ -29,6 +31,8 @@ export async function POST(request: NextRequest) {
           language: z.enum(["en", "ml"]).default("en"),
         })
         .parse(data);
+      if (kind !== "login" && !z.email().safeParse(v.email).success)
+        throw new Error("invalid");
       await limited("auth:global", 300, 60);
       await limited("auth:" + v.email, 10, 60);
       if (kind === "reset") {
@@ -76,6 +80,13 @@ export async function POST(request: NextRequest) {
     }
     if (kind === "preview")
       return NextResponse.json({ rows: await previewResult(user.id, data) });
+    if (kind === "createMember") {
+      await limited("member-create:" + user.id, 20, 3600);
+      return NextResponse.json(
+        { ok: true, result: await createManagedMember(user.id, data) },
+        { headers: { "Cache-Control": "private, no-store" } },
+      );
+    }
     if (!Object.hasOwn(schemas, kind)) throw new Error("invalid");
     const result = await mutate(user.id, kind, data);
     return NextResponse.json(
@@ -100,6 +111,9 @@ export async function POST(request: NextRequest) {
       "admin_protected",
       "localReset",
       "stale_result",
+      "account_exists",
+      "member_create_failed",
+      "admin_auth_missing",
     ];
     const error = safe.find((s) => message.includes(s)) ?? "invalid";
     return NextResponse.json(

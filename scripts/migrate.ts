@@ -22,27 +22,35 @@ try {
     if ((await client.query("SELECT 1 FROM pg_roles WHERE rolname=$1", [role])).rows.length)
       await client.query(`REVOKE ALL ON public.sbk_schema_migrations FROM ${role}`);
   }
-  for (const file of (await readdir("migrations"))
-    .filter((f) => f.endsWith(".sql"))
-    .sort()) {
+  const files = [
+    ...(await readdir("migrations")).map((name) => ({ name, path: "migrations/" + name })),
+    ...(
+      existsSync("supabase/migrations")
+        ? await readdir("supabase/migrations")
+        : []
+    ).map((name) => ({ name, path: "supabase/migrations/" + name })),
+  ]
+    .filter((f) => f.name.endsWith(".sql"))
+    .sort((a, b) => a.name.localeCompare(b.name));
+  for (const file of files) {
     if (
       (
         await client.query(
           "SELECT 1 FROM public.sbk_schema_migrations WHERE name=$1",
-          [file],
+          [file.name],
         )
       ).rows.length
     )
       continue;
     await client.query("BEGIN");
     try {
-      await client.query(await readFile("migrations/" + file, "utf8"));
+      await client.query(await readFile(file.path, "utf8"));
       await client.query(
         "INSERT INTO public.sbk_schema_migrations(name) VALUES($1)",
-        [file],
+        [file.name],
       );
       await client.query("COMMIT");
-      console.log("Applied " + file);
+      console.log("Applied " + file.name);
     } catch (e) {
       await client.query("ROLLBACK");
       throw e;

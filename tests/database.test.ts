@@ -43,10 +43,17 @@ async function finalize(f: string, h: number, a: number, reason = "") {
   );
 }
 before(async () => {
-  for (const file of (await readdir("migrations"))
-    .filter((f) => f.endsWith(".sql"))
-    .sort())
-    await db.exec(await readFile("migrations/" + file, "utf8"));
+  const migrationFiles = (
+    await Promise.all(
+      ["migrations", "supabase/migrations"].map(async (directory) =>
+        (await readdir(directory))
+          .filter((file) => file.endsWith(".sql"))
+          .map((file) => ({ directory, file })),
+      ),
+    )
+  ).flat().sort((a, b) => a.file.localeCompare(b.file));
+  for (const { directory, file } of migrationFiles)
+    await db.exec(await readFile(directory + "/" + file, "utf8"));
   for (const [id, n, role, status] of [
     [admin, "Admin", "admin", "approved"],
     [alice, "Alice", "member", "approved"],
@@ -65,6 +72,27 @@ before(async () => {
     "INSERT INTO sbk.teams(id,name_en,short_name) VALUES($1,'Home','H'),($2,'Away','A')",
     [home, away],
   );
+});
+test("only an approved admin can promote an approved member and the change is audited", async () => {
+  await assert.rejects(
+    as(alice, (tx) => tx.query("SELECT sbk.promote_member($1)", [bob])),
+    /forbidden/,
+  );
+  await assert.rejects(
+    as(admin, (tx) => tx.query("SELECT sbk.promote_member($1)", [pending])),
+    /admin_protected/,
+  );
+  await as(admin, (tx) => tx.query("SELECT sbk.promote_member($1)", [bob]));
+  const promoted = await db.query<{ role: string }>(
+    "SELECT role FROM sbk.profiles WHERE id=$1",
+    [bob],
+  );
+  assert.equal(promoted.rows[0].role, "admin");
+  const audit = await db.query<{ after_value: { role: string } }>(
+    "SELECT after_value FROM sbk.admin_audit_events WHERE target='profiles' AND target_id=$1 ORDER BY created_at DESC LIMIT 1",
+    [bob],
+  );
+  assert.equal(audit.rows[0].after_value.role, "admin");
 });
 after(() => db.close());
 test("database enforces approval, cross-member privacy, and protected writes", async () => {

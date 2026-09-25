@@ -24,7 +24,7 @@ test("WCAG checks on welcome, member mobile, Malayalam profile and admin dialog"
   await scan("welcome");
   const content = await readFile(".local/demo-accounts.txt", "utf8");
   const password = content.match(/Password \(all accounts\): (.+)/)![1].trim();
-  await page.getByLabel("Email address").fill("admin@sbk.test");
+  await page.getByLabel("Email address or mobile number").fill("admin@sbk.test");
   await page.getByLabel("Password (at least 10 characters)").fill(password);
   await page
     .locator("form")

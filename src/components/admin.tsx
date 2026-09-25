@@ -12,6 +12,9 @@ import {
   X,
   Check,
   AlertTriangle,
+  UserPlus,
+  Copy,
+  KeyRound,
 } from "lucide-react";
 import { useLanguage, action, ErrorMessage } from "./provider";
 import { PageTitle, Pagination, localized } from "./dashboard";
@@ -470,11 +473,19 @@ export function Admin({
       help?: string;
     } | null>(null),
     [review, setReview] = useState<Row | null>(null),
+    [newMember, setNewMember] = useState(false),
+    [credentials, setCredentials] = useState<Row | null>(null),
+    [promote, setPromote] = useState<Row | null>(null),
+    [copied, setCopied] = useState(false),
     [selected, setSelected] = useState<string[]>([]),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false);
-  useDialog(Boolean(review), () => {
-    if (!busy) setReview(null);
+  useDialog(Boolean(review || newMember || promote), () => {
+    if (!busy) {
+      setReview(null);
+      setNewMember(false);
+      setPromote(null);
+    }
   });
   const tabs = [
     "overview",
@@ -599,6 +610,20 @@ export function Admin({
       )}
       {tab === "members" && (
         <>
+          <div className="section-heading">
+            <h2>{t("members")}</h2>
+            <button
+              className="button primary"
+              onClick={() => {
+                setCredentials(null);
+                setCopied(false);
+                setNewMember(true);
+              }}
+            >
+              <UserPlus size={18} />
+              {t("addMember")}
+            </button>
+          </div>
           <form className="toolbar" action="/admin">
             <input type="hidden" name="tab" value="members" />
             <select
@@ -658,6 +683,7 @@ export function Admin({
                     </th>
                     <th>{t("member")}</th>
                     <th>{t("membership")}</th>
+                    <th>{t("role")}</th>
                     <th>{t("requestDate")}</th>
                     <th>{t("review")}</th>
                   </tr>
@@ -696,16 +722,32 @@ export function Admin({
                           )}
                         </span>
                       </td>
+                      <td>
+                        <span className={"status " + (m.role === "admin" ? "approved" : "scheduled")}>
+                          {m.role === "admin" ? t("organizer") : t("member")}
+                        </span>
+                      </td>
                       <td>{ist(m.created_at, lang)}</td>
                       <td>
-                        {m.role !== "admin" && (
-                          <button
-                            className="button secondary small"
-                            onClick={() => setReview({ ...m, ids: [m.id] })}
-                          >
-                            {t("review")}
-                          </button>
-                        )}
+                        <div className="button-row">
+                          {m.role !== "admin" && (
+                            <button
+                              className="button secondary small"
+                              onClick={() => setReview({ ...m, ids: [m.id] })}
+                            >
+                              {t("review")}
+                            </button>
+                          )}
+                          {m.role === "member" && m.membership === "approved" && (
+                            <button
+                              className="button secondary small"
+                              onClick={() => setPromote(m)}
+                            >
+                              <ShieldCheck size={15} />
+                              {t("promoteAdmin")}
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -939,6 +981,106 @@ export function Admin({
         <Pagination data={data} path="/admin" query={query} />
       )}
       {editor && <Editor {...editor} onClose={() => setEditor(null)} />}
+      {newMember && (
+        <div className="modal-backdrop">
+          <section className="modal" role="dialog" aria-modal="true" aria-label={t("addMember")}>
+            <div className="section-heading">
+              <h2>{credentials ? t("credentialsReady") : t("addMember")}</h2>
+              <button className="icon-button" aria-label={t("close")} onClick={() => setNewMember(false)}>
+                <X />
+              </button>
+            </div>
+            {credentials ? (
+              <div className="credentials-card" role="status">
+                <KeyRound size={30} />
+                <div><span>{t("accountLogin")}</span><strong>{credentials.identifier}</strong></div>
+                <div><span>{t("generatedPassword")}</span><strong>{credentials.password}</strong></div>
+                <p className="fine">{t("passwordHelp")}</p>
+                <button
+                  className="button primary"
+                  onClick={async () => {
+                    const value = `${t("accountLogin")}: ${credentials.identifier}\n${t("generatedPassword")}: ${credentials.password}`;
+                    try {
+                      if (!navigator.clipboard) throw new Error("clipboard");
+                      await navigator.clipboard.writeText(value);
+                      setCopied(true);
+                    } catch {
+                      setError("copy_failed");
+                    }
+                  }}
+                >
+                  <Copy size={17} />
+                  {t(copied ? "credentialsCopied" : "copyCredentials")}
+                </button>
+              </div>
+            ) : (
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  setBusy(true);
+                  setError("");
+                  const form = new FormData(e.currentTarget);
+                  try {
+                    const response = await action("createMember", {
+                      display_name: form.get("display_name"),
+                      identifier: form.get("identifier"),
+                      language: form.get("language"),
+                    });
+                    setCredentials(response.result);
+                    router.refresh();
+                  } catch (e) {
+                    setError((e as Error).message);
+                  } finally {
+                    setBusy(false);
+                  }
+                }}
+              >
+                <p className="fine">{t("addMemberHelp")}</p>
+                <div className="form-grid">
+                  <label>{t("display_name")}<input name="display_name" required minLength={2} maxLength={50} /></label>
+                  <label>{t("accountLogin")}<input name="identifier" required autoComplete="username" maxLength={254} /></label>
+                  <label>{t("language")}<select name="language"><option value="en">English</option><option value="ml">മലയാളം</option></select></label>
+                </div>
+                <ErrorMessage message={error} />
+                <button className="button primary" disabled={busy}>
+                  <UserPlus size={18} /> {busy ? t("saving") : t("addMember")}
+                </button>
+              </form>
+            )}
+          </section>
+        </div>
+      )}
+      {promote && (
+        <div className="modal-backdrop">
+          <section className="modal" role="dialog" aria-modal="true" aria-label={t("promoteAdmin")}>
+            <div className="section-heading">
+              <h2>{t("promoteAdmin")} · {promote.display_name}</h2>
+              <button className="icon-button" aria-label={t("close")} onClick={() => setPromote(null)}><X /></button>
+            </div>
+            <p>{t("promoteAdminHelp")}</p>
+            <ErrorMessage message={error} />
+            <button
+              className="button primary"
+              disabled={busy}
+              onClick={async () => {
+                setBusy(true);
+                setError("");
+                try {
+                  await action("promote", { member_id: promote.id });
+                  setPromote(null);
+                  router.refresh();
+                } catch (e) {
+                  setError((e as Error).message);
+                } finally {
+                  setBusy(false);
+                }
+              }}
+            >
+              <ShieldCheck size={18} /> {busy ? t("saving") : t("promoteAdmin")}
+            </button>
+          </section>
+        </div>
+      )}
       {review && (
         <div className="modal-backdrop">
           <section

@@ -9,6 +9,7 @@ import {
 } from "node:crypto";
 import { localDB, localMode, transaction } from "./db";
 import type { Lang } from "./domain";
+import { normalizeAccountIdentifier } from "./account";
 export const digest = (s: string) =>
   createHash("sha256").update(s).digest("hex");
 export async function supabase() {
@@ -68,11 +69,14 @@ export async function currentUser() {
 }
 export async function authenticate(
   mode: "login" | "register",
-  email: string,
+  account: string,
   password: string,
   name: string,
   language: Lang,
 ) {
+  const identifier = normalizeAccountIdentifier(account);
+  if (mode === "register" && identifier.kind !== "email")
+    throw new Error("invalid");
   if (localMode()) {
     const db = await localDB();
     let id: string;
@@ -82,7 +86,7 @@ export async function authenticate(
       await db.transaction(async (tx) => {
         await tx.query(
           "INSERT INTO sbk.profiles(id,email,display_name,language) VALUES($1,$2,$3,$4)",
-          [id, email, name, language],
+          [id, identifier.value, name, language],
         );
         await tx.query("INSERT INTO sbk.local_credentials VALUES($1,$2)", [
           id,
@@ -93,7 +97,7 @@ export async function authenticate(
       const found = (
         await db.query<{ id: string; password_hash: string }>(
           "SELECT p.id,c.password_hash FROM sbk.profiles p JOIN sbk.local_credentials c ON c.member_id=p.id WHERE p.email=$1",
-          [email],
+          [identifier.value],
         )
       ).rows[0];
       const [salt, hash] = (found?.password_hash ?? "dummy:00").split(":");
@@ -124,7 +128,7 @@ export async function authenticate(
   const client = await supabase();
   if (mode === "register") {
     const { error } = await client.auth.signUp({
-      email,
+      email: identifier.value,
       password,
       options: {
         data: { display_name: name, language },
@@ -134,14 +138,15 @@ export async function authenticate(
     if (error) throw new Error("registration_failed");
     return { confirm: true };
   }
-  const { data, error } = await client.auth.signInWithPassword({
-    email,
-    password,
-  });
+  const { data, error } = await client.auth.signInWithPassword(
+    identifier.kind === "email"
+      ? { email: identifier.value, password }
+      : { phone: identifier.value, password },
+  );
   if (error || !data.user) throw new Error("invalid_login");
   await provision(
     data.user.id,
-    data.user.email!,
+    data.user.email ?? data.user.phone ?? identifier.value,
     data.user.user_metadata?.display_name,
     data.user.user_metadata?.language,
   );

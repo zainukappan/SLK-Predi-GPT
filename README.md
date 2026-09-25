@@ -68,10 +68,11 @@ Do not expose the local demo to the internet. A production instance requires you
    APP_ORIGIN=https://YOUR_PRIVATE_APP_DOMAIN
    NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
    NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=YOUR_PUBLISHABLE_KEY
+   SUPABASE_SECRET_KEY=YOUR_SERVER_ONLY_SUPABASE_SECRET_KEY
    DATABASE_URL=postgresql://sbk_app:APP_PASSWORD@DATABASE_HOST:5432/postgres?sslmode=verify-full
    ```
 
-   Use the dedicated `sbk_app` PostgreSQL connection, **never** `postgres`, `service_role`, or the owner connection. Runtime verifies `current_user='sbk_app'` and rejects an owner connection. With a Supabase pooler, use its documented custom-role username form and session/transaction settings for your project. URL-encode password characters in connection strings. Keep all database credentials server-side.
+   Use the dedicated `sbk_app` PostgreSQL connection, **never** `postgres`, `service_role`, or the owner connection. Runtime verifies `current_user='sbk_app'` and rejects an owner connection. `SUPABASE_SECRET_KEY` is server-only and is used solely by the admin member-creation flow; never prefix it with `NEXT_PUBLIC_`. With a Supabase pooler, use its documented custom-role username form and session/transaction settings for your project. URL-encode password characters in connection strings. Keep all database credentials server-side.
 
 5. For email confirmation links, use the Supabase template action URL format `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=signup`. For recovery use `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery`. The callback also supports the PKCE `code` flow. Test SMTP delivery and redirects against your actual project.
 6. Register the organizer, confirm their email, and sign in once. That creates a pending profile using the authenticated Supabase user ID. From the trusted owner machine run:
@@ -82,7 +83,7 @@ Do not expose the local demo to the internet. A production instance requires you
 
    This is the only application-provided promotion path and records a bootstrap audit event. Users cannot change their own role. Admins cannot suspend other admins through the ordinary membership UI. Remove the owner credentials from any shared machine after setup.
 
-7. Sign in as organizer, enter genuine teams/rounds/fixtures, bilingual announcements and contact information. Invite members and verify their WhatsApp membership manually before approval.
+7. Sign in as organizer, enter genuine teams/rounds/fixtures, bilingual announcements and contact information. The Members tab can approve access requests or create an already-approved member using an email address or mobile number. Ten-digit mobile numbers are treated as Indian `+91` numbers; other numbers must include the international country code. A strong generated password is displayed once, so copy it and share it privately. Organizers can promote an approved member to admin from the same table; this grants full organizer access and is recorded in the private audit log.
 8. Run checks and build:
 
    ```sh

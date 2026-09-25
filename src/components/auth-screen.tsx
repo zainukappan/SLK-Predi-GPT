@@ -147,12 +147,12 @@ export function AuthScreen({
                   </label>
                 )}
                 <label>
-                  {t("email")}
+                  {t(mode === "login" ? "accountIdentifier" : "email")}
                   <input
                     name="email"
-                    type="email"
+                    type={mode === "login" ? "text" : "email"}
                     required
-                    autoComplete="email"
+                    autoComplete={mode === "login" ? "username" : "email"}
                     maxLength={254}
                   />
                 </label>

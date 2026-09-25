@@ -1,6 +1,22 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { points, ranks, canPredict } from "../src/lib/domain";
+import { normalizeAccountIdentifier } from "../src/lib/account";
+test("account identifiers normalize email and Indian/international mobile numbers", () => {
+  assert.deepEqual(normalizeAccountIdentifier(" MEMBER@Example.COM "), {
+    kind: "email",
+    value: "member@example.com",
+  });
+  assert.deepEqual(normalizeAccountIdentifier("98765 43210"), {
+    kind: "phone",
+    value: "+919876543210",
+  });
+  assert.deepEqual(normalizeAccountIdentifier("0044 7700 900123"), {
+    kind: "phone",
+    value: "+447700900123",
+  });
+  assert.throws(() => normalizeAccountIdentifier("123"));
+});
 test("scoring awards exactly one of 5, 3 or 0", () => {
   assert.equal(points(2, 1, 2, 1), 5);
   assert.equal(points(1, 0, 2, 1), 3);
