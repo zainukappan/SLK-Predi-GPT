@@ -42,6 +42,10 @@ Local mode uses server-side PGlite, a PostgreSQL engine persisted in `.local/pos
 
 ## Configure Supabase for production
 
+This working copy is now connected to Supabase via ignored `.env.local` and `.env.migration` files; the prior demo settings are saved in `.local/demo.env`. No sample rows were uploaded. These files are machine-specific and are not included in Git. Register your real organizer account, confirm the email, and sign in before following bootstrap step 6 below.
+
+For IPv4-only networks, use your project's Supabase **session pooler** on port 5432, with username `sbk_app.PROJECT_REF` for runtime and `postgres.PROJECT_REF` for migrations. If the system does not trust the database certificate, obtain the official Supabase CA and add a URL-encoded absolute `sslrootcert` path alongside `sslmode=verify-full`. This machine uses an ignored `.local/supabase-ca.crt`; provision an appropriate path on any other host. Never commit credentials or disable TLS verification.
+
 Do not expose the local demo to the internet. A production instance requires your Supabase project, database credentials, email settings, HTTPS origin, and real organizer details.
 
 1. Create a Supabase project. Obtain its project URL, publishable key, and owner PostgreSQL connection string. Enable email/password authentication, email confirmation, and an appropriate SMTP provider. Configure Supabase Auth rate limits and, if appropriate, its abuse controls. Set Site URL and allowlisted redirect URLs to your HTTPS origin and `/auth/confirm`.

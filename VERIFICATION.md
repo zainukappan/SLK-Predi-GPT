@@ -1,6 +1,16 @@
 # Verification record
 
-Verified locally on Windows with Node.js 24, Next.js 16.3.6, the embedded PostgreSQL development backend, and desktop Chrome with a mobile viewport. No public deployment or external Supabase configuration was performed.
+Verified locally on Windows with Node.js 24, Next.js 16.3.6, the embedded PostgreSQL development backend, and desktop Chrome with a mobile viewport. No public deployment was performed.
+
+## Supabase connection — 25 September 2026
+
+- Connected the local app to the owner's Supabase project using its IPv4 session pooler. The direct IPv6 database endpoint was unavailable from this machine.
+- Applied migrations 001–003, provisioned a separate `sbk_app` login, and verified client TLS encryption and certificate authorization with the official Supabase CA.
+- Confirmed restricted runtime identity, anonymous/authenticated roles have no private schema access, and remote scoring returns 5/3/0 as expected. No demo rows were seeded remotely.
+- Auth settings endpoint returned 200: email sign-up enabled, email confirmation required. Real email delivery, confirmation links, and authenticated remote member/admin journeys remain unverified.
+- Supabase security advisor has no warnings; its informational no-policy notice for the migration ledger is intentional owner-only access. Performance advisor reports overlapping admin/read policies and unindexed foreign keys; these remain optimization work, not evidence of a security failure. See [Supabase performance advisor guidance](https://supabase.com/docs/guides/database/database-linter?lint=0006_multiple_permissive_policies).
+- Re-ran all six database/domain tests and TypeScript successfully. Local production-mode configuration renders the sign-in page in the browser with no reported browser errors. The earlier full end-to-end checks below used the local database, not Supabase.
+- Secrets and the local CA/configuration are ignored by Git. A new checkout requires its own configuration.
 
 ## Successful checks
 

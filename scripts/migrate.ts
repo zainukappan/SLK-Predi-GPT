@@ -16,6 +16,12 @@ try {
   await client.query(
     "CREATE TABLE IF NOT EXISTS public.sbk_schema_migrations(name text PRIMARY KEY,applied_at timestamptz NOT NULL DEFAULT now())",
   );
+  await client.query("ALTER TABLE public.sbk_schema_migrations ENABLE ROW LEVEL SECURITY");
+  await client.query("REVOKE ALL ON public.sbk_schema_migrations FROM PUBLIC");
+  for (const role of ["anon", "authenticated"]) {
+    if ((await client.query("SELECT 1 FROM pg_roles WHERE rolname=$1", [role])).rows.length)
+      await client.query(`REVOKE ALL ON public.sbk_schema_migrations FROM ${role}`);
+  }
   for (const file of (await readdir("migrations"))
     .filter((f) => f.endsWith(".sql"))
     .sort()) {
