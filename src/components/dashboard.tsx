@@ -65,11 +65,12 @@ export function Team({
   large?: boolean;
 }) {
   const { lang } = useLanguage();
+  const badge = fixture[side + "_badge"];
   return (
     <div className={"team " + (large ? "large" : "")}>
-      <div className={"team-crest " + side}>
-        {fixture[side + "_badge"] ? (
-          <img src={fixture[side + "_badge"]} alt="" />
+      <div className={"team-crest " + side + (badge ? " has-badge" : "")}>
+        {badge ? (
+          <img src={badge} alt="" />
         ) : (
           <>
             <span>★</span>
