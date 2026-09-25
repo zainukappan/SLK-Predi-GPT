@@ -267,6 +267,7 @@ function LeagueTable({
               <>
                 <th>{t("exact")}</th>
                 <th>{t("correct")}</th>
+                <th>{t("firstGoalCorrect")}</th>
                 <th>{t("participation")}</th>
               </>
             )}
@@ -293,6 +294,7 @@ function LeagueTable({
                 <>
                   <td>{r.exact}</td>
                   <td>{r.correct}</td>
+                  <td>{r.first_goal_correct}</td>
                   <td>{r.participation}</td>
                 </>
               )}
@@ -364,6 +366,8 @@ function Prediction({ f, others }: { f: Row; others: Row[] }) {
     router = useRouter();
   const [home, setHome] = useState(f.predicted_home ?? 0),
     [away, setAway] = useState(f.predicted_away ?? 0),
+    [winner, setWinner] = useState(f.predicted_winner ?? ""),
+    [firstGoal, setFirstGoal] = useState(f.predicted_first_goal ?? ""),
     [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
     [success, setSuccess] = useState(""),
@@ -374,6 +378,10 @@ function Prediction({ f, others }: { f: Row; others: Row[] }) {
     const timer = setInterval(tick, 1000);
     return () => clearInterval(timer);
   }, [f]);
+  useEffect(() => {
+    if (home === 0 && away === 0) setFirstGoal("nobody");
+    else if (firstGoal === "nobody") setFirstGoal("");
+  }, [home, away, firstGoal]);
   return (
     <>
       <PageTitle
@@ -417,6 +425,8 @@ function Prediction({ f, others }: { f: Row; others: Row[] }) {
                   fixture_id: f.id,
                   home_goals: home,
                   away_goals: away,
+                  predicted_winner: winner,
+                  first_goal: firstGoal,
                 });
                 setSuccess(ist(r.result.updated_at, lang));
                 router.refresh();
@@ -427,6 +437,16 @@ function Prediction({ f, others }: { f: Row; others: Row[] }) {
               }
             }}
           >
+            <fieldset className="prediction-question" disabled={!open || busy}>
+              <legend>1. {t("winnerQuestion")}</legend>
+              <div className="choice-grid three">
+                <label><input type="radio" name="winner" value="home" checked={winner === "home"} onChange={(e) => setWinner(e.target.value)} required />{localized(f, "home", lang)}</label>
+                <label><input type="radio" name="winner" value="draw" checked={winner === "draw"} onChange={(e) => setWinner(e.target.value)} required />{t("draw")}</label>
+                <label><input type="radio" name="winner" value="away" checked={winner === "away"} onChange={(e) => setWinner(e.target.value)} required />{localized(f, "away", lang)}</label>
+              </div>
+            </fieldset>
+            <fieldset className="prediction-question" disabled={!open || busy}>
+              <legend>2. {t("scoreQuestion")}</legend>
             <div className="score-row">
               <ScoreControl
                 label={t("homeGoals") + " · " + localized(f, "home", lang)}
@@ -442,6 +462,16 @@ function Prediction({ f, others }: { f: Row; others: Row[] }) {
                 disabled={!open || busy}
               />
             </div>
+            </fieldset>
+            <fieldset className="prediction-question" disabled={!open || busy}>
+              <legend>3. {t("firstGoalQuestion")}</legend>
+              <div className="choice-grid three">
+                <label><input type="radio" name="first_goal" value="home" checked={firstGoal === "home"} onChange={(e) => setFirstGoal(e.target.value)} disabled={home === 0 && away === 0} required />{localized(f, "home", lang)}</label>
+                <label><input type="radio" name="first_goal" value="away" checked={firstGoal === "away"} onChange={(e) => setFirstGoal(e.target.value)} disabled={home === 0 && away === 0} required />{localized(f, "away", lang)}</label>
+                <label><input type="radio" name="first_goal" value="nobody" checked={firstGoal === "nobody"} onChange={(e) => setFirstGoal(e.target.value)} disabled={home !== 0 || away !== 0} required />{t("nobody")}</label>
+              </div>
+            </fieldset>
+            <p className="message info">{t("onePointEach")}</p>
             <ErrorMessage message={error} />
             {success && (
               <p className="message success" role="status">
@@ -455,7 +485,9 @@ function Prediction({ f, others }: { f: Row; others: Row[] }) {
                 !open ||
                 busy ||
                 !Number.isInteger(home) ||
-                !Number.isInteger(away)
+                !Number.isInteger(away) ||
+                !winner ||
+                !firstGoal
               }
             >
               <LockKeyhole size={18} />
@@ -492,6 +524,12 @@ function Prediction({ f, others }: { f: Row; others: Row[] }) {
                 ? "—"
                 : `${f.predicted_home} – ${f.predicted_away}`}
             </div>
+            {f.predicted_home !== null && (
+              <dl className="prediction-summary">
+                <div><dt>{t("winnerQuestion")}</dt><dd>{f.predicted_winner === "home" ? localized(f, "home", lang) : f.predicted_winner === "away" ? localized(f, "away", lang) : t("draw")}</dd></div>
+                <div><dt>{t("firstGoalQuestion")}</dt><dd>{f.predicted_first_goal === "home" ? localized(f, "home", lang) : f.predicted_first_goal === "away" ? localized(f, "away", lang) : f.predicted_first_goal === "nobody" ? t("nobody") : "—"}</dd></div>
+              </dl>
+            )}
             <p className="fine">
               {f.saved_at
                 ? t("savedAt") + " " + ist(f.saved_at, lang)
@@ -508,15 +546,7 @@ function Prediction({ f, others }: { f: Row; others: Row[] }) {
                     +{f.points} {t("points")}
                   </b>{" "}
                   ·{" "}
-                  {t(
-                    f.predicted_home === null
-                      ? "notPredicted"
-                      : f.points === 5
-                        ? "exactScore"
-                        : f.points === 3
-                          ? "correctOutcome"
-                          : "noPoints",
-                  )}
+                  {f.predicted_home === null ? t("notPredicted") : f.points ? `${f.points}/3` : t("noPoints")}
                 </p>
               </>
             )}
@@ -1006,13 +1036,10 @@ export function Dashboard({
                         ? t("awaiting")
                         : f.predicted_home === null
                           ? t("notPredicted")
-                          : t(
-                              f.points === 5
-                                ? "exactScore"
-                                : f.points === 3
-                                  ? "correctOutcome"
-                                  : "noPoints",
-                            )}
+                          : f.points
+                            ? `${f.points}/3 ${t("points")}`
+                            : t("noPoints")
+                    }
                   </p>
                 </div>
                 {f.points !== null && (
@@ -1124,16 +1151,16 @@ export function Dashboard({
             <span className="eyebrow dark">{t("readRules")}</span>
             <div className="points-trio">
               <span>
-                <b>5</b>
+                <b>1</b>
                 {t("exactScore")}
               </span>
               <span>
-                <b>3</b>
+                <b>1</b>
                 {t("correctOutcome")}
               </span>
               <span>
-                <b>0</b>
-                {t("noPoints")}
+                <b>1</b>
+                {t("firstGoalQuestion")}
               </span>
             </div>
             <Link href="/rules">

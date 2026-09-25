@@ -277,6 +277,8 @@ function Results({ data }: { data: Row }) {
   const [selected, setSelected] = useState(""),
     [home, setHome] = useState(0),
     [away, setAway] = useState(0),
+    [winner, setWinner] = useState(""),
+    [firstGoal, setFirstGoal] = useState(""),
     [reason, setReason] = useState(""),
     [preview, setPreview] = useState<Row[] | null>(null),
     [error, setError] = useState(""),
@@ -300,6 +302,8 @@ function Results({ data }: { data: Row }) {
               expected_updated_at: fixture?.result_at ?? null,
               home_goals: home,
               away_goals: away,
+              winner,
+              first_goal: firstGoal,
               reason,
             });
             setPreview(result.rows);
@@ -322,6 +326,8 @@ function Results({ data }: { data: Row }) {
               const f = data.fixtures.find((f: Row) => f.id === e.target.value);
               setHome(f?.result_home ?? 0);
               setAway(f?.result_away ?? 0);
+              setWinner(f?.result_winner ?? "");
+              setFirstGoal(f?.result_first_goal ?? "");
               setReason("");
             }}
           >
@@ -337,6 +343,24 @@ function Results({ data }: { data: Row }) {
         {fixture && (
           <>
             <div className="form-grid">
+              <label>
+                {t("winnerQuestion")}
+                <select required value={winner} onChange={(e) => { setWinner(e.target.value); setPreview(null); }}>
+                  <option value="">—</option>
+                  <option value="home">{localized(fixture, "home", lang)}</option>
+                  <option value="draw">{t("draw")}</option>
+                  <option value="away">{localized(fixture, "away", lang)}</option>
+                </select>
+              </label>
+              <label>
+                {t("firstGoalQuestion")}
+                <select required value={firstGoal} onChange={(e) => { setFirstGoal(e.target.value); setPreview(null); }}>
+                  <option value="">—</option>
+                  <option value="home">{localized(fixture, "home", lang)}</option>
+                  <option value="away">{localized(fixture, "away", lang)}</option>
+                  <option value="nobody">{t("nobody")}</option>
+                </select>
+              </label>
               <label>
                 {t("homeGoals")} · {localized(fixture, "home", lang)}
                 <input
@@ -398,6 +422,10 @@ function Results({ data }: { data: Row }) {
           <h3>
             {t("confirmTitle")}: {home} – {away}
           </h3>
+          <p>
+            <b>{t("winnerQuestion")}</b>: {winner === "home" ? localized(fixture, "home", lang) : winner === "away" ? localized(fixture, "away", lang) : t("draw")} ·{" "}
+            <b>{t("firstGoalQuestion")}</b>: {firstGoal === "home" ? localized(fixture, "home", lang) : firstGoal === "away" ? localized(fixture, "away", lang) : t("nobody")}
+          </p>
           <p>{t("resultHelp")}</p>
           <div className="table-wrap">
             <table>
@@ -432,6 +460,8 @@ function Results({ data }: { data: Row }) {
                   expected_updated_at: fixture?.result_at ?? null,
                   home_goals: home,
                   away_goals: away,
+                  winner,
+                  first_goal: firstGoal,
                   reason,
                 });
                 setPreview(null);

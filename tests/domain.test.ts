@@ -17,16 +17,15 @@ test("account identifiers normalize email and Indian/international mobile number
   });
   assert.throws(() => normalizeAccountIdentifier("123"));
 });
-test("scoring awards exactly one of 5, 3 or 0", () => {
-  assert.equal(points(2, 1, 2, 1), 5);
-  assert.equal(points(1, 0, 2, 1), 3);
-  assert.equal(points(1, 1, 2, 1), 0);
-  assert.equal(points(1, 1, 0, 0), 3);
-  assert.equal(points(0, 0, 0, 0), 5);
-  assert.equal(points(null, null, 2, 1), 0);
-  assert.equal(points(0, 2, 0, 1), 3);
+test("three prediction questions earn one point each", () => {
+  const result = { home: 2, away: 1, winner: "home" as const, firstGoal: "away" as const };
+  assert.equal(points({ home: 2, away: 1, winner: "home", firstGoal: "away" }, result), 3);
+  assert.equal(points({ home: 1, away: 0, winner: "home", firstGoal: "home" }, result), 1);
+  assert.equal(points({ home: 2, away: 1, winner: "away", firstGoal: "home" }, result), 1);
+  assert.equal(points(null, result), 0);
+  assert.equal(points({ home: 1, away: 1, winner: "draw", firstGoal: "nobody" }, { home: 0, away: 0, winner: "draw", firstGoal: "nobody" }), 2);
 });
-test("shared competition ranks use points, exact, then inclusive correct outcomes", () => {
+test("equal total points share competition rank", () => {
   assert.deepEqual(
     ranks([
       { points: 8, exact: 1, correct: 2 },
@@ -35,7 +34,7 @@ test("shared competition ranks use points, exact, then inclusive correct outcome
       { points: 8, exact: 0, correct: 3 },
       { points: 3, exact: 0, correct: 1 },
     ]).map((r) => r.rank),
-    [1, 1, 3, 4, 5],
+    [1, 1, 1, 1, 5],
   );
 });
 test("deadline immediately before, at and after; rescheduling and match states", () => {

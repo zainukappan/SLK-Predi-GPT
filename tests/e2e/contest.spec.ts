@@ -47,6 +47,8 @@ test("complete community flow, deadline enforcement, admin result and bilingual 
     fixture_id: "00000000-0000-4000-8000-000000000000",
     home_goals: 1,
     away_goals: 0,
+    predicted_winner: "home",
+    first_goal: "home",
   });
   expect(denied.status).toBe(403);
   const adminContext = await browser.newContext({
@@ -115,6 +117,8 @@ test("complete community flow, deadline enforcement, admin result and bilingual 
     .click();
   await member.getByRole("spinbutton", { name: /^Home goals ·/ }).fill("1");
   await member.getByRole("spinbutton", { name: /^Away goals ·/ }).fill("0");
+  await member.getByRole("group", { name: /Who will win/ }).locator('input[value="home"]').check();
+  await member.getByRole("group", { name: /Who will score first/ }).locator('input[value="home"]').check();
   await member
     .getByRole("button", { name: "Save prediction", exact: true })
     .click();
@@ -161,6 +165,8 @@ test("complete community flow, deadline enforcement, admin result and bilingual 
     fixture_id: fixtureId,
     home_goals: 3,
     away_goals: 1,
+    predicted_winner: "home",
+    first_goal: "home",
   });
   expect(stale.status).toBe(400);
   expect(stale.error).toBe("prediction_locked");
@@ -172,6 +178,8 @@ test("complete community flow, deadline enforcement, admin result and bilingual 
   await admin.getByLabel("Choose a fixture").selectOption(fixtureId);
   await admin.getByRole("spinbutton", { name: /^Home goals ·/ }).fill("2");
   await admin.getByRole("spinbutton", { name: /^Away goals ·/ }).fill("1");
+  await admin.getByLabel("Who will win the match?").selectOption("home");
+  await admin.getByLabel("Who will score first?").selectOption("home");
   await admin.getByRole("button", { name: "Preview points changes" }).click();
   await expect(admin.locator(".confirm-box")).toContainText(name);
   await admin
@@ -180,7 +188,7 @@ test("complete community flow, deadline enforcement, admin result and bilingual 
   await expect(admin.getByRole("status")).toHaveText("Saved successfully");
   await member.goto("/leaderboard?mine=1");
   await expect(member.locator("#my-rank")).toContainText(name);
-  await expect(member.locator("#my-rank td").last()).toHaveText("5");
+  await expect(member.locator("#my-rank td").last()).toHaveText("3");
   await member.goto("/profile");
   await expect(member.locator("canvas")).toBeVisible();
   await member.waitForFunction(
@@ -251,6 +259,8 @@ test("complete community flow, deadline enforcement, admin result and bilingual 
   await admin.getByLabel("Choose a fixture").selectOption(fixtureId);
   await admin.getByRole("spinbutton", { name: /^Home goals ·/ }).fill("1");
   await admin.getByRole("spinbutton", { name: /^Away goals ·/ }).fill("0");
+  await admin.getByLabel("Who will win the match?").selectOption("home");
+  await admin.getByLabel("Who will score first?").selectOption("home");
   await admin
     .getByLabel("Correction reason (required for corrections)")
     .fill("Local demo result correction for verification.");
@@ -260,7 +270,7 @@ test("complete community flow, deadline enforcement, admin result and bilingual 
     .click();
   await expect(admin.getByRole("status")).toHaveText("Saved successfully");
   await member.goto("/leaderboard?mine=1");
-  await expect(member.locator("#my-rank td").last()).toHaveText("3");
+  await expect(member.locator("#my-rank td").last()).toHaveText("2");
   const exportResponse = await admin.request.get("/api/export?type=membership");
   expect(exportResponse.status()).toBe(200);
   expect(exportResponse.headers()["content-type"]).toContain("text/csv");

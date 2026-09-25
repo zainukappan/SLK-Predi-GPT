@@ -14,6 +14,8 @@ export const schemas = {
     fixture_id: uuid,
     home_goals: goals,
     away_goals: goals,
+    predicted_winner: z.enum(["home", "draw", "away"]),
+    first_goal: z.enum(["home", "away", "nobody"]),
   }),
   review: z.object({
     member_id: uuid,
@@ -69,6 +71,8 @@ export const schemas = {
     fixture_id: uuid,
     home_goals: goals,
     away_goals: goals,
+    winner: z.enum(["home", "draw", "away"]),
+    first_goal: z.enum(["home", "away", "nobody"]),
     reason: text.max(1000),
     expected_updated_at: z.iso
       .datetime({ offset: true })
@@ -91,7 +95,7 @@ export const schemas = {
     contact: text.max(500),
   }),
 };
-export const fixtureSelect = `SELECT f.*,h.name_en home_en,h.name_ml home_ml,h.short_name home_short,h.badge home_badge,a.name_en away_en,a.name_ml away_ml,a.short_name away_short,a.badge away_badge,o.name_en round_en,o.name_ml round_ml,p.home_goals predicted_home,p.away_goals predicted_away,p.updated_at saved_at,r.home_goals result_home,r.away_goals result_away,r.updated_at result_at,CASE WHEN f.status='finalized' THEN sbk.score(p.home_goals,p.away_goals,r.home_goals,r.away_goals) ELSE NULL END points FROM sbk.fixtures f JOIN sbk.teams h ON h.id=f.home_id JOIN sbk.teams a ON a.id=f.away_id JOIN sbk.rounds o ON o.id=f.round_id LEFT JOIN sbk.predictions p ON p.fixture_id=f.id AND p.member_id=sbk.uid() LEFT JOIN sbk.results r ON r.fixture_id=f.id`;
+export const fixtureSelect = `SELECT f.*,h.name_en home_en,h.name_ml home_ml,h.short_name home_short,h.badge home_badge,a.name_en away_en,a.name_ml away_ml,a.short_name away_short,a.badge away_badge,o.name_en round_en,o.name_ml round_ml,p.home_goals predicted_home,p.away_goals predicted_away,p.predicted_winner,p.first_goal predicted_first_goal,p.updated_at saved_at,r.home_goals result_home,r.away_goals result_away,r.winner result_winner,r.first_goal result_first_goal,r.updated_at result_at,CASE WHEN f.status='finalized' THEN sbk.prediction_points(p.home_goals,p.away_goals,p.predicted_winner,p.first_goal,r.home_goals,r.away_goals,r.winner,r.first_goal) ELSE NULL END points FROM sbk.fixtures f JOIN sbk.teams h ON h.id=f.home_id JOIN sbk.teams a ON a.id=f.away_id JOIN sbk.rounds o ON o.id=f.round_id LEFT JOIN sbk.predictions p ON p.fixture_id=f.id AND p.member_id=sbk.uid() LEFT JOIN sbk.results r ON r.fixture_id=f.id`;
 export async function memberGuard(db: DB, id: string, admin = false) {
   const p = (await db.query("SELECT * FROM sbk.profiles WHERE id=$1", [id]))
     .rows[0];
@@ -183,7 +187,7 @@ export async function loadData(
       ).rows[0];
       data.others = (
         await db.query(
-          "SELECT p.home_goals,p.away_goals,p.updated_at FROM sbk.predictions p JOIN sbk.fixtures f ON f.id=p.fixture_id WHERE p.fixture_id=$1 AND f.deadline<=clock_timestamp() ORDER BY p.updated_at LIMIT 30",
+          "SELECT p.home_goals,p.away_goals,p.predicted_winner,p.first_goal,p.updated_at FROM sbk.predictions p JOIN sbk.fixtures f ON f.id=p.fixture_id WHERE p.fixture_id=$1 AND f.deadline<=clock_timestamp() ORDER BY p.updated_at LIMIT 30",
           [fixtureId],
         )
       ).rows;
@@ -306,8 +310,8 @@ export async function mutate(
     if (kind === "prediction")
       return (
         await db.query(
-          "INSERT INTO sbk.predictions(fixture_id,member_id,home_goals,away_goals) VALUES($1,$2,$3,$4) ON CONFLICT(fixture_id,member_id) DO UPDATE SET home_goals=EXCLUDED.home_goals,away_goals=EXCLUDED.away_goals RETURNING *",
-          [value.fixture_id, id, value.home_goals, value.away_goals],
+          "INSERT INTO sbk.predictions(fixture_id,member_id,home_goals,away_goals,predicted_winner,first_goal) VALUES($1,$2,$3,$4,$5,$6) ON CONFLICT(fixture_id,member_id) DO UPDATE SET home_goals=EXCLUDED.home_goals,away_goals=EXCLUDED.away_goals,predicted_winner=EXCLUDED.predicted_winner,first_goal=EXCLUDED.first_goal RETURNING *",
+          [value.fixture_id, id, value.home_goals, value.away_goals, value.predicted_winner, value.first_goal],
         )
       ).rows[0];
     if (kind === "profile")
@@ -353,11 +357,13 @@ export async function mutate(
       if (stamp !== value.expected_updated_at) throw new Error("stale_result");
       return (
         await db.query(
-          "INSERT INTO sbk.results(fixture_id,home_goals,away_goals,reason,updated_by) VALUES($1,$2,$3,$4,$5) ON CONFLICT(fixture_id) DO UPDATE SET home_goals=EXCLUDED.home_goals,away_goals=EXCLUDED.away_goals,reason=EXCLUDED.reason,updated_by=EXCLUDED.updated_by RETURNING *",
+          "INSERT INTO sbk.results(fixture_id,home_goals,away_goals,winner,first_goal,reason,updated_by) VALUES($1,$2,$3,$4,$5,$6,$7) ON CONFLICT(fixture_id) DO UPDATE SET home_goals=EXCLUDED.home_goals,away_goals=EXCLUDED.away_goals,winner=EXCLUDED.winner,first_goal=EXCLUDED.first_goal,reason=EXCLUDED.reason,updated_by=EXCLUDED.updated_by RETURNING *",
           [
             value.fixture_id,
             value.home_goals,
             value.away_goals,
+            value.winner,
+            value.first_goal,
             value.reason,
             id,
           ],
@@ -392,8 +398,8 @@ export async function previewResult(id: string, input: unknown) {
     await memberGuard(db, id, true);
     return (
       await db.query(
-        `SELECT p.member_id,u.display_name,sbk.score(p.home_goals,p.away_goals,r.home_goals,r.away_goals) before,sbk.score(p.home_goals,p.away_goals,$2,$3) after FROM sbk.predictions p JOIN sbk.profiles u ON u.id=p.member_id JOIN sbk.fixtures f ON f.id=p.fixture_id LEFT JOIN sbk.results r ON r.fixture_id=f.id WHERE f.id=$1 AND f.deadline<=clock_timestamp() ORDER BY u.display_name LIMIT 500`,
-        [v.fixture_id, v.home_goals, v.away_goals],
+        `SELECT p.member_id,u.display_name,sbk.prediction_points(p.home_goals,p.away_goals,p.predicted_winner,p.first_goal,r.home_goals,r.away_goals,r.winner,r.first_goal) before,sbk.prediction_points(p.home_goals,p.away_goals,p.predicted_winner,p.first_goal,$2,$3,$4,$5) after FROM sbk.predictions p JOIN sbk.profiles u ON u.id=p.member_id JOIN sbk.fixtures f ON f.id=p.fixture_id LEFT JOIN sbk.results r ON r.fixture_id=f.id WHERE f.id=$1 AND f.deadline<=clock_timestamp() ORDER BY u.display_name LIMIT 500`,
+        [v.fixture_id, v.home_goals, v.away_goals, v.winner, v.first_goal],
       )
     ).rows;
   });

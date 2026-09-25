@@ -7,7 +7,7 @@ const queries: Record<string, string> = {
   fixtures:
     "SELECT f.*,h.name_en home_team,a.name_en away_team,o.name_en round_name FROM sbk.fixtures f JOIN sbk.teams h ON h.id=f.home_id JOIN sbk.teams a ON a.id=f.away_id JOIN sbk.rounds o ON o.id=f.round_id ORDER BY kickoff LIMIT 10001",
   predictions:
-    "SELECT p.*,u.display_name,h.name_en home_team,a.name_en away_team,f.kickoff,f.status,r.home_goals result_home,r.away_goals result_away,CASE WHEN f.status='finalized' THEN sbk.score(p.home_goals,p.away_goals,r.home_goals,r.away_goals) ELSE NULL END points FROM sbk.predictions p JOIN sbk.profiles u ON u.id=p.member_id JOIN sbk.fixtures f ON f.id=p.fixture_id JOIN sbk.teams h ON h.id=f.home_id JOIN sbk.teams a ON a.id=f.away_id LEFT JOIN sbk.results r ON r.fixture_id=f.id WHERE f.deadline<=clock_timestamp() ORDER BY p.fixture_id LIMIT 10001",
+    "SELECT p.*,u.display_name,h.name_en home_team,a.name_en away_team,f.kickoff,f.status,r.home_goals result_home,r.away_goals result_away,r.winner result_winner,r.first_goal result_first_goal,CASE WHEN f.status='finalized' THEN sbk.prediction_points(p.home_goals,p.away_goals,p.predicted_winner,p.first_goal,r.home_goals,r.away_goals,r.winner,r.first_goal) ELSE NULL END points FROM sbk.predictions p JOIN sbk.profiles u ON u.id=p.member_id JOIN sbk.fixtures f ON f.id=p.fixture_id JOIN sbk.teams h ON h.id=f.home_id JOIN sbk.teams a ON a.id=f.away_id LEFT JOIN sbk.results r ON r.fixture_id=f.id WHERE f.deadline<=clock_timestamp() ORDER BY p.fixture_id LIMIT 10001",
   standings: "SELECT * FROM sbk.standings(NULL) ORDER BY rank LIMIT 10001",
   membership:
     "SELECT id,display_name,email,membership,role,created_at FROM sbk.profiles ORDER BY created_at LIMIT 10001",

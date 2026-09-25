@@ -29,16 +29,16 @@ async function fixture() {
 async function predict(id: string, f: string, h = 2, a = 1) {
   return as(id, (tx) =>
     tx.query(
-      "INSERT INTO sbk.predictions(fixture_id,member_id,home_goals,away_goals) VALUES($1,$2,$3,$4) ON CONFLICT(fixture_id,member_id) DO UPDATE SET home_goals=EXCLUDED.home_goals,away_goals=EXCLUDED.away_goals RETURNING *",
-      [f, id, h, a],
+      "INSERT INTO sbk.predictions(fixture_id,member_id,home_goals,away_goals,predicted_winner,first_goal) VALUES($1,$2,$3,$4,$5,'home') ON CONFLICT(fixture_id,member_id) DO UPDATE SET home_goals=EXCLUDED.home_goals,away_goals=EXCLUDED.away_goals,predicted_winner=EXCLUDED.predicted_winner,first_goal=EXCLUDED.first_goal RETURNING *",
+      [f, id, h, a, h > a ? "home" : h < a ? "away" : "draw"],
     ),
   );
 }
 async function finalize(f: string, h: number, a: number, reason = "") {
   return as(admin, (tx) =>
     tx.query(
-      "INSERT INTO sbk.results(fixture_id,home_goals,away_goals,updated_by,reason) VALUES($1,$2,$3,$4,$5) ON CONFLICT(fixture_id) DO UPDATE SET home_goals=EXCLUDED.home_goals,away_goals=EXCLUDED.away_goals,reason=EXCLUDED.reason",
-      [f, h, a, admin, reason],
+      "INSERT INTO sbk.results(fixture_id,home_goals,away_goals,winner,first_goal,updated_by,reason) VALUES($1,$2,$3,$4,$5,$6,$7) ON CONFLICT(fixture_id) DO UPDATE SET home_goals=EXCLUDED.home_goals,away_goals=EXCLUDED.away_goals,winner=EXCLUDED.winner,first_goal=EXCLUDED.first_goal,reason=EXCLUDED.reason",
+      [f, h, a, h > a ? "home" : h < a ? "away" : "draw", h === 0 && a === 0 ? "nobody" : "home", admin, reason],
     ),
   );
 }
@@ -241,8 +241,8 @@ test("transactional finalization and correction recompute ranks with a private h
       tx.query("SELECT * FROM sbk.standings($1)", [round]),
     )) as any
   ).rows;
-  assert.equal(Number(rows.find((r: any) => r.member_id === alice).points), 5);
-  assert.equal(Number(rows.find((r: any) => r.member_id === bob).points), 3);
+  assert.equal(Number(rows.find((r: any) => r.member_id === alice).points), 3);
+  assert.equal(Number(rows.find((r: any) => r.member_id === bob).points), 2);
   assert.equal(Number(rows.find((r: any) => r.member_id === alice).correct), 1);
   await assert.rejects(finalize(f, 1, 0), /correction_reason/);
   await finalize(f, 1, 0, "Correct official full-time score");
@@ -251,8 +251,8 @@ test("transactional finalization and correction recompute ranks with a private h
       tx.query("SELECT * FROM sbk.standings($1)", [round]),
     )) as any
   ).rows;
-  assert.equal(Number(rows.find((r: any) => r.member_id === alice).points), 3);
-  assert.equal(Number(rows.find((r: any) => r.member_id === bob).points), 5);
+  assert.equal(Number(rows.find((r: any) => r.member_id === alice).points), 2);
+  assert.equal(Number(rows.find((r: any) => r.member_id === bob).points), 3);
   assert.equal(Number(rows.find((r: any) => r.member_id === bob).rank), 1);
   const audit = (await as(admin, (tx) =>
     tx.query(

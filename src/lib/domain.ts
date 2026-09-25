@@ -6,18 +6,25 @@ export type Status =
   | "in_progress"
   | "awaiting_result"
   | "finalized";
+export type Outcome = "home" | "draw" | "away";
+export type FirstGoal = "home" | "away" | "nobody";
+export function outcome(home: number, away: number): Outcome {
+  return home > away ? "home" : home < away ? "away" : "draw";
+}
 export function points(
-  h: number | null,
-  a: number | null,
-  rh: number,
-  ra: number,
+  predicted: { home: number; away: number; winner: Outcome; firstGoal: FirstGoal | null } | null,
+  result: { home: number; away: number; winner: Outcome; firstGoal: FirstGoal | null },
 ) {
-  if (h === null || a === null) return 0;
-  return h === rh && a === ra
-    ? 5
-    : Math.sign(h - a) === Math.sign(rh - ra)
-      ? 3
-      : 0;
+  if (!predicted) return 0;
+  return (
+    Number(predicted.home === result.home && predicted.away === result.away) +
+    Number(predicted.winner === result.winner) +
+    Number(
+      predicted.firstGoal !== null &&
+        result.firstGoal !== null &&
+        predicted.firstGoal === result.firstGoal,
+    )
+  );
 }
 export function canPredict(status: Status, kickoff: string, now = new Date()) {
   return (
@@ -25,19 +32,13 @@ export function canPredict(status: Status, kickoff: string, now = new Date()) {
     now.getTime() < new Date(kickoff).getTime() - 300000
   );
 }
-export function ranks<
-  T extends { points: number; exact: number; correct: number },
->(rows: T[]) {
-  const sorted = [...rows].sort(
-    (a, b) => b.points - a.points || b.exact - a.exact || b.correct - a.correct,
-  );
+export function ranks<T extends { points: number }>(rows: T[]) {
+  const sorted = [...rows].sort((a, b) => b.points - a.points);
   let rank = 1;
   return sorted.map((r, i) => {
     if (
       i &&
-      (r.points !== sorted[i - 1].points ||
-        r.exact !== sorted[i - 1].exact ||
-        r.correct !== sorted[i - 1].correct)
+      r.points !== sorted[i - 1].points
     )
       rank = i + 1;
     return { ...r, rank };

@@ -41,11 +41,11 @@ export function AuthScreen({
           <div className="welcome-values">
             <span>
               <Target />
-              {t("exact")} <b>5</b>
+              {t("exact")} <b>1</b>
             </span>
             <span>
               <Users />
-              {t("correct")} <b>3</b>
+              {t("correct")} <b>1</b>
             </span>
           </div>
         </section>

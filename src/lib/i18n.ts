@@ -50,6 +50,7 @@ export const en = {
   rank: "Overall rank",
   exact: "Exact scores",
   correct: "Correct outcomes",
+  firstGoalCorrect: "Correct first goals",
   participation: "Matches scored",
   nextFixtures: "On the fixture list",
   allMatches: "View all matches",
@@ -80,6 +81,17 @@ export const en = {
   yourPrediction: "Your prediction",
   homeGoals: "Home goals",
   awayGoals: "Away goals",
+  winnerQuestion: "Who will win the match?",
+  scoreQuestion: "What will the score be?",
+  firstGoalQuestion: "Who will score first?",
+  homeWin: "Home team",
+  awayWin: "Away team",
+  draw: "Draw",
+  nobody: "Nobody / No goal",
+  onePointEach: "1 point for each correct answer · Maximum 3 points per match",
+  scorePoint: "Exact score point",
+  winnerPoint: "Winner point",
+  firstGoalPoint: "First-goal point",
   minus: "Decrease goals",
   plus: "Increase goals",
   savePrediction: "Save prediction",
@@ -100,8 +112,7 @@ export const en = {
   points: "Points",
   jump: "My position",
   standingsUpdated: "Standings calculated",
-  tieNote:
-    "Ties: points → exact scores → correct outcomes. Equal records share rank.",
+  tieNote: "Members with equal total points share the same rank.",
   previous: "Previous",
   next: "Next",
   noRows: "Nothing to show yet.",
@@ -128,7 +139,7 @@ export const en = {
   contactEmpty: "Contact an SBK WhatsApp group administrator.",
   scoring: "Every prediction has a story.",
   scoringText:
-    "5 for an exact score. 3 for the right outcome. One award per match.",
+    "1 point each for the winner, exact score, and first-goal team. Maximum 3 per match.",
   privateNotice: "Your prediction stays private until the deadline.",
   search: "Search teams or rounds",
   searchMembers: "Search name or account",
@@ -182,7 +193,9 @@ export const en = {
   preview: "Preview points changes",
   resultReason: "Correction reason (required for corrections)",
   resultHelp:
-    "Confirm the regulation-time score. Finalizing or correcting immediately recalculates the entire table.",
+    "Confirm the winner, regulation-time score, and first-goal team. Finalizing or correcting immediately recalculates the table.",
+  winner_score_mismatch: "The selected winner does not match the entered score.",
+  first_goal_mismatch: "Choose Nobody only for 0–0; otherwise choose the team that scored first.",
   before: "Before",
   after: "After",
   confirm: "Confirm and save",
@@ -333,6 +346,7 @@ export const ml: Record<Key, string> = {
   rank: "മൊത്തം റാങ്ക്",
   exact: "കൃത്യമായ സ്കോറുകൾ",
   correct: "ശരിയായ ഫലങ്ങൾ",
+  firstGoalCorrect: "ശരിയായ ആദ്യ ഗോൾ പ്രവചനങ്ങൾ",
   participation: "പോയിന്റ് കണക്കാക്കിയ മത്സരങ്ങൾ",
   nextFixtures: "വരാനിരിക്കുന്ന മത്സരങ്ങൾ",
   allMatches: "എല്ലാ മത്സരങ്ങളും",
@@ -363,6 +377,17 @@ export const ml: Record<Key, string> = {
   yourPrediction: "നിങ്ങളുടെ പ്രവചനം",
   homeGoals: "ഹോം ടീമിന്റെ ഗോളുകൾ",
   awayGoals: "എവേ ടീമിന്റെ ഗോളുകൾ",
+  winnerQuestion: "മത്സരത്തിൽ ജയിക്കുന്ന ടീം ഏതാണ്?",
+  scoreQuestion: "സ്കോർ എന്തായിരിക്കും?",
+  firstGoalQuestion: "ആരാണ് ആദ്യം ഗോൾ അടിക്കുക?",
+  homeWin: "ഹോം ടീം",
+  awayWin: "എവേ ടീം",
+  draw: "സമനില",
+  nobody: "ആരും ഇല്ല / ഗോൾ ഇല്ല",
+  onePointEach: "ഓരോ ശരിയായ ഉത്തരത്തിനും 1 പോയിന്റ് · ഒരു മത്സരത്തിൽ പരമാവധി 3 പോയിന്റ്",
+  scorePoint: "കൃത്യമായ സ്കോർ പോയിന്റ്",
+  winnerPoint: "വിജയി പോയിന്റ്",
+  firstGoalPoint: "ആദ്യ ഗോൾ പോയിന്റ്",
   minus: "ഗോൾ കുറയ്ക്കുക",
   plus: "ഗോൾ കൂട്ടുക",
   savePrediction: "പ്രവചനം സൂക്ഷിക്കുക",
@@ -383,8 +408,7 @@ export const ml: Record<Key, string> = {
   points: "പോയിന്റ്",
   jump: "എന്റെ സ്ഥാനം",
   standingsUpdated: "പട്ടിക കണക്കാക്കിയ സമയം",
-  tieNote:
-    "ക്രമം: പോയിന്റ് → കൃത്യമായ സ്കോർ → ശരിയായ ഫലം. എല്ലാം തുല്യമായാൽ ഒരേ റാങ്ക്.",
+  tieNote: "ആകെ പോയിന്റ് തുല്യമായ അംഗങ്ങൾക്ക് ഒരേ റാങ്ക് ലഭിക്കും.",
   previous: "മുമ്പത്തേത്",
   next: "അടുത്തത്",
   noRows: "ഇതുവരെ വിവരങ്ങളില്ല.",
@@ -407,7 +431,7 @@ export const ml: Record<Key, string> = {
   readRules: "പോയിന്റ് എങ്ങനെ ലഭിക്കും",
   scoring: "ഓരോ പ്രവചനത്തിനും ഒരു കഥയുണ്ട്.",
   scoringText:
-    "കൃത്യമായ സ്കോറിന് 5. ശരിയായ ഫലത്തിന് 3. ഓരോ മത്സരത്തിനും ഒരൊറ്റ പോയിന്റ് പുരസ്കാരം.",
+    "വിജയി, കൃത്യമായ സ്കോർ, ആദ്യം ഗോൾ നേടുന്ന ടീം — ഓരോ ശരിയായ ഉത്തരത്തിനും 1 പോയിന്റ്. പരമാവധി 3.",
   rulesUpdated: "നിയമങ്ങൾ പുതുക്കിയത്",
   contact: "സംഘാടകരെ ബന്ധപ്പെടാൻ",
   contactEmpty: "എസ്‌ബികെ വാട്സ്ആപ്പ് ഗ്രൂപ്പ് അഡ്മിനെ ബന്ധപ്പെടുക.",
@@ -464,7 +488,9 @@ export const ml: Record<Key, string> = {
   preview: "പോയിന്റിലെ മാറ്റം പരിശോധിക്കുക",
   resultReason: "തിരുത്താനുള്ള കാരണം (നിർബന്ധം)",
   resultHelp:
-    "നിശ്ചിത സമയത്തെ സ്കോർ ഉറപ്പാക്കുക. ഫലം സ്ഥിരീകരിക്കുമ്പോഴും തിരുത്തുമ്പോഴും പട്ടിക ഉടൻ പുതുക്കും.",
+    "വിജയി, നിശ്ചിത സമയത്തെ സ്കോർ, ആദ്യം ഗോൾ നേടിയ ടീം എന്നിവ ഉറപ്പാക്കുക. പട്ടിക ഉടൻ പുതുക്കും.",
+  winner_score_mismatch: "തിരഞ്ഞെടുത്ത വിജയി നൽകിയ സ്കോറുമായി പൊരുത്തപ്പെടുന്നില്ല.",
+  first_goal_mismatch: "0–0 ആണെങ്കിൽ മാത്രം ആരുമില്ല എന്ന് തിരഞ്ഞെടുക്കുക; അല്ലെങ്കിൽ ആദ്യം ഗോൾ നേടിയ ടീം തിരഞ്ഞെടുക്കുക.",
   before: "മുമ്പ്",
   after: "ശേഷം",
   confirm: "ഉറപ്പാക്കി സൂക്ഷിക്കുക",
@@ -564,28 +590,28 @@ export const dict = (lang: Lang) => (lang === "ml" ? ml : en);
 export const baseRules = {
   en: `Participation is free and restricted to approved SBK WhatsApp group members. An organizer checks membership manually. No fees, deposits, wagers, betting, cash prizes or redemption.
 
-Predict the full-time score after regulation and stoppage time. Extra time and penalty shootouts never count, including in knockout matches. Goals must be whole numbers from 0 to 20.
+Answer three questions for every match: (1) winner — home team, draw, or away team; (2) exact full-time score; and (3) the team that scores first, or Nobody if the match finishes 0–0. Only the two teams in that fixture are available for the first-goal answer. Regulation time and stoppage time count; extra time and penalty shootouts never count. Goals must be whole numbers from 0 to 20.
 
-Exact score: 5 points. Correct outcome (home win, draw, away win) but not exact: 3 points. Wrong outcome or no prediction: 0. Awards never stack. Actual 2–1 / prediction 2–1 = 5; 1–0 = 3; 1–1 = 0. Actual 0–0 / prediction 1–1 = 3.
+Each correct answer earns 1 point: correct winner = 1, exact score = 1, correct first-goal team = 1. The maximum is 3 points per match. The questions are scored independently. A wrong or missing answer earns 0 for that question. For a 0–0 result, Nobody is the correct first-goal answer.
 
 Predictions close exactly five minutes before kickoff. The database clock is authoritative; a save at or after the deadline is rejected. You can edit one prediction per match until it closes. Other members and admins cannot see your individual score before the deadline.
 
 Rescheduling retains predictions and recalculates the deadline. Editing reopens only for a scheduled match with a future deadline. An earlier kickoff can immediately close predictions. Postponed matches retain predictions but cannot be edited or scored until rescheduled and finalized. Cancelled matches earn no points and are excluded from all standings counts.
 
-Rank order: total points, exact-score count, then correct-outcome count, all descending. Exact scores also count as correct outcomes. Equal records share a competition rank (1, 1, 3). Participation counts submitted predictions on finalized matches. Round tables use only that round. Unfinalized matches contribute no points.
+Rank order uses total points descending. Equal totals share a competition rank (1, 1, 3). Participation counts submitted predictions on finalized matches. Round tables use only that round. Unfinalized matches contribute no points.
 
 Organizers may correct finalized results with a recorded reason. All affected standings update immediately from authoritative results. Private audit records retain the previous result. Contact the group organizers if you believe a correction is needed. Never share account passwords or private membership reports.`,
   ml: `അംഗീകൃത എസ്‌ബികെ വാട്സ്ആപ്പ് ഗ്രൂപ്പ് അംഗങ്ങൾക്കുള്ള സൗജന്യ മത്സരമാണിത്. സംഘാടകർ അംഗത്വം നേരിട്ട് പരിശോധിക്കും. ഫീസ്, നിക്ഷേപം, പന്തയം, വാതുവെപ്പ്, പണസമ്മാനം, സമ്മാനം കൈപ്പറ്റൽ എന്നിവയില്ല.
 
-നിശ്ചിത സമയവും സ്റ്റോപ്പേജ് സമയവും കഴിഞ്ഞുള്ള സ്കോറാണ് പ്രവചിക്കേണ്ടത്. നോക്കൗട്ട് ഉൾപ്പെടെ ഒരു മത്സരത്തിലും അധികസമയമോ പെനാൽറ്റി ഷൂട്ടൗട്ടോ കണക്കാക്കില്ല. ഗോളുകൾ 0 മുതൽ 20 വരെയുള്ള പൂർണസംഖ്യകളായിരിക്കണം.
+ഓരോ മത്സരത്തിനും മൂന്ന് ചോദ്യങ്ങൾക്ക് ഉത്തരം നൽകണം: (1) വിജയി — ഹോം ടീം, സമനില, അല്ലെങ്കിൽ എവേ ടീം; (2) കൃത്യമായ ഫുൾടൈം സ്കോർ; (3) ആദ്യം ഗോൾ നേടുന്ന ടീം, അല്ലെങ്കിൽ മത്സരം 0–0 ആണെങ്കിൽ ആരുമില്ല. ആദ്യ ഗോൾ ചോദ്യത്തിൽ ആ മത്സരത്തിലെ രണ്ട് ടീമുകൾ മാത്രമേ ലഭിക്കൂ. നിശ്ചിത സമയവും സ്റ്റോപ്പേജ് സമയവും കണക്കാക്കും; അധികസമയവും പെനാൽറ്റി ഷൂട്ടൗട്ടും കണക്കാക്കില്ല. ഗോളുകൾ 0 മുതൽ 20 വരെയുള്ള പൂർണസംഖ്യകളായിരിക്കണം.
 
-കൃത്യമായ സ്കോർ: 5 പോയിന്റ്. സ്കോർ കൃത്യമല്ലെങ്കിലും ഹോം ജയം, സമനില, എവേ ജയം എന്നിവയിൽ ഫലം ശരിയായാൽ: 3 പോയിന്റ്. തെറ്റായ ഫലത്തിനോ പ്രവചനം ഇല്ലെങ്കിലോ: 0. 5 ഉം 3 ഉം കൂട്ടി നൽകില്ല. യഥാർഥ സ്കോർ 2–1 ആണെങ്കിൽ 2–1 പ്രവചനത്തിന് 5; 1–0 ന് 3; 1–1 ന് 0. യഥാർഥ സ്കോർ 0–0 ആണെങ്കിൽ 1–1 പ്രവചനത്തിന് 3.
+ഓരോ ശരിയായ ഉത്തരത്തിനും 1 പോയിന്റ്: ശരിയായ വിജയി = 1, കൃത്യമായ സ്കോർ = 1, ആദ്യം ഗോൾ നേടിയ ശരിയായ ടീം = 1. ഒരു മത്സരത്തിൽ പരമാവധി 3 പോയിന്റ്. മൂന്ന് ചോദ്യങ്ങളും വേർതിരിച്ചാണ് കണക്കാക്കുന്നത്. തെറ്റായതോ നൽകാത്തതോ ആയ ഓരോ ഉത്തരത്തിനും 0. മത്സരം 0–0 ആണെങ്കിൽ ആദ്യ ഗോൾ ചോദ്യത്തിന്റെ ശരിയായ ഉത്തരം ആരുമില്ല എന്നതാണ്.
 
 മത്സരം തുടങ്ങുന്നതിന് കൃത്യം അഞ്ച് മിനിറ്റ് മുമ്പ് പ്രവചന സമയം അവസാനിക്കും. ഡാറ്റാബേസിലെ സമയമാണ് നിർണായകം. അവസാന സമയത്തോ അതിന് ശേഷമോ നൽകിയ പ്രവചനം സ്വീകരിക്കില്ല. അതിനു മുമ്പ് ഒരേ മത്സരത്തിന്റെ പ്രവചനം തിരുത്താം. അവസാന സമയം വരെ മറ്റ് അംഗങ്ങൾക്കും അഡ്മിനുകൾക്കും നിങ്ങളുടെ വ്യക്തിഗത സ്കോർ കാണാനാവില്ല.
 
 മത്സരസമയം മാറിയാലും പ്രവചനങ്ങൾ നിലനിൽക്കും; അവസാന സമയം വീണ്ടും കണക്കാക്കും. പുതിയ അവസാന സമയം ഭാവിയിലാണെങ്കിൽ നിശ്ചയിച്ച മത്സരത്തിന് തിരുത്തൽ തുറക്കും. നേരത്തെയാക്കിയാൽ ഉടൻ അടഞ്ഞേക്കാം. മാറ്റിവെച്ച മത്സരത്തിന്റെ പ്രവചനങ്ങൾ സൂക്ഷിക്കും; വീണ്ടും നിശ്ചയിക്കുകയും ഫലം ഉറപ്പാക്കുകയും ചെയ്യുന്നതുവരെ തിരുത്തലോ പോയിന്റോ ഇല്ല. റദ്ദാക്കിയ മത്സരത്തിന് പോയിന്റില്ല; പട്ടികയിലെ കണക്കുകളിലും ഉൾപ്പെടില്ല.
 
-ആകെ പോയിന്റ്, കൃത്യമായ സ്കോറുകളുടെ എണ്ണം, ശരിയായ ഫലങ്ങളുടെ എണ്ണം എന്ന ക്രമത്തിലാണ് റാങ്ക്. കൃത്യമായ സ്കോറും ശരിയായ ഫലമായി എണ്ണും. എല്ലാം തുല്യമായാൽ ഒരേ റാങ്ക് (1, 1, 3). പങ്കാളിത്തം എന്നത് പ്രവചനം നൽകിയ, ഫലം സ്ഥിരീകരിച്ച മത്സരങ്ങളുടെ എണ്ണമാണ്. റൗണ്ട് പട്ടികയിൽ ആ റൗണ്ടിലെ മത്സരങ്ങൾ മാത്രം. ഫലം സ്ഥിരീകരിക്കാത്ത മത്സരത്തിന് പോയിന്റില്ല.
+ആകെ പോയിന്റ് കൂടുതലുള്ള ക്രമത്തിലാണ് റാങ്ക്. ആകെ പോയിന്റ് തുല്യമായാൽ ഒരേ റാങ്ക് (1, 1, 3). പങ്കാളിത്തം എന്നത് പ്രവചനം നൽകിയ, ഫലം സ്ഥിരീകരിച്ച മത്സരങ്ങളുടെ എണ്ണമാണ്. റൗണ്ട് പട്ടികയിൽ ആ റൗണ്ടിലെ മത്സരങ്ങൾ മാത്രം. ഫലം സ്ഥിരീകരിക്കാത്ത മത്സരത്തിന് പോയിന്റില്ല.
 
 കാരണം രേഖപ്പെടുത്തി സംഘാടകർക്ക് ഫലം തിരുത്താം. ബന്ധപ്പെട്ട റാങ്കുകളും പോയിന്റുകളും ഉടൻ പുതുക്കും. പഴയ ഫലം സ്വകാര്യ പ്രവർത്തനരേഖയിൽ നിലനിൽക്കും. തിരുത്തൽ ആവശ്യമെങ്കിൽ ഗ്രൂപ്പ് സംഘാടകരെ ബന്ധപ്പെടുക. പാസ്‌വേഡും സ്വകാര്യ അംഗത്വ റിപ്പോർട്ടുകളും പങ്കുവെക്കരുത്.`,
 };

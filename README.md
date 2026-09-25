@@ -129,9 +129,9 @@ public/sbk-logo.png       Authentic screenshot logo cropped with circular alpha 
 
 ## Scoring, ranking and state transitions
 
-SQL is authoritative. Finalized regulation-time exact score = **5**; otherwise correct outcome = **3**; otherwise **0**. Missing predictions and non-finalized matches score zero. Exact scores also count toward correct outcomes. Participation counts predictions on finalized fixtures only. Cancelled/postponed/unfinalized matches do not affect any ranking count.
+SQL is authoritative. Each fixture has three independent questions: match winner (home/draw/away), exact regulation-time score, and first-goal team (home/away/Nobody for 0–0). Each correct answer earns **1 point**, for a maximum of **3 points per match**. Missing answers and non-finalized matches score zero. Participation counts predictions on finalized fixtures only. Cancelled/postponed/unfinalized matches do not affect any ranking count.
 
-Standings are derived in a database query, ordered by points, exact count, then inclusive correct-outcome count. SQL `rank()` produces honest ties (`1,1,3`). Pagination is on the server; display name/ID merely stabilize ordering within a shared rank, never break the rank tie. Round filtering occurs before aggregation. Corrections update the authoritative result in one transaction; there are no duplicated point totals to become stale. The displayed standings timestamp is the **calculation time**, not a claim that a match finished at that time.
+Standings are derived in a database query and ordered by total points. SQL `rank()` produces honest ties (`1,1,3`) whenever totals match. Pagination is on the server; display name/ID merely stabilize display order within a shared rank. Round filtering occurs before aggregation. Corrections update the authoritative result in one transaction; there are no duplicated point totals to become stale. The displayed standings timestamp is the **calculation time**, not a claim that a match finished at that time.
 
 | State           | Editing predictions                   | Scored | Permitted organizer transitions                                                             |
 | --------------- | ------------------------------------- | ------ | ------------------------------------------------------------------------------------------- |

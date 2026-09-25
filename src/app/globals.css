@@ -1194,6 +1194,17 @@ tr:last-child td {
   align-items: center;
   margin: 25px 0;
 }
+.prediction-question { border: 0; border-top: 1px solid var(--line); margin: 18px 0 0; padding: 18px 0 0; }
+.prediction-question legend { color: var(--navy); font-weight: 800; padding-right: 10px; }
+.choice-grid { display: grid; gap: 10px; margin-top: 12px; }
+.choice-grid.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.choice-grid label { align-items: center; background: var(--surface-soft); border: 1px solid var(--line); border-radius: 12px; cursor: pointer; display: flex; font-weight: 700; gap: 8px; justify-content: center; min-height: 52px; padding: 10px; text-align: center; }
+.choice-grid label:has(input:checked) { background: #fff7cc; border-color: var(--yellow); box-shadow: 0 0 0 2px rgba(255, 203, 5, .2); }
+.choice-grid input { accent-color: var(--blue); }
+.prediction-summary { margin: 12px 0; }
+.prediction-summary div { display: flex; justify-content: space-between; gap: 16px; padding: 6px 0; }
+.prediction-summary dt { color: var(--muted); }
+.prediction-summary dd { font-weight: 700; text-align: right; }
 .score-row > span {
   text-align: center;
   font-size: 24px;
@@ -2072,6 +2083,7 @@ html[lang="ml"] .sidebar nav a {
   }
 }
 @media (max-width: 760px) {
+  .choice-grid.three { grid-template-columns: 1fr; }
   .sidebar {
     display: none;
   }
