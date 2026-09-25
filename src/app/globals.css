@@ -824,7 +824,7 @@ input[type="checkbox"] {
 }
 .featured .button {
   min-height: 49px;
-  font-size: 13px;
+  font-size: 15px;
 }
 .saved-strip {
   display: flex;
@@ -2186,7 +2186,7 @@ html[lang="ml"] .sidebar nav a {
     font-size: 15px;
   }
   .match-center small {
-    font-size: 10px;
+    font-size: 11px;
   }
   .section-heading h2 {
     font-size: 18px;
