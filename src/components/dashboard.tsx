@@ -172,7 +172,11 @@ export function FixtureCard({
       )}
       <Link
         href={"/match?id=" + f.id}
-        className={"button " + (featured ? "primary" : "secondary")}
+        className={
+          "button " +
+          (featured ? "primary" : "secondary") +
+          (open ? " prediction-cta" : "")
+        }
       >
         {t(
           open
