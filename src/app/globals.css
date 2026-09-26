@@ -938,20 +938,74 @@ tr:last-child td {
 }
 .league-table td:first-child,
 .league-table th:first-child {
-  padding-right: 5px;
-  width: 45px;
+  width: 48px;
 }
 .league-table td:last-child,
 .league-table th:last-child {
   text-align: right;
   padding-right: 22px;
 }
-.league-table td:nth-child(2) {
+.league-table:not(.full-league-table) td:nth-child(2),
+.full-league-table td:nth-child(3) {
   white-space: nowrap;
 }
-.league-table td:nth-child(2) strong {
+.league-table:not(.full-league-table) td:nth-child(2) strong,
+.full-league-table td:nth-child(3) strong {
   font-size: 12px;
   font-weight: 500;
+}
+.full-league-table {
+  table-layout: auto;
+}
+.leaderboard-heading-row th {
+  max-width: 125px;
+  padding: 10px 8px;
+  line-height: 1.35;
+  white-space: normal;
+  vertical-align: middle;
+}
+.leaderboard-heading-row th:nth-child(1) {
+  width: 58px;
+}
+.leaderboard-heading-row th:nth-child(2) {
+  width: 56px;
+}
+.leaderboard-heading-row th:nth-child(3) {
+  min-width: 132px;
+}
+.leaderboard-heading-row th:nth-child(n + 4):nth-child(-n + 7) {
+  width: 116px;
+}
+.league-table .round-heading {
+  min-width: 48px;
+  text-align: center;
+  color: var(--navy);
+  font-weight: 700;
+  background: #eef3ff;
+}
+.round-number-row th {
+  width: 42px;
+  min-width: 42px;
+  padding: 7px 6px;
+  text-align: center;
+  font-weight: 800;
+  color: var(--navy);
+  background: #f4f7ff;
+}
+.league-table .round-points {
+  width: 42px;
+  min-width: 42px;
+  padding-left: 6px;
+  padding-right: 6px;
+  text-align: center;
+  font-weight: 700;
+}
+.league-table .selected-round {
+  background: #fff4bd;
+}
+.league-table .serial-cell {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
 }
 .league-table td:last-child b {
   font-size: 16px;
@@ -2372,7 +2426,8 @@ html[lang="ml"] .sidebar nav a {
   .home-aside .points-note {
     grid-column: auto;
   }
-  .league-table td:nth-child(2) strong {
+  .league-table:not(.full-league-table) td:nth-child(2) strong,
+  .full-league-table td:nth-child(3) strong {
     font-size: 11px;
   }
   .league-table td {
@@ -2392,12 +2447,33 @@ html[lang="ml"] .sidebar nav a {
   .league-table th:last-child {
     padding-right: 12px;
   }
-  .table-wrap:not(.compact) .league-table td:nth-child(2) {
+  .table-wrap:not(.compact) .league-table td:nth-child(3) {
     white-space: normal;
     min-width: 95px;
   }
-  .table-wrap:not(.compact) .league-table td:nth-child(2) .member-avatar {
+  .table-wrap:not(.compact) .league-table td:nth-child(3) .member-avatar {
     display: none;
+  }
+  .leaderboard-heading-row th {
+    max-width: 82px;
+    padding: 8px 5px;
+    font-size: 8px;
+    overflow-wrap: anywhere;
+  }
+  .leaderboard-heading-row th:nth-child(1),
+  .leaderboard-heading-row th:nth-child(2) {
+    width: 40px;
+  }
+  .leaderboard-heading-row th:nth-child(3) {
+    min-width: 88px;
+  }
+  .leaderboard-heading-row th:nth-child(n + 4):nth-child(-n + 7) {
+    width: 72px;
+  }
+  .round-number-row th,
+  .league-table .round-points {
+    width: 34px;
+    min-width: 34px;
   }
   .leader-hero {
     padding: 22px 20px;

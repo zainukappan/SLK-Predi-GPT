@@ -251,29 +251,68 @@ function LeagueTable({
   rows,
   userId,
   compact = false,
+  rounds = [],
+  roundPoints = [],
+  selectedRound = null,
+  page = 1,
 }: {
   rows: Row[];
   userId: string;
   compact?: boolean;
+  rounds?: Row[];
+  roundPoints?: Row[];
+  selectedRound?: string | null;
+  page?: number;
 }) {
   const { t } = useLanguage();
+  const pointsByMember = new Map(
+    roundPoints.map((item) => [
+      `${item.member_id}:${item.round_id}`,
+      Number(item.points),
+    ]),
+  );
   return (
     <div className={"table-wrap " + (compact ? "compact" : "")}>
-      <table className="league-table">
+      <table className={"league-table " + (compact ? "" : "full-league-table")}>
         <thead>
-          <tr>
-            <th>#</th>
-            <th>{t("member")}</th>
-            {!compact && (
-              <>
-                <th>{t("exact")}</th>
-                <th>{t("correct")}</th>
-                <th>{t("firstGoalCorrect")}</th>
-                <th>{t("participation")}</th>
-              </>
-            )}
-            <th>{t("points")}</th>
-          </tr>
+          {compact ? (
+            <tr>
+              <th>{t("rankLabel")}</th>
+              <th>{t("member")}</th>
+              <th>{t("totalPoints")}</th>
+            </tr>
+          ) : (
+            <>
+              <tr className="leaderboard-heading-row">
+                <th rowSpan={2}>{t("serialNo")}</th>
+                <th rowSpan={2}>{t("rankLabel")}</th>
+                <th rowSpan={2}>{t("member")}</th>
+                <th rowSpan={2}>{t("winnerQuestion")}</th>
+                <th rowSpan={2}>{t("scoreQuestion")}</th>
+                <th rowSpan={2}>{t("firstGoalQuestion")}</th>
+                <th rowSpan={2}>{t("participation")}</th>
+                {rounds.length > 0 && (
+                  <th className="round-heading" colSpan={rounds.length}>
+                    {t("round")}
+                  </th>
+                )}
+                <th rowSpan={2}>{t("totalPoints")}</th>
+              </tr>
+              {rounds.length > 0 && (
+                <tr className="round-number-row">
+                  {rounds.map((round, index) => (
+                    <th
+                      key={round.id}
+                      className={selectedRound === round.id ? "selected-round" : ""}
+                      title={round.name_en}
+                    >
+                      {index + 1}
+                    </th>
+                  ))}
+                </tr>
+              )}
+            </>
+          )}
         </thead>
         <tbody>
           {rows?.map((r, i) => (
@@ -282,6 +321,7 @@ function LeagueTable({
               className={r.member_id === userId ? "me" : ""}
               id={r.member_id === userId ? "my-rank" : undefined}
             >
+              {!compact && <td className="serial-cell">{(page - 1) * 30 + i + 1}</td>}
               <td>
                 <span className={"rank-badge rank-" + r.rank}>{r.rank}</span>
               </td>
@@ -293,10 +333,21 @@ function LeagueTable({
               </td>
               {!compact && (
                 <>
-                  <td>{r.exact}</td>
                   <td>{r.correct}</td>
+                  <td>{r.exact}</td>
                   <td>{r.first_goal_correct}</td>
                   <td>{r.participation}</td>
+                  {rounds.map((round) => (
+                    <td
+                      key={round.id}
+                      className={
+                        "round-points " +
+                        (selectedRound === round.id ? "selected-round" : "")
+                      }
+                    >
+                      {pointsByMember.get(`${r.member_id}:${round.id}`) ?? 0}
+                    </td>
+                  ))}
                 </>
               )}
               <td>
@@ -958,7 +1009,14 @@ export function Dashboard({
           </small>
         </div>
         <section className="panel table-panel">
-          <LeagueTable rows={data.leaders} userId={data.profile.id} />
+          <LeagueTable
+            rows={data.leaders}
+            userId={data.profile.id}
+            rounds={data.rounds}
+            roundPoints={data.roundPoints}
+            selectedRound={data.selectedRound}
+            page={data.page}
+          />
         </section>
         <Pagination data={data} path="/leaderboard" query={query} />
       </>

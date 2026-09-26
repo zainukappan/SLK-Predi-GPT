@@ -225,6 +225,25 @@ export async function loadData(
       ).rows;
       data.hasNext = data.leaders.length > 30;
       data.leaders = data.leaders.slice(0, 30);
+      const memberIds = data.leaders.map((leader: Row) => leader.member_id);
+      data.roundPoints = memberIds.length
+        ? (
+            await db.query(
+              `SELECT p.member_id,f.round_id,
+                 coalesce(sum(sbk.prediction_points(
+                   p.home_goals,p.away_goals,p.predicted_winner,p.first_goal,
+                   r.home_goals,r.away_goals,r.winner,r.first_goal
+                 )),0)::bigint points
+               FROM sbk.predictions p
+               JOIN sbk.fixtures f ON f.id=p.fixture_id AND f.status='finalized'
+               JOIN sbk.results r ON r.fixture_id=f.id
+               WHERE p.member_id=ANY($1::uuid[])
+               GROUP BY p.member_id,f.round_id`,
+              [memberIds],
+            )
+          ).rows
+        : [];
+      data.selectedRound = round;
     }
     if (section === "rules")
       data.rules = (
