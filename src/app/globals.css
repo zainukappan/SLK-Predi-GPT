@@ -1043,59 +1043,61 @@ tr:last-child td {
 }
 .member-prediction-list {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
 }
 .member-prediction-item {
-  padding: 13px;
+  padding: 10px;
   border: 1px solid #dfe5f1;
   border-radius: 11px;
   background: #fff;
 }
 .member-prediction-match {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 .member-prediction-match strong {
-  font-size: 12px;
+  display: block;
+  font-size: 10px;
+  line-height: 1.35;
 }
 .member-prediction-match strong span {
   color: var(--blue);
   padding: 0 3px;
 }
 .member-prediction-match small {
+  display: block;
+  margin-top: 3px;
   color: var(--muted);
-  text-align: right;
+  font-size: 8px;
+  text-align: left;
 }
 .member-prediction-item dl {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 6px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
   margin: 0;
 }
 .member-prediction-item dl div {
-  padding: 8px;
+  padding: 6px;
   border-radius: 8px;
   background: #f5f7fc;
 }
 .member-prediction-item dt {
-  min-height: 28px;
+  min-height: 25px;
   color: var(--muted);
   font-size: 8px;
   line-height: 1.25;
 }
 .member-prediction-item dd {
-  margin: 4px 0 0;
+  margin: 3px 0 0;
   color: var(--navy);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
 }
 .member-prediction-result {
   display: block;
-  margin-top: 9px;
+  margin-top: 6px;
+  font-size: 9px;
   color: #18855c;
   font-weight: 700;
 }
@@ -2175,6 +2177,9 @@ html[lang="ml"] .sidebar nav a {
   }
 }
 @media (max-width: 1200px) {
+  .member-prediction-list {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
   .sidebar {
     width: 205px;
     padding: 25px 14px;
@@ -2245,6 +2250,9 @@ html[lang="ml"] .sidebar nav a {
   }
 }
 @media (max-width: 1000px) {
+  .member-prediction-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
   .home-grid {
     grid-template-columns: 1fr;
   }
@@ -2581,7 +2589,7 @@ html[lang="ml"] .sidebar nav a {
     padding: 12px 10px 16px !important;
   }
   .member-prediction-list {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .member-prediction-match {
     display: block;
@@ -2846,6 +2854,9 @@ html[lang="ml"] .sidebar nav a {
   }
 }
 @media (max-width: 390px) {
+  .member-prediction-list {
+    grid-template-columns: 1fr;
+  }
   .workspace main {
     padding: 22px 15px;
   }
