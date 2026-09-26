@@ -1,5 +1,11 @@
 export type AccountIdentifier = { kind: "email" | "phone"; value: string };
 
+export function phoneAuthEmail(phone: string) {
+  const normalized = normalizeAccountIdentifier(phone);
+  if (normalized.kind !== "phone") throw new Error("invalid");
+  return `phone-${normalized.value.slice(1)}@sbkpredictions.vercel.app`;
+}
+
 export function normalizeAccountIdentifier(raw: string): AccountIdentifier {
   const value = raw.trim();
   if (value.includes("@")) {

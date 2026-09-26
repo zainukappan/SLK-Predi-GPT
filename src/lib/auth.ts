@@ -9,7 +9,7 @@ import {
 } from "node:crypto";
 import { localDB, localMode, transaction } from "./db";
 import type { Lang } from "./domain";
-import { normalizeAccountIdentifier } from "./account";
+import { normalizeAccountIdentifier, phoneAuthEmail } from "./account";
 export const digest = (s: string) =>
   createHash("sha256").update(s).digest("hex");
 export async function supabase() {
@@ -141,7 +141,7 @@ export async function authenticate(
   const { data, error } = await client.auth.signInWithPassword(
     identifier.kind === "email"
       ? { email: identifier.value, password }
-      : { phone: identifier.value, password },
+      : { email: phoneAuthEmail(identifier.value), password },
   );
   if (error || !data.user) throw new Error("invalid_login");
   await provision(

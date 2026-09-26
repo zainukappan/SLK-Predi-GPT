@@ -3,7 +3,7 @@ import { randomBytes, randomUUID, scryptSync } from "node:crypto";
 import { z } from "zod";
 import { localDB, localMode, transaction } from "./db";
 import { memberGuard } from "./service";
-import { normalizeAccountIdentifier } from "./account";
+import { normalizeAccountIdentifier, phoneAuthEmail } from "./account";
 
 const inputSchema = z.object({
   display_name: z.string().trim().min(2).max(50),
@@ -56,12 +56,11 @@ export async function createManagedMember(adminId: string, input: unknown) {
   const authInput = {
     password,
     email_confirm: identifier.kind === "email",
-    phone_confirm: identifier.kind === "phone",
-    user_metadata: { display_name: value.display_name, language: value.language },
+    user_metadata: { display_name: value.display_name, language: value.language, ...(identifier.kind === "phone" ? { account_phone: identifier.value } : {}) },
     app_metadata: { managed_by_sbk: true },
     ...(identifier.kind === "email"
       ? { email: identifier.value }
-      : { phone: identifier.value }),
+      : { email: phoneAuthEmail(identifier.value), email_confirm: true }),
   };
   const { data, error } = await admin.auth.admin.createUser(authInput);
   if (error || !data.user)
@@ -120,12 +119,18 @@ export async function updateManagedMember(adminId: string, input: unknown) {
   const { data: authUser, error: authReadError } = await admin.auth.admin.getUserById(value.member_id);
   if (authReadError || !authUser.user) throw new Error("member_update_failed");
   const attributes: Record<string, unknown> = {
-    user_metadata: { ...authUser.user.user_metadata, display_name: value.display_name },
+    user_metadata: {
+      ...authUser.user.user_metadata,
+      display_name: value.display_name,
+      ...(identifier.kind === "phone" ? { account_phone: identifier.value } : {}),
+    },
     ...(value.password ? { password: value.password } : {}),
   };
   if (identifier.value !== previous.value) {
     if (identifier.kind === "email") Object.assign(attributes, { email: identifier.value, email_confirm: true });
-    else Object.assign(attributes, { phone: identifier.value, phone_confirm: true });
+    else Object.assign(attributes, { email: phoneAuthEmail(identifier.value), email_confirm: true });
+  } else if (identifier.kind === "phone") {
+    Object.assign(attributes, { email: phoneAuthEmail(identifier.value), email_confirm: true });
   }
   const { error } = await admin.auth.admin.updateUserById(value.member_id, attributes);
   if (error) throw new Error(error.message.toLowerCase().includes("already") ? "account_exists" : "member_update_failed");
@@ -139,7 +144,7 @@ export async function updateManagedMember(adminId: string, input: unknown) {
     });
   } catch (error) {
     const rollback = {
-      ...(previous.kind === "email" ? { email: previous.value, email_confirm: true } : { phone: previous.value, phone_confirm: true }),
+      ...(previous.kind === "email" ? { email: previous.value, email_confirm: true } : { email: phoneAuthEmail(previous.value), email_confirm: true }),
       user_metadata: { ...authUser.user.user_metadata, display_name: target.display_name },
     };
     await admin.auth.admin.updateUserById(value.member_id, rollback);

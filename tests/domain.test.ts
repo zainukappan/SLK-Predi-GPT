@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { points, ranks, canPredict } from "../src/lib/domain";
-import { normalizeAccountIdentifier } from "../src/lib/account";
+import { normalizeAccountIdentifier, phoneAuthEmail } from "../src/lib/account";
 test("account identifiers normalize email and Indian/international mobile numbers", () => {
   assert.deepEqual(normalizeAccountIdentifier(" MEMBER@Example.COM "), {
     kind: "email",
@@ -15,6 +15,10 @@ test("account identifiers normalize email and Indian/international mobile number
     kind: "phone",
     value: "+447700900123",
   });
+  assert.equal(
+    phoneAuthEmail("+91 98765 43210"),
+    "phone-919876543210@sbkpredictions.vercel.app",
+  );
   assert.throws(() => normalizeAccountIdentifier("123"));
 });
 test("three prediction questions earn one point each", () => {
