@@ -64,6 +64,15 @@ textarea {
   width: 19px;
   height: 19px;
 }
+.button.danger {
+  background: #b4232f;
+  border-color: #b4232f;
+  color: #fff;
+}
+.button.danger:hover {
+  background: #941c27;
+  border-color: #941c27;
+}
 .phone-input-row {
   display: grid;
   grid-template-columns: minmax(112px, 0.8fr) minmax(0, 1.7fr);

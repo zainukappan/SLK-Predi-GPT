@@ -4,7 +4,7 @@ import { z } from "zod";
 import { authenticate, currentUser, logout, supabase } from "@/lib/auth";
 import { limited, localMode } from "@/lib/db";
 import { mutate, previewResult, schemas } from "@/lib/service";
-import { createManagedMember, updateManagedMember } from "@/lib/admin-members";
+import { createManagedMember, deleteManagedMember, updateManagedMember } from "@/lib/admin-members";
 export const dynamic = "force-dynamic";
 export async function POST(request: NextRequest) {
   try {
@@ -94,6 +94,13 @@ export async function POST(request: NextRequest) {
         { headers: { "Cache-Control": "private, no-store" } },
       );
     }
+    if (kind === "deleteMember") {
+      await limited("member-delete:" + user.id, 20, 3600);
+      return NextResponse.json(
+        { ok: true, result: await deleteManagedMember(user.id, data) },
+        { headers: { "Cache-Control": "private, no-store" } },
+      );
+    }
     if (!Object.hasOwn(schemas, kind)) throw new Error("invalid");
     const result = await mutate(user.id, kind, data);
     return NextResponse.json(
@@ -125,6 +132,8 @@ export async function POST(request: NextRequest) {
       "first_goal_mismatch",
       "identifier_kind_change",
       "member_update_failed",
+      "member_delete_failed",
+      "member_not_found",
       "prediction_not_locked",
       "member_not_approved",
     ];

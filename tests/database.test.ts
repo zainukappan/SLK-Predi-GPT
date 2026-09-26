@@ -242,6 +242,18 @@ test("admin can import a locked WhatsApp prediction and update a member identifi
   await as(admin, (tx) => tx.query("SELECT sbk.admin_update_identifier($1,$2)", [alice, "new@test.example"]));
   assert.equal((await db.query<{ email: string }>("SELECT email FROM sbk.profiles WHERE id=$1", [alice])).rows[0].email, "new@test.example");
 });
+test("admin can permanently delete a member and dependent private data", async () => {
+  const removable = randomUUID(), f = await fixture();
+  await db.query("INSERT INTO sbk.profiles(id,display_name,email,membership) VALUES($1,'Remove Me','remove@test.example','approved')", [removable]);
+  await predict(removable, f, 1, 0);
+  await db.query("INSERT INTO sbk.membership_reviews(member_id,admin_id,action) VALUES($1,$2,'approved')", [removable, admin]);
+  await assert.rejects(as(alice, (tx) => tx.query("SELECT sbk.admin_delete_member($1)", [removable])), /forbidden/);
+  await assert.rejects(as(admin, (tx) => tx.query("SELECT sbk.admin_delete_member($1)", [admin])), /admin_protected/);
+  await as(admin, (tx) => tx.query("SELECT sbk.admin_delete_member($1)", [removable]));
+  assert.equal(Number((await db.query<{ count: number }>("SELECT count(*) count FROM sbk.profiles WHERE id=$1", [removable])).rows[0].count), 0);
+  assert.equal(Number((await db.query<{ count: number }>("SELECT count(*) count FROM sbk.predictions WHERE member_id=$1", [removable])).rows[0].count), 0);
+  assert.equal(Number((await db.query<{ count: number }>("SELECT count(*) count FROM sbk.membership_reviews WHERE member_id=$1", [removable])).rows[0].count), 0);
+});
 test("transactional finalization and correction recompute ranks with a private history", async () => {
   const f = await fixture();
   await predict(alice, f, 2, 1);

@@ -16,6 +16,7 @@ import {
   Copy,
   KeyRound,
   Pencil,
+  Trash2,
 } from "lucide-react";
 import { useLanguage, action, ErrorMessage } from "./provider";
 import { PageTitle, Pagination, localized } from "./dashboard";
@@ -546,6 +547,7 @@ export function Admin({
     [review, setReview] = useState<Row | null>(null),
     [newMember, setNewMember] = useState(false),
     [editMember, setEditMember] = useState<Row | null>(null),
+    [deleteMember, setDeleteMember] = useState<Row | null>(null),
     [credentials, setCredentials] = useState<Row | null>(null),
     [newAccountType, setNewAccountType] = useState<"phone" | "email">("phone"),
     [promote, setPromote] = useState<Row | null>(null),
@@ -553,11 +555,12 @@ export function Admin({
     [selected, setSelected] = useState<string[]>([]),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false);
-  useDialog(Boolean(review || newMember || editMember || promote), () => {
+  useDialog(Boolean(review || newMember || editMember || deleteMember || promote), () => {
     if (!busy) {
       setReview(null);
       setNewMember(false);
       setEditMember(null);
+      setDeleteMember(null);
       setPromote(null);
     }
   });
@@ -812,6 +815,9 @@ export function Admin({
                               </button>
                               <button className="button secondary small" onClick={() => setReview({ ...m, ids: [m.id] })}>
                                 {t("review")}
+                              </button>
+                              <button className="button danger small" onClick={() => setDeleteMember(m)}>
+                                <Trash2 size={15} /> {t("deleteMember")}
                               </button>
                             </>
                           )}
@@ -1189,6 +1195,28 @@ export function Admin({
             >
               <ShieldCheck size={18} /> {busy ? t("saving") : t("promoteAdmin")}
             </button>
+          </section>
+        </div>
+      )}
+      {deleteMember && (
+        <div className="modal-backdrop">
+          <section className="modal" role="dialog" aria-modal="true" aria-label={t("deleteMember")}>
+            <div className="section-heading">
+              <h2>{t("deleteMember")} · {deleteMember.display_name}</h2>
+              <button className="icon-button" aria-label={t("close")} onClick={() => setDeleteMember(null)}><X /></button>
+            </div>
+            <p>{t("deleteMemberHelp")}</p>
+            <ErrorMessage message={error} />
+            <div className="button-row">
+              <button className="button secondary" disabled={busy} onClick={() => setDeleteMember(null)}>{t("cancel")}</button>
+              <button className="button danger" disabled={busy} onClick={async () => {
+                setBusy(true); setError("");
+                try {
+                  await action("deleteMember", { member_id: deleteMember.id });
+                  setDeleteMember(null); router.refresh();
+                } catch (e) { setError((e as Error).message); } finally { setBusy(false); }
+              }}><Trash2 size={18} /> {busy ? t("saving") : t("deletePermanently")}</button>
+            </div>
           </section>
         </div>
       )}

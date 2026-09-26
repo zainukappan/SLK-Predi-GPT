@@ -17,6 +17,7 @@ const updateSchema = z.object({
   identifier: z.string().trim().min(8).max(254),
   password: z.union([z.literal(""), z.string().min(10).max(128)]),
 });
+const deleteSchema = z.object({ member_id: z.string().uuid() });
 
 function adminClient() {
   const secret = process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -151,4 +152,26 @@ export async function updateManagedMember(adminId: string, input: unknown) {
     throw error;
   }
   return { identifier: identifier.value };
+}
+
+export async function deleteManagedMember(adminId: string, input: unknown) {
+  const { member_id } = deleteSchema.parse(input);
+  await transaction(adminId, async (db) => {
+    await memberGuard(db, adminId, true);
+    const profile = (await db.query("SELECT id,role FROM sbk.profiles WHERE id=$1", [member_id])).rows[0];
+    if (!profile) throw new Error("member_not_found");
+    if (profile.role !== "member" || member_id === adminId) throw new Error("admin_protected");
+  });
+
+  if (!localMode()) {
+    const { error } = await adminClient().auth.admin.deleteUser(member_id);
+    if (error && error.status !== 404 && !error.message.toLowerCase().includes("not found"))
+      throw new Error("member_delete_failed");
+  }
+
+  await transaction(adminId, async (db) => {
+    await memberGuard(db, adminId, true);
+    await db.query("SELECT sbk.admin_delete_member($1)", [member_id]);
+  });
+  return { deleted: true };
 }
