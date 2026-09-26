@@ -104,6 +104,33 @@ export const schemas = {
   }),
 };
 export const fixtureSelect = `SELECT f.*,h.name_en home_en,h.name_ml home_ml,h.short_name home_short,h.badge home_badge,a.name_en away_en,a.name_ml away_ml,a.short_name away_short,a.badge away_badge,o.name_en round_en,o.name_ml round_ml,p.home_goals predicted_home,p.away_goals predicted_away,p.predicted_winner,p.first_goal predicted_first_goal,p.updated_at saved_at,r.home_goals result_home,r.away_goals result_away,r.winner result_winner,r.first_goal result_first_goal,r.updated_at result_at,CASE WHEN f.status='finalized' THEN sbk.prediction_points(p.home_goals,p.away_goals,p.predicted_winner,p.first_goal,r.home_goals,r.away_goals,r.winner,r.first_goal) ELSE NULL END points FROM sbk.fixtures f JOIN sbk.teams h ON h.id=f.home_id JOIN sbk.teams a ON a.id=f.away_id JOIN sbk.rounds o ON o.id=f.round_id LEFT JOIN sbk.predictions p ON p.fixture_id=f.id AND p.member_id=sbk.uid() LEFT JOIN sbk.results r ON r.fixture_id=f.id`;
+async function lockedMemberPredictions(db: DB, memberIds: string[]) {
+  if (!memberIds.length) return [];
+  return (
+    await db.query(
+      `SELECT * FROM (
+         SELECT p.member_id,p.fixture_id,p.home_goals,p.away_goals,p.predicted_winner,p.first_goal,p.updated_at,
+           f.kickoff,f.status,h.name_en home_en,h.name_ml home_ml,a.name_en away_en,a.name_ml away_ml,
+           o.name_en round_en,o.name_ml round_ml,r.home_goals result_home,r.away_goals result_away,
+           CASE WHEN f.status='finalized' THEN sbk.prediction_points(
+             p.home_goals,p.away_goals,p.predicted_winner,p.first_goal,
+             r.home_goals,r.away_goals,r.winner,r.first_goal
+           ) ELSE NULL END points,
+           row_number() OVER(PARTITION BY p.member_id ORDER BY f.kickoff DESC,p.updated_at DESC) item_number
+         FROM sbk.predictions p
+         JOIN sbk.fixtures f ON f.id=p.fixture_id
+         JOIN sbk.teams h ON h.id=f.home_id
+         JOIN sbk.teams a ON a.id=f.away_id
+         JOIN sbk.rounds o ON o.id=f.round_id
+         LEFT JOIN sbk.results r ON r.fixture_id=f.id
+         WHERE p.member_id=ANY($1::uuid[]) AND f.deadline<=clock_timestamp()
+       ) visible_predictions
+       WHERE item_number<=10
+       ORDER BY member_id,kickoff DESC`,
+      [memberIds],
+    )
+  ).rows;
+}
 export async function memberGuard(db: DB, id: string, admin = false) {
   const p = (await db.query("SELECT * FROM sbk.profiles WHERE id=$1", [id]))
     .rows[0];
@@ -244,6 +271,7 @@ export async function loadData(
           ).rows
         : [];
       data.selectedRound = round;
+      data.memberPredictions = await lockedMemberPredictions(db, memberIds);
     }
     if (section === "rules")
       data.rules = (
@@ -285,6 +313,10 @@ export async function loadData(
         ).rows;
         data.hasNext = data.members.length > 30;
         data.members = data.members.slice(0, 30);
+        data.memberPredictions = await lockedMemberPredictions(
+          db,
+          data.members.map((member: Row) => member.id),
+        );
       }
       if (tab === "predictions") {
         data.members = (

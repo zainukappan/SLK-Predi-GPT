@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import {
   ArrowRight,
   ArrowUpRight,
@@ -16,6 +16,7 @@ import {
   Trophy,
   Megaphone,
   ChevronRight,
+  ChevronDown,
   ShieldCheck,
   Download,
   Share2,
@@ -25,6 +26,7 @@ import { canPredict, ist, type Lang } from "@/lib/domain";
 import { baseRules, type Key } from "@/lib/i18n";
 import type { Row } from "@/lib/db";
 import { PredictionShareCard, type SavedPrediction } from "./prediction-share-card";
+import { MemberPredictions } from "./member-predictions";
 export const localized = (row: Row, prefix: string, lang: Lang) =>
   row[prefix + "_" + lang] || row[prefix + "_en"];
 export function PageTitle({
@@ -255,6 +257,7 @@ function LeagueTable({
   roundPoints = [],
   selectedRound = null,
   page = 1,
+  memberPredictions = [],
 }: {
   rows: Row[];
   userId: string;
@@ -263,8 +266,10 @@ function LeagueTable({
   roundPoints?: Row[];
   selectedRound?: string | null;
   page?: number;
+  memberPredictions?: Row[];
 }) {
   const { t } = useLanguage();
+  const [expandedMember, setExpandedMember] = useState<string | null>(null);
   const pointsByMember = new Map(
     roundPoints.map((item) => [
       `${item.member_id}:${item.round_id}`,
@@ -316,8 +321,8 @@ function LeagueTable({
         </thead>
         <tbody>
           {rows?.map((r, i) => (
+            <Fragment key={r.member_id}>
             <tr
-              key={r.member_id}
               className={r.member_id === userId ? "me" : ""}
               id={r.member_id === userId ? "my-rank" : undefined}
             >
@@ -329,7 +334,19 @@ function LeagueTable({
                 <span className={"member-avatar color-" + (i % 4)}>
                   {r.display_name.slice(0, 1)}
                 </span>
-                <strong>{r.display_name}</strong>
+                {compact ? (
+                  <strong>{r.display_name}</strong>
+                ) : (
+                  <button
+                    className="member-prediction-toggle"
+                    aria-expanded={expandedMember === r.member_id}
+                    aria-controls={`predictions-${r.member_id}`}
+                    onClick={() => setExpandedMember(expandedMember === r.member_id ? null : r.member_id)}
+                  >
+                    <strong>{r.display_name}</strong>
+                    <ChevronDown size={14} />
+                  </button>
+                )}
               </td>
               {!compact && (
                 <>
@@ -354,6 +371,18 @@ function LeagueTable({
                 <b>{r.points}</b>
               </td>
             </tr>
+            {!compact && expandedMember === r.member_id && (
+              <tr className="member-prediction-row" id={`predictions-${r.member_id}`}>
+                <td colSpan={8 + rounds.length}>
+                  <div className="member-prediction-heading">
+                    <strong>{t("latestPredictions")}</strong>
+                    <button className="text-button" onClick={() => setExpandedMember(null)}>{t("hidePredictions")}</button>
+                  </div>
+                  <MemberPredictions rows={memberPredictions.filter((item) => item.member_id === r.member_id)} />
+                </td>
+              </tr>
+            )}
+            </Fragment>
           ))}
         </tbody>
       </table>
@@ -1016,6 +1045,7 @@ export function Dashboard({
             roundPoints={data.roundPoints}
             selectedRound={data.selectedRound}
             page={data.page}
+            memberPredictions={data.memberPredictions}
           />
         </section>
         <Pagination data={data} path="/leaderboard" query={query} />

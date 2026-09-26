@@ -1007,6 +1007,107 @@ tr:last-child td {
   color: var(--muted);
   font-variant-numeric: tabular-nums;
 }
+.member-prediction-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 2px;
+  color: var(--navy);
+  text-align: left;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+.member-prediction-toggle svg {
+  flex: none;
+  transition: transform 0.18s ease;
+}
+.member-prediction-toggle[aria-expanded="true"] svg {
+  transform: rotate(180deg);
+}
+.member-prediction-toggle:focus-visible {
+  outline: 3px solid #ffdc45;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+.member-prediction-row > td {
+  padding: 16px 18px 20px !important;
+  background: #f6f8fd !important;
+}
+.member-prediction-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.member-prediction-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 10px;
+}
+.member-prediction-item {
+  padding: 13px;
+  border: 1px solid #dfe5f1;
+  border-radius: 11px;
+  background: #fff;
+}
+.member-prediction-match {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.member-prediction-match strong {
+  font-size: 12px;
+}
+.member-prediction-match strong span {
+  color: var(--blue);
+  padding: 0 3px;
+}
+.member-prediction-match small {
+  color: var(--muted);
+  text-align: right;
+}
+.member-prediction-item dl {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  margin: 0;
+}
+.member-prediction-item dl div {
+  padding: 8px;
+  border-radius: 8px;
+  background: #f5f7fc;
+}
+.member-prediction-item dt {
+  min-height: 28px;
+  color: var(--muted);
+  font-size: 8px;
+  line-height: 1.25;
+}
+.member-prediction-item dd {
+  margin: 4px 0 0;
+  color: var(--navy);
+  font-size: 11px;
+  font-weight: 700;
+}
+.member-prediction-result {
+  display: block;
+  margin-top: 9px;
+  color: #18855c;
+  font-weight: 700;
+}
+.member-prediction-empty {
+  margin: 0;
+  padding: 13px;
+  color: var(--muted);
+  text-align: center;
+  border: 1px dashed #ccd5e5;
+  border-radius: 9px;
+  background: #fff;
+}
 .league-table td:last-child b {
   font-size: 16px;
 }
@@ -2475,6 +2576,23 @@ html[lang="ml"] .sidebar nav a {
   .league-table .round-points {
     width: 34px;
     min-width: 34px;
+  }
+  .member-prediction-row > td {
+    padding: 12px 10px 16px !important;
+  }
+  .member-prediction-list {
+    grid-template-columns: 1fr;
+  }
+  .member-prediction-match {
+    display: block;
+  }
+  .member-prediction-match small {
+    display: block;
+    margin-top: 3px;
+    text-align: left;
+  }
+  .member-prediction-item dl {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .leader-hero {
     padding: 22px 20px;

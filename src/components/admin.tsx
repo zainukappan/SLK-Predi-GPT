@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -17,6 +17,7 @@ import {
   KeyRound,
   Pencil,
   Trash2,
+  Eye,
 } from "lucide-react";
 import { useLanguage, action, ErrorMessage } from "./provider";
 import { PageTitle, Pagination, localized } from "./dashboard";
@@ -26,6 +27,7 @@ import type { Key } from "@/lib/i18n";
 import type { Row } from "@/lib/db";
 import { countryCodes, splitPhone } from "@/lib/countries";
 import { PasswordInput } from "./password-input";
+import { MemberPredictions } from "./member-predictions";
 type Field = {
   name: string;
   label?: Key;
@@ -553,6 +555,7 @@ export function Admin({
     [promote, setPromote] = useState<Row | null>(null),
     [copied, setCopied] = useState(false),
     [selected, setSelected] = useState<string[]>([]),
+    [predictionMember, setPredictionMember] = useState<string | null>(null),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false);
   useDialog(Boolean(review || newMember || editMember || deleteMember || promote), () => {
@@ -768,7 +771,8 @@ export function Admin({
                 </thead>
                 <tbody>
                   {data.members.map((m: Row) => (
-                    <tr key={m.id}>
+                    <Fragment key={m.id}>
+                    <tr>
                       <td>
                         <input
                           type="checkbox"
@@ -808,6 +812,15 @@ export function Admin({
                       <td>{ist(m.created_at, lang)}</td>
                       <td>
                         <div className="button-row">
+                          <button
+                            className="button secondary small"
+                            onClick={() => setPredictionMember(predictionMember === m.id ? null : m.id)}
+                            aria-expanded={predictionMember === m.id}
+                            aria-controls={`admin-predictions-${m.id}`}
+                          >
+                            <Eye size={15} />
+                            {predictionMember === m.id ? t("hidePredictions") : t("viewPredictions")}
+                          </button>
                           {m.role !== "admin" && (
                             <>
                               <button className="button secondary small" onClick={() => setEditMember(m)}>
@@ -833,6 +846,15 @@ export function Admin({
                         </div>
                       </td>
                     </tr>
+                    {predictionMember === m.id && (
+                      <tr className="member-prediction-row" id={`admin-predictions-${m.id}`}>
+                        <td colSpan={6}>
+                          <div className="member-prediction-heading"><strong>{m.display_name} · {t("latestPredictions")}</strong></div>
+                          <MemberPredictions rows={(data.memberPredictions ?? []).filter((item: Row) => item.member_id === m.id)} />
+                        </td>
+                      </tr>
+                    )}
+                    </Fragment>
                   ))}
                 </tbody>
               </table>
