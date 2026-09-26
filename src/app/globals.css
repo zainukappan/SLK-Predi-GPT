@@ -2458,7 +2458,8 @@ html[lang="ml"] .sidebar nav a {
     max-width: 82px;
     padding: 8px 5px;
     font-size: 8px;
-    overflow-wrap: anywhere;
+    word-break: normal;
+    overflow-wrap: normal;
   }
   .leaderboard-heading-row th:nth-child(1),
   .leaderboard-heading-row th:nth-child(2) {
