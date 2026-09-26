@@ -1488,6 +1488,34 @@ tr:last-child td {
 .rank-card-panel .button {
   font-size: 11px;
 }
+.prediction-share-panel {
+  background: linear-gradient(145deg, #e9eef8, #f8faff);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 20px;
+  text-align: center;
+}
+.prediction-share-panel > div:first-child p {
+  color: var(--muted);
+  font-size: 12px;
+  margin: 7px 0 18px;
+}
+.prediction-canvas {
+  width: 100%;
+  max-width: 330px;
+  aspect-ratio: 4 / 5;
+  background: var(--navy);
+  border-radius: 14px;
+  box-shadow: 0 16px 28px #0a18392b;
+  display: block;
+  margin: 0 auto 18px;
+}
+.prediction-share-panel .button-row {
+  justify-content: center;
+}
+.prediction-share-panel .button {
+  font-size: 11px;
+}
 .rules-layout {
   display: grid;
   grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr);

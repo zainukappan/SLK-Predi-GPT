@@ -24,6 +24,7 @@ import { useLanguage, action, ErrorMessage } from "./provider";
 import { canPredict, ist, type Lang } from "@/lib/domain";
 import { baseRules, type Key } from "@/lib/i18n";
 import type { Row } from "@/lib/db";
+import { PredictionShareCard, type SavedPrediction } from "./prediction-share-card";
 export const localized = (row: Row, prefix: string, lang: Lang) =>
   row[prefix + "_" + lang] || row[prefix + "_en"];
 export function PageTitle({
@@ -361,7 +362,7 @@ function ScoreControl({
     </div>
   );
 }
-function Prediction({ f, others }: { f: Row; others: Row[] }) {
+function Prediction({ f, others, profile, demo }: { f: Row; others: Row[]; profile: Row; demo: boolean }) {
   const { t, lang } = useLanguage(),
     router = useRouter();
   const [home, setHome] = useState(f.predicted_home ?? 0),
@@ -371,6 +372,15 @@ function Prediction({ f, others }: { f: Row; others: Row[] }) {
     [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
     [success, setSuccess] = useState(""),
+    [saved, setSaved] = useState<SavedPrediction | null>(
+      f.predicted_home === null ? null : {
+        home: f.predicted_home,
+        away: f.predicted_away,
+        winner: f.predicted_winner,
+        firstGoal: f.predicted_first_goal,
+        savedAt: f.saved_at,
+      },
+    ),
     [open, setOpen] = useState(false);
   useEffect(() => {
     const tick = () => setOpen(canPredict(f.status, f.kickoff));
@@ -429,6 +439,7 @@ function Prediction({ f, others }: { f: Row; others: Row[] }) {
                   first_goal: firstGoal,
                 });
                 setSuccess(ist(r.result.updated_at, lang));
+                setSaved({ home, away, winner, firstGoal, savedAt: r.result.updated_at });
                 router.refresh();
               } catch (e) {
                 setError((e as Error).message);
@@ -551,6 +562,7 @@ function Prediction({ f, others }: { f: Row; others: Row[] }) {
               </>
             )}
           </section>
+          {saved && <PredictionShareCard fixture={f} prediction={saved} displayName={profile.display_name} locked={!open} demo={demo} />}
           <section className="points-note">
             <Target />
             <h3>{t("scoring")}</h3>
@@ -860,7 +872,7 @@ export function Dashboard({
   const router = useRouter();
   if (section === "match")
     return (
-      <Prediction key={data.fixture.id} f={data.fixture} others={data.others} />
+      <Prediction key={data.fixture.id} f={data.fixture} others={data.others} profile={data.profile} demo={demo} />
     );
   if (section === "profile") return <Profile data={data} demo={demo} />;
   if (section === "rules")
