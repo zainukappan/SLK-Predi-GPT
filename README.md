@@ -83,8 +83,9 @@ Do not expose the local demo to the internet. A production instance requires you
 
    This is the only application-provided promotion path and records a bootstrap audit event. Users cannot change their own role. Admins cannot suspend other admins through the ordinary membership UI. Remove the owner credentials from any shared machine after setup.
 
-7. Sign in as organizer, enter genuine teams/rounds/fixtures, bilingual announcements and contact information. The Members tab can approve access requests or create an already-approved member using an email address or mobile number. Ten-digit mobile numbers are treated as Indian `+91` numbers; other numbers must include the international country code. A strong generated password is displayed once, so copy it and share it privately. Organizers can promote an approved member to admin from the same table; this grants full organizer access and is recorded in the private audit log.
-8. Run checks and build:
+7. Sign in as organizer, enter genuine teams/rounds/fixtures, bilingual announcements and contact information. The Members tab can approve requests or directly create an approved member. For mobile login, choose the international country code and enter only the national mobile number; the organizer sets the initial password. The member row allows an organizer to change that member's login number/email or reset their password. Passwords are handled only by Supabase Auth and are never stored in application tables or audit events. Organizers can also promote an approved member to admin; this grants full organizer access and is audited.
+8. If members submitted predictions through WhatsApp before the website was available, use **Admin → Enter past predictions**. Select the approved member and a fixture whose deadline has passed, then enter all three answers. The import is audited, preserves revision history on corrections, and immediately affects standings when the fixture already has a finalized result.
+9. Run checks and build:
 
    ```sh
    npm run typecheck

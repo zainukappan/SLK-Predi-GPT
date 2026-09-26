@@ -4,7 +4,7 @@ import { z } from "zod";
 import { authenticate, currentUser, logout, supabase } from "@/lib/auth";
 import { limited, localMode } from "@/lib/db";
 import { mutate, previewResult, schemas } from "@/lib/service";
-import { createManagedMember } from "@/lib/admin-members";
+import { createManagedMember, updateManagedMember } from "@/lib/admin-members";
 export const dynamic = "force-dynamic";
 export async function POST(request: NextRequest) {
   try {
@@ -87,6 +87,13 @@ export async function POST(request: NextRequest) {
         { headers: { "Cache-Control": "private, no-store" } },
       );
     }
+    if (kind === "updateMember") {
+      await limited("member-update:" + user.id, 30, 3600);
+      return NextResponse.json(
+        { ok: true, result: await updateManagedMember(user.id, data) },
+        { headers: { "Cache-Control": "private, no-store" } },
+      );
+    }
     if (!Object.hasOwn(schemas, kind)) throw new Error("invalid");
     const result = await mutate(user.id, kind, data);
     return NextResponse.json(
@@ -116,6 +123,10 @@ export async function POST(request: NextRequest) {
       "admin_auth_missing",
       "winner_score_mismatch",
       "first_goal_mismatch",
+      "identifier_kind_change",
+      "member_update_failed",
+      "prediction_not_locked",
+      "member_not_approved",
     ];
     const error = safe.find((s) => message.includes(s)) ?? "invalid";
     return NextResponse.json(

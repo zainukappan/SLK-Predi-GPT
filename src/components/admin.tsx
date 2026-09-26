@@ -15,6 +15,7 @@ import {
   UserPlus,
   Copy,
   KeyRound,
+  Pencil,
 } from "lucide-react";
 import { useLanguage, action, ErrorMessage } from "./provider";
 import { PageTitle, Pagination, localized } from "./dashboard";
@@ -29,6 +30,16 @@ type Field = {
     "text" | "number" | "datetime-local" | "checkbox" | "textarea" | "select";
   required?: boolean;
   options?: { value: string; label: string }[];
+};
+const countryCodes = [
+  ["IN", "+91"], ["AE", "+971"], ["QA", "+974"], ["SA", "+966"], ["KW", "+965"],
+  ["OM", "+968"], ["BH", "+973"], ["US/CA", "+1"], ["GB", "+44"], ["AU", "+61"],
+  ["SG", "+65"], ["MY", "+60"], ["DE", "+49"], ["FR", "+33"], ["IT", "+39"],
+  ["ES", "+34"], ["NL", "+31"], ["IE", "+353"], ["NZ", "+64"], ["PK", "+92"],
+] as const;
+const splitPhone = (value: string) => {
+  const code = [...countryCodes].map((x) => x[1]).sort((a,b)=>b.length-a.length).find((x)=>value.startsWith(x)) ?? "+91";
+  return { code, number: value.startsWith(code) ? value.slice(code.length) : value.replace(/^\+/, "") };
 };
 const localTime = (s: string) =>
   s
@@ -485,6 +496,44 @@ function Results({ data }: { data: Row }) {
     </section>
   );
 }
+function PredictionImport({ data }: { data: Row }) {
+  const { t, lang } = useLanguage();
+  const router = useRouter();
+  const [home, setHome] = useState(0), [away, setAway] = useState(0),
+    [fixtureId, setFixtureId] = useState(""),
+    [busy, setBusy] = useState(false), [error, setError] = useState(""), [done, setDone] = useState(false);
+  const fixture = data.fixtures.find((f: Row) => f.id === fixtureId);
+  return (
+    <section className="panel">
+      <h2>{t("importPrediction")}</h2>
+      <p>{t("importPredictionHelp")}</p>
+      <form onSubmit={async (e) => {
+        e.preventDefault(); setBusy(true); setError(""); setDone(false);
+        const form = new FormData(e.currentTarget);
+        try {
+          await action("adminPrediction", {
+            member_id: form.get("member_id"), fixture_id: form.get("fixture_id"),
+            home_goals: home, away_goals: away,
+            predicted_winner: form.get("predicted_winner"), first_goal: form.get("first_goal"),
+          });
+          setDone(true); router.refresh();
+        } catch (e) { setError((e as Error).message); } finally { setBusy(false); }
+      }}>
+        <div className="form-grid">
+          <label>{t("member")}<select name="member_id" required><option value="">—</option>{data.members.map((m: Row) => <option value={m.id} key={m.id}>{m.display_name} · {m.email}</option>)}</select></label>
+          <label>{t("selectFixture")}<select name="fixture_id" required value={fixtureId} onChange={(e)=>setFixtureId(e.target.value)}><option value="">—</option>{data.fixtures.map((f: Row) => <option value={f.id} key={f.id}>{localized(f,"home",lang)} – {localized(f,"away",lang)} · {ist(f.kickoff,lang)}</option>)}</select></label>
+          <label>{t("winnerQuestion")}<select name="predicted_winner" required disabled={!fixture}><option value="">—</option><option value="home">{fixture ? localized(fixture,"home",lang) : t("homeWin")}</option><option value="draw">{t("draw")}</option><option value="away">{fixture ? localized(fixture,"away",lang) : t("awayWin")}</option></select></label>
+          <label>{t("firstGoalQuestion")}<select name="first_goal" required disabled={!fixture}><option value="">—</option><option value="home">{fixture ? localized(fixture,"home",lang) : t("homeWin")}</option><option value="away">{fixture ? localized(fixture,"away",lang) : t("awayWin")}</option><option value="nobody">{t("nobody")}</option></select></label>
+          <label>{t("homeGoals")}<input type="number" min="0" max="20" value={home} onChange={(e)=>setHome(Number(e.target.value))} required /></label>
+          <label>{t("awayGoals")}<input type="number" min="0" max="20" value={away} onChange={(e)=>setAway(Number(e.target.value))} required /></label>
+        </div>
+        <ErrorMessage message={error} />
+        {done && <p className="message success" role="status">{t("predictionImported")}</p>}
+        <button className="button primary" disabled={busy}>{busy ? t("saving") : t("savePrediction")}</button>
+      </form>
+    </section>
+  );
+}
 export function Admin({
   data,
   query,
@@ -504,16 +553,19 @@ export function Admin({
     } | null>(null),
     [review, setReview] = useState<Row | null>(null),
     [newMember, setNewMember] = useState(false),
+    [editMember, setEditMember] = useState<Row | null>(null),
     [credentials, setCredentials] = useState<Row | null>(null),
+    [newAccountType, setNewAccountType] = useState<"phone" | "email">("phone"),
     [promote, setPromote] = useState<Row | null>(null),
     [copied, setCopied] = useState(false),
     [selected, setSelected] = useState<string[]>([]),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false);
-  useDialog(Boolean(review || newMember || promote), () => {
+  useDialog(Boolean(review || newMember || editMember || promote), () => {
     if (!busy) {
       setReview(null);
       setNewMember(false);
+      setEditMember(null);
       setPromote(null);
     }
   });
@@ -524,6 +576,7 @@ export function Admin({
     "rounds",
     "fixtures",
     "results",
+    "predictions",
     "content",
     "reports",
     "audit",
@@ -607,7 +660,7 @@ export function Admin({
             className={tab === key ? "active" : ""}
             key={key}
           >
-            {t(key as Key)}
+            {t((key === "predictions" ? "importPrediction" : key) as Key)}
           </Link>
         ))}
       </nav>
@@ -761,12 +814,14 @@ export function Admin({
                       <td>
                         <div className="button-row">
                           {m.role !== "admin" && (
-                            <button
-                              className="button secondary small"
-                              onClick={() => setReview({ ...m, ids: [m.id] })}
-                            >
-                              {t("review")}
-                            </button>
+                            <>
+                              <button className="button secondary small" onClick={() => setEditMember(m)}>
+                                <Pencil size={15} /> {t("editCredentials")}
+                              </button>
+                              <button className="button secondary small" onClick={() => setReview({ ...m, ids: [m.id] })}>
+                                {t("review")}
+                              </button>
+                            </>
                           )}
                           {m.role === "member" && m.membership === "approved" && (
                             <button
@@ -907,6 +962,7 @@ export function Admin({
         </>
       )}
       {tab === "results" && <Results key={data.page} data={data} />}
+      {tab === "predictions" && <PredictionImport data={data} />}
       {tab === "content" && (
         <>
           <div className="section-heading">
@@ -1053,7 +1109,10 @@ export function Admin({
                   try {
                     const response = await action("createMember", {
                       display_name: form.get("display_name"),
-                      identifier: form.get("identifier"),
+                      identifier: newAccountType === "phone"
+                        ? String(form.get("country_code")) + String(form.get("mobile")).replace(/\D/g, "")
+                        : form.get("email"),
+                      password: form.get("password"),
                       language: form.get("language"),
                     });
                     setCredentials(response.result);
@@ -1068,7 +1127,12 @@ export function Admin({
                 <p className="fine">{t("addMemberHelp")}</p>
                 <div className="form-grid">
                   <label>{t("display_name")}<input name="display_name" required minLength={2} maxLength={50} /></label>
-                  <label>{t("accountLogin")}<input name="identifier" required autoComplete="username" maxLength={254} /></label>
+                  <label>{t("accountType")}<select value={newAccountType} onChange={(e)=>setNewAccountType(e.target.value as "phone"|"email")}><option value="phone">{t("mobileNumber")}</option><option value="email">{t("email")}</option></select></label>
+                  {newAccountType === "phone" ? <>
+                    <label>{t("countryCode")}<select name="country_code" defaultValue="+91">{countryCodes.map(([country,code])=><option value={code} key={country+code}>{country} {code}</option>)}</select></label>
+                    <label>{t("mobileNumber")}<input name="mobile" required inputMode="numeric" pattern="[0-9 ]{6,15}" autoComplete="tel-national" /></label>
+                  </> : <label>{t("email")}<input name="email" type="email" required autoComplete="email" maxLength={254} /></label>}
+                  <label>{t("password")}<input name="password" type="password" required minLength={10} maxLength={128} autoComplete="new-password" /></label>
                   <label>{t("language")}<select name="language"><option value="en">English</option><option value="ml">മലയാളം</option></select></label>
                 </div>
                 <ErrorMessage message={error} />
@@ -1080,6 +1144,30 @@ export function Admin({
           </section>
         </div>
       )}
+      {editMember && (() => {
+        const phone = String(editMember.email).startsWith("+") ? splitPhone(editMember.email) : null;
+        return <div className="modal-backdrop">
+          <section className="modal" role="dialog" aria-modal="true" aria-label={t("editCredentials")}>
+            <div className="section-heading"><h2>{t("editCredentials")} · {editMember.display_name}</h2><button className="icon-button" aria-label={t("close")} onClick={()=>setEditMember(null)}><X /></button></div>
+            <p className="fine">{t("editCredentialsHelp")}</p>
+            <form onSubmit={async(e)=>{
+              e.preventDefault(); setBusy(true); setError(""); const form=new FormData(e.currentTarget);
+              try {
+                const identifier = phone ? String(form.get("country_code"))+String(form.get("mobile")).replace(/\D/g,"") : form.get("email");
+                await action("updateMember", { member_id:editMember.id, identifier, password:form.get("password") });
+                setEditMember(null); router.refresh();
+              } catch(e){ setError((e as Error).message); } finally { setBusy(false); }
+            }}>
+              <div className="form-grid">
+                {phone ? <><label>{t("countryCode")}<select name="country_code" defaultValue={phone.code}>{countryCodes.map(([country,code])=><option value={code} key={country+code}>{country} {code}</option>)}</select></label><label>{t("mobileNumber")}<input name="mobile" defaultValue={phone.number} required inputMode="numeric" pattern="[0-9 ]{6,15}" /></label></> : <label>{t("email")}<input name="email" type="email" defaultValue={editMember.email} required /></label>}
+                <label>{t("newPasswordOptional")}<input name="password" type="password" minLength={10} maxLength={128} autoComplete="new-password" /></label>
+              </div>
+              <ErrorMessage message={error} />
+              <button className="button primary" disabled={busy}>{busy?t("saving"):t("save")}</button>
+            </form>
+          </section>
+        </div>;
+      })()}
       {promote && (
         <div className="modal-backdrop">
           <section className="modal" role="dialog" aria-modal="true" aria-label={t("promoteAdmin")}>

@@ -89,7 +89,7 @@ test("only an approved admin can promote an approved member and the change is au
   );
   assert.equal(promoted.rows[0].role, "admin");
   const audit = await db.query<{ after_value: { role: string } }>(
-    "SELECT after_value FROM sbk.admin_audit_events WHERE target='profiles' AND target_id=$1 ORDER BY created_at DESC LIMIT 1",
+    "SELECT after_value FROM sbk.admin_audit_events WHERE target='profiles' AND after_value->>'id'=$1 ORDER BY created_at DESC LIMIT 1",
     [bob],
   );
   assert.equal(audit.rows[0].after_value.role, "admin");
@@ -224,6 +224,23 @@ test("database deadline, idempotency, revision history, rescheduling, postponeme
     tx.query("UPDATE sbk.fixtures SET status='scheduled' WHERE id=$1", [f]),
   );
   await predict(alice, f, 2, 0);
+});
+test("admin can import a locked WhatsApp prediction and update a member identifier", async () => {
+  const f = await fixture();
+  await assert.rejects(
+    as(admin, (tx) => tx.query("SELECT sbk.admin_upsert_prediction($1,$2,2,1,'home','home')", [alice, f])),
+    /prediction_not_locked/,
+  );
+  await as(admin, (tx) => tx.query("UPDATE sbk.fixtures SET kickoff=clock_timestamp()-interval '1 hour',status='awaiting_result',schedule_note_en='Played',schedule_note_ml='കളിച്ചു' WHERE id=$1", [f]));
+  await as(admin, (tx) => tx.query("SELECT sbk.admin_upsert_prediction($1,$2,2,1,'home','home')", [alice, f]));
+  assert.equal(Number((await db.query<{ count: number }>("SELECT count(*) FROM sbk.predictions WHERE fixture_id=$1 AND member_id=$2", [f, alice])).rows[0].count), 1);
+  await assert.rejects(
+    as(admin, (tx) => tx.query("SELECT sbk.admin_upsert_prediction($1,$2,0,0,'draw','nobody')", [pending, f])),
+    /member_not_approved/,
+  );
+  await assert.rejects(as(alice, (tx) => tx.query("SELECT sbk.admin_update_identifier($1,$2)", [alice, "new@test.example"])), /forbidden/);
+  await as(admin, (tx) => tx.query("SELECT sbk.admin_update_identifier($1,$2)", [alice, "new@test.example"]));
+  assert.equal((await db.query<{ email: string }>("SELECT email FROM sbk.profiles WHERE id=$1", [alice])).rows[0].email, "new@test.example");
 });
 test("transactional finalization and correction recompute ranks with a private history", async () => {
   const f = await fixture();

@@ -23,6 +23,14 @@ export const schemas = {
     note: text,
   }),
   promote: z.object({ member_id: uuid }),
+  adminPrediction: z.object({
+    member_id: uuid,
+    fixture_id: uuid,
+    home_goals: goals,
+    away_goals: goals,
+    predicted_winner: z.enum(["home", "draw", "away"]),
+    first_goal: z.enum(["home", "away", "nobody"]),
+  }),
   teams: z.object({
     id: uuid.optional(),
     name_en: name,
@@ -259,6 +267,14 @@ export async function loadData(
         data.hasNext = data.members.length > 30;
         data.members = data.members.slice(0, 30);
       }
+      if (tab === "predictions") {
+        data.members = (
+          await db.query("SELECT id,display_name,email FROM sbk.profiles WHERE membership='approved' AND role='member' ORDER BY display_name LIMIT 500")
+        ).rows;
+        data.fixtures = (
+          await db.query(fixtureSelect + " WHERE (f.deadline<=clock_timestamp() OR f.status<>'scheduled') AND f.status<>'cancelled' ORDER BY f.kickoff DESC LIMIT 250")
+        ).rows;
+      }
       if (["teams", "fixtures", "results"].includes(tab))
         data.teams = (
           await db.query("SELECT * FROM sbk.teams ORDER BY name_en LIMIT 250")
@@ -342,6 +358,14 @@ export async function mutate(
     if (kind === "promote") {
       await db.query("SELECT sbk.promote_member($1)", [value.member_id]);
       return {};
+    }
+    if (kind === "adminPrediction") {
+      return (
+        await db.query("SELECT sbk.admin_upsert_prediction($1,$2,$3,$4,$5,$6) id", [
+          value.member_id, value.fixture_id, value.home_goals, value.away_goals,
+          value.predicted_winner, value.first_goal,
+        ])
+      ).rows[0];
     }
     if (kind === "results") {
       await db.query("SELECT id FROM sbk.fixtures WHERE id=$1 FOR UPDATE", [
