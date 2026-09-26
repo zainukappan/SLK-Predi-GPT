@@ -60,7 +60,8 @@ test("complete community flow, deadline enforcement, admin result and bilingual 
     adminPassword = credentials
       .match(/Password \(all accounts\): (.+)/)![1]
       .trim();
-  await admin.getByLabel("Email address or mobile number").fill("admin@sbk.test");
+  await admin.getByLabel("Login type").selectOption("email");
+  await admin.getByRole("textbox", { name: "Email address", exact: true }).fill("admin@sbk.test");
   await admin
     .getByLabel("Password (at least 10 characters)")
     .fill(adminPassword);

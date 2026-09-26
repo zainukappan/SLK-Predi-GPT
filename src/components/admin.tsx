@@ -23,6 +23,8 @@ import { ist } from "@/lib/domain";
 import { useDialog } from "./use-dialog";
 import type { Key } from "@/lib/i18n";
 import type { Row } from "@/lib/db";
+import { countryCodes, splitPhone } from "@/lib/countries";
+import { PasswordInput } from "./password-input";
 type Field = {
   name: string;
   label?: Key;
@@ -30,16 +32,6 @@ type Field = {
     "text" | "number" | "datetime-local" | "checkbox" | "textarea" | "select";
   required?: boolean;
   options?: { value: string; label: string }[];
-};
-const countryCodes = [
-  ["IN", "+91"], ["AE", "+971"], ["QA", "+974"], ["SA", "+966"], ["KW", "+965"],
-  ["OM", "+968"], ["BH", "+973"], ["US/CA", "+1"], ["GB", "+44"], ["AU", "+61"],
-  ["SG", "+65"], ["MY", "+60"], ["DE", "+49"], ["FR", "+33"], ["IT", "+39"],
-  ["ES", "+34"], ["NL", "+31"], ["IE", "+353"], ["NZ", "+64"], ["PK", "+92"],
-] as const;
-const splitPhone = (value: string) => {
-  const code = [...countryCodes].map((x) => x[1]).sort((a,b)=>b.length-a.length).find((x)=>value.startsWith(x)) ?? "+91";
-  return { code, number: value.startsWith(code) ? value.slice(code.length) : value.replace(/^\+/, "") };
 };
 const localTime = (s: string) =>
   s
@@ -1132,7 +1124,7 @@ export function Admin({
                     <label>{t("countryCode")}<select name="country_code" defaultValue="+91">{countryCodes.map(([country,code])=><option value={code} key={country+code}>{country} {code}</option>)}</select></label>
                     <label>{t("mobileNumber")}<input name="mobile" required inputMode="numeric" pattern="[0-9 ]{6,15}" autoComplete="tel-national" /></label>
                   </> : <label>{t("email")}<input name="email" type="email" required autoComplete="email" maxLength={254} /></label>}
-                  <label>{t("password")}<input name="password" type="password" required minLength={10} maxLength={128} autoComplete="new-password" /></label>
+                  <label>{t("password")}<PasswordInput name="password" required minLength={10} maxLength={128} autoComplete="new-password" /></label>
                   <label>{t("language")}<select name="language"><option value="en">English</option><option value="ml">മലയാളം</option></select></label>
                 </div>
                 <ErrorMessage message={error} />
@@ -1154,13 +1146,14 @@ export function Admin({
               e.preventDefault(); setBusy(true); setError(""); const form=new FormData(e.currentTarget);
               try {
                 const identifier = phone ? String(form.get("country_code"))+String(form.get("mobile")).replace(/\D/g,"") : form.get("email");
-                await action("updateMember", { member_id:editMember.id, identifier, password:form.get("password") });
+                await action("updateMember", { member_id:editMember.id, display_name:form.get("display_name"), identifier, password:form.get("password") });
                 setEditMember(null); router.refresh();
               } catch(e){ setError((e as Error).message); } finally { setBusy(false); }
             }}>
               <div className="form-grid">
+                <label>{t("display_name")}<input name="display_name" defaultValue={editMember.display_name} required minLength={2} maxLength={50} /></label>
                 {phone ? <><label>{t("countryCode")}<select name="country_code" defaultValue={phone.code}>{countryCodes.map(([country,code])=><option value={code} key={country+code}>{country} {code}</option>)}</select></label><label>{t("mobileNumber")}<input name="mobile" defaultValue={phone.number} required inputMode="numeric" pattern="[0-9 ]{6,15}" /></label></> : <label>{t("email")}<input name="email" type="email" defaultValue={editMember.email} required /></label>}
-                <label>{t("newPasswordOptional")}<input name="password" type="password" minLength={10} maxLength={128} autoComplete="new-password" /></label>
+                <label>{t("newPasswordOptional")}<PasswordInput name="password" minLength={10} maxLength={128} autoComplete="new-password" /></label>
               </div>
               <ErrorMessage message={error} />
               <button className="button primary" disabled={busy}>{busy?t("saving"):t("save")}</button>

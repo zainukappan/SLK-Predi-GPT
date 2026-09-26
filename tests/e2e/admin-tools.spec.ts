@@ -8,7 +8,8 @@ test("organizer teams, rounds, bilingual announcements, rules history and report
   const password = credentials
     .match(/Password \(all accounts\): (.+)/)![1]
     .trim();
-  await page.getByLabel("Email address or mobile number").fill("admin@sbk.test");
+  await page.getByLabel("Login type").selectOption("email");
+  await page.getByRole("textbox", { name: "Email address", exact: true }).fill("admin@sbk.test");
   await page.getByLabel("Password (at least 10 characters)").fill(password);
   await page
     .locator("form")

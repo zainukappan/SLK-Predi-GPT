@@ -13,6 +13,7 @@ const inputSchema = z.object({
 });
 const updateSchema = z.object({
   member_id: z.string().uuid(),
+  display_name: z.string().trim().min(2).max(50),
   identifier: z.string().trim().min(8).max(254),
   password: z.union([z.literal(""), z.string().min(10).max(128)]),
 });
@@ -94,7 +95,7 @@ export async function updateManagedMember(adminId: string, input: unknown) {
   const identifier = normalizeAccountIdentifier(value.identifier);
   const target = await transaction(adminId, async (db) => {
     await memberGuard(db, adminId, true);
-    const profile = (await db.query("SELECT id,email,role FROM sbk.profiles WHERE id=$1", [value.member_id])).rows[0];
+    const profile = (await db.query("SELECT id,email,display_name,role FROM sbk.profiles WHERE id=$1", [value.member_id])).rows[0];
     if (!profile || profile.role !== "member") throw new Error("admin_protected");
     return profile;
   });
@@ -104,7 +105,7 @@ export async function updateManagedMember(adminId: string, input: unknown) {
   if (localMode()) {
     const db = await localDB();
     await db.transaction(async (tx) => {
-      await tx.query("UPDATE sbk.profiles SET email=$1 WHERE id=$2", [identifier.value, value.member_id]);
+      await tx.query("UPDATE sbk.profiles SET email=$1, display_name=$2 WHERE id=$3", [identifier.value, value.display_name, value.member_id]);
       if (value.password) {
         const salt = randomBytes(16).toString("hex");
         await tx.query("UPDATE sbk.local_credentials SET password_hash=$1 WHERE member_id=$2", [
@@ -116,24 +117,33 @@ export async function updateManagedMember(adminId: string, input: unknown) {
   }
 
   const admin = adminClient();
-  const attributes: Record<string, unknown> = value.password ? { password: value.password } : {};
+  const { data: authUser, error: authReadError } = await admin.auth.admin.getUserById(value.member_id);
+  if (authReadError || !authUser.user) throw new Error("member_update_failed");
+  const attributes: Record<string, unknown> = {
+    user_metadata: { ...authUser.user.user_metadata, display_name: value.display_name },
+    ...(value.password ? { password: value.password } : {}),
+  };
   if (identifier.value !== previous.value) {
     if (identifier.kind === "email") Object.assign(attributes, { email: identifier.value, email_confirm: true });
     else Object.assign(attributes, { phone: identifier.value, phone_confirm: true });
   }
   const { error } = await admin.auth.admin.updateUserById(value.member_id, attributes);
   if (error) throw new Error(error.message.toLowerCase().includes("already") ? "account_exists" : "member_update_failed");
-  if (identifier.value !== previous.value) {
-    try {
-      await transaction(adminId, async (db) => {
-        await memberGuard(db, adminId, true);
+  try {
+    await transaction(adminId, async (db) => {
+      await memberGuard(db, adminId, true);
+      await db.query("UPDATE sbk.profiles SET display_name=$1 WHERE id=$2", [value.display_name, value.member_id]);
+      if (identifier.value !== previous.value) {
         await db.query("SELECT sbk.admin_update_identifier($1,$2)", [value.member_id, identifier.value]);
-      });
-    } catch (error) {
-      const rollback = previous.kind === "email" ? { email: previous.value, email_confirm: true } : { phone: previous.value, phone_confirm: true };
-      await admin.auth.admin.updateUserById(value.member_id, rollback);
-      throw error;
-    }
+      }
+    });
+  } catch (error) {
+    const rollback = {
+      ...(previous.kind === "email" ? { email: previous.value, email_confirm: true } : { phone: previous.value, phone_confirm: true }),
+      user_metadata: { ...authUser.user.user_metadata, display_name: target.display_name },
+    };
+    await admin.auth.admin.updateUserById(value.member_id, rollback);
+    throw error;
   }
   return { identifier: identifier.value };
 }

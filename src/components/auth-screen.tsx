@@ -3,6 +3,8 @@ import { useState } from "react";
 import { ArrowRight, ShieldCheck, Users, Target, Clock3 } from "lucide-react";
 import { action, ErrorMessage, LanguageSwitch, useLanguage } from "./provider";
 import type { Row } from "@/lib/db";
+import { countryCodes } from "@/lib/countries";
+import { PasswordInput } from "./password-input";
 export function AuthScreen({
   user,
   demo,
@@ -13,6 +15,7 @@ export function AuthScreen({
   const { t, lang } = useLanguage();
   const [mode, setMode] = useState<"login" | "register" | "reset">("login"),
     [busy, setBusy] = useState(false),
+    [loginType, setLoginType] = useState<"phone" | "email">("phone"),
     [error, setError] = useState(""),
     [message, setMessage] = useState("");
   return (
@@ -118,8 +121,11 @@ export function AuthScreen({
                   setMessage("");
                   const f = new FormData(event.currentTarget);
                   try {
+                    const identifier = mode === "login" && loginType === "phone"
+                      ? String(f.get("country_code")) + String(f.get("mobile")).replace(/\D/g, "")
+                      : f.get("email");
                     const result = await action(mode, {
-                      email: f.get("email"),
+                      email: identifier,
                       password: f.get("password") ?? undefined,
                       display_name: f.get("display_name") ?? undefined,
                       language: lang,
@@ -146,22 +152,31 @@ export function AuthScreen({
                     />
                   </label>
                 )}
-                <label>
-                  {t(mode === "login" ? "accountIdentifier" : "email")}
-                  <input
-                    name="email"
-                    type={mode === "login" ? "text" : "email"}
-                    required
-                    autoComplete={mode === "login" ? "username" : "email"}
-                    maxLength={254}
-                  />
-                </label>
+                {mode === "login" && (
+                  <label>
+                    {t("accountType")}
+                    <select value={loginType} onChange={(event) => setLoginType(event.target.value as "phone" | "email")}>
+                      <option value="phone">{t("mobileNumber")}</option>
+                      <option value="email">{t("email")}</option>
+                    </select>
+                  </label>
+                )}
+                {mode === "login" && loginType === "phone" ? (
+                  <div className="phone-input-row">
+                    <label>{t("countryCode")}<select name="country_code" defaultValue="+91">{countryCodes.map(([country, code]) => <option value={code} key={country + code}>{country} {code}</option>)}</select></label>
+                    <label>{t("mobileNumber")}<input name="mobile" required inputMode="numeric" pattern="[0-9 ]{6,15}" autoComplete="tel-national" /></label>
+                  </div>
+                ) : (
+                  <label>
+                    {t("email")}
+                    <input name="email" type="email" required autoComplete="email" maxLength={254} />
+                  </label>
+                )}
                 {mode !== "reset" && (
                   <label>
                     {t("password")}
-                    <input
+                    <PasswordInput
                       name="password"
-                      type="password"
                       required
                       minLength={10}
                       maxLength={128}

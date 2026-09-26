@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { action, ErrorMessage, useLanguage } from "@/components/provider";
+import { PasswordInput } from "@/components/password-input";
 export default function Reset() {
   const { t } = useLanguage(),
     [error, setError] = useState(""),
@@ -27,8 +28,7 @@ export default function Reset() {
         >
           <label>
             {t("newPassword")}
-            <input
-              type="password"
+            <PasswordInput
               name="password"
               autoComplete="new-password"
               required

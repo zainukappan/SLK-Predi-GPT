@@ -30,6 +30,45 @@ select,
 textarea {
   font: inherit;
 }
+.password-input {
+  display: block;
+  position: relative;
+}
+.password-input input {
+  padding-right: 48px;
+}
+.password-toggle {
+  position: absolute;
+  right: 5px;
+  top: 50%;
+  width: 38px;
+  height: 38px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  transform: translateY(-50%);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+.password-toggle:hover {
+  background: #eef2f8;
+  color: var(--ink);
+}
+.password-toggle:focus-visible {
+  outline: 3px solid var(--yellow);
+  outline-offset: 1px;
+}
+.password-toggle svg {
+  width: 19px;
+  height: 19px;
+}
+.phone-input-row {
+  display: grid;
+  grid-template-columns: minmax(112px, 0.8fr) minmax(0, 1.7fr);
+  gap: 12px;
+}
 button,
 a,
 input,
@@ -2433,6 +2472,9 @@ html[lang="ml"] .sidebar nav a {
   }
   .form-grid {
     grid-template-columns: 1fr;
+  }
+  .phone-input-row {
+    grid-template-columns: minmax(104px, 0.85fr) minmax(0, 1.65fr);
   }
   .span-two {
     grid-column: auto;
