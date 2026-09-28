@@ -125,6 +125,7 @@ export async function loadPublicSportsData() {
     fixtures: (await db.query("SELECT * FROM sbk.public_fixtures()")).rows,
     table: (await db.query("SELECT * FROM sbk.public_points_table() ORDER BY table_position,name_en")).rows,
     players: (await db.query("SELECT * FROM sbk.public_player_stats()")).rows,
+    rounds: (await db.query("SELECT * FROM sbk.public_rounds()")).rows,
     predictions: (await db.query("SELECT * FROM sbk.public_prediction_standings()")).rows,
     events: (await db.query("SELECT * FROM sbk.public_match_events()")).rows,
     generatedAt: new Date().toISOString(),

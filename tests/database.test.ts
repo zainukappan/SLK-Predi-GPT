@@ -332,6 +332,7 @@ test("public football functions expose safe standings and finalized player stati
     players: (await tx.query("SELECT * FROM sbk.public_player_stats() WHERE player_id=ANY($1::uuid[])", [[scorer, assister]])).rows,
     events: (await tx.query("SELECT * FROM sbk.public_match_events() WHERE fixture_id=$1", [f])).rows,
     predictions: (await tx.query("SELECT * FROM sbk.public_prediction_standings() LIMIT 1")).rows,
+    rounds: (await tx.query("SELECT * FROM sbk.public_rounds() WHERE id=$1", [round])).rows,
   })) as any;
   assert.equal(publicData.fixtures.length, 1);
   assert.ok(Number(publicData.table[0].played) >= 1);
@@ -339,6 +340,8 @@ test("public football functions expose safe standings and finalized player stati
   assert.equal(Number(publicData.players.find((row: any) => row.player_id === assister).assists), 1);
   assert.equal(publicData.events[0].scorer_en, "Public Scorer");
   assert.ok(!("email" in publicData.predictions[0]));
+  assert.ok("round_points" in publicData.predictions[0]);
+  assert.equal(publicData.rounds[0].name_en, "Round");
   const anonymousDirect = await as(null, (tx) => tx.query("SELECT * FROM sbk.match_events")) as any;
   assert.equal(anonymousDirect.rows.length, 0);
 });
