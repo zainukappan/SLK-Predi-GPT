@@ -107,6 +107,11 @@ export const schemas = {
       added_time: z.number().int().min(0).max(30),
       event_type: z.enum(["goal", "penalty", "own_goal"]),
     })).max(40).default([]),
+    shootout_kicks: z.array(z.object({
+      team_id: uuid,
+      player_id: uuid,
+      scored: z.boolean(),
+    })).max(40).default([]),
   }),
   announcements: z.object({
     id: uuid.optional(),
@@ -134,6 +139,7 @@ export async function loadPublicSportsData() {
     predictions: (await db.query("SELECT * FROM sbk.public_prediction_standings()")).rows,
     memberPredictions: (await db.query("SELECT * FROM sbk.public_locked_predictions()")).rows,
     events: (await db.query("SELECT * FROM sbk.public_match_events()")).rows,
+    shootoutKicks: (await db.query("SELECT * FROM sbk.public_shootout_kicks()")).rows,
     generatedAt: new Date().toISOString(),
   }));
 }
@@ -391,6 +397,9 @@ export async function loadData(
           data.goalEvents = (
             await db.query("SELECT * FROM sbk.match_events WHERE fixture_id=ANY($1::uuid[]) ORDER BY fixture_id,sort_order,minute", [data.fixtures.map((f: Row) => f.id)])
           ).rows;
+          data.shootoutKicks = (
+            await db.query("SELECT * FROM sbk.shootout_kicks WHERE fixture_id=ANY($1::uuid[]) ORDER BY fixture_id,sort_order", [data.fixtures.map((f: Row) => f.id)])
+          ).rows;
         }
       }
       if (tab === "content") {
@@ -496,6 +505,16 @@ export async function mutate(
       const awayEvents = value.goal_events.filter((event: Row) => event.team_id === dataFixture.away_id).length;
       if (homeEvents !== value.home_goals || awayEvents !== value.away_goals)
         throw new Error("goal_event_count_mismatch");
+      if (value.home_goals !== value.away_goals && value.shootout_kicks.length)
+        throw new Error("shootout_kick_mismatch");
+      if (value.home_goals === value.away_goals) {
+        const homeShootoutGoals = value.shootout_kicks.filter((kick: Row) => kick.team_id === dataFixture.home_id && kick.scored).length;
+        const awayShootoutGoals = value.shootout_kicks.filter((kick: Row) => kick.team_id === dataFixture.away_id && kick.scored).length;
+        if (!value.shootout_kicks.length) throw new Error("shootout_kicks_required");
+        if ((value.shootout_winner === "home" && homeShootoutGoals <= awayShootoutGoals) ||
+            (value.shootout_winner === "away" && awayShootoutGoals <= homeShootoutGoals))
+          throw new Error("shootout_kick_mismatch");
+      }
       const result = (
         await db.query(
           "INSERT INTO sbk.results(fixture_id,home_goals,away_goals,winner,first_goal,shootout_winner,reason,updated_by) VALUES($1,$2,$3,$4,$5,$6,$7,$8) ON CONFLICT(fixture_id) DO UPDATE SET home_goals=EXCLUDED.home_goals,away_goals=EXCLUDED.away_goals,winner=EXCLUDED.winner,first_goal=EXCLUDED.first_goal,shootout_winner=EXCLUDED.shootout_winner,reason=EXCLUDED.reason,updated_by=EXCLUDED.updated_by RETURNING *",
@@ -516,6 +535,12 @@ export async function mutate(
         await db.query(
           "INSERT INTO sbk.match_events(fixture_id,team_id,scorer_id,assist_id,minute,added_time,event_type,sort_order,updated_by) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)",
           [value.fixture_id,event.team_id,event.scorer_id,event.assist_id,event.minute,event.added_time,event.event_type,index,id],
+        );
+      await db.query("DELETE FROM sbk.shootout_kicks WHERE fixture_id=$1", [value.fixture_id]);
+      for (const [index, kick] of value.shootout_kicks.entries())
+        await db.query(
+          "INSERT INTO sbk.shootout_kicks(fixture_id,team_id,player_id,scored,sort_order,updated_by) VALUES($1,$2,$3,$4,$5,$6)",
+          [value.fixture_id,kick.team_id,kick.player_id,kick.scored,index,id],
         );
       return result;
     }

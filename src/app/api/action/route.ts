@@ -140,6 +140,9 @@ export async function POST(request: NextRequest) {
       "member_not_approved",
       "goal_event_count_mismatch",
       "invalid_match_event",
+      "invalid_shootout_kick",
+      "shootout_kicks_required",
+      "shootout_kick_mismatch",
     ];
     const error = safe.find((s) => message.includes(s)) ?? "invalid";
     return NextResponse.json(

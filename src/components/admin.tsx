@@ -287,6 +287,7 @@ function Results({ data }: { data: Row }) {
     [firstGoal, setFirstGoal] = useState(""),
     [shootoutWinner, setShootoutWinner] = useState(""),
     [goalEvents, setGoalEvents] = useState<Row[]>([]),
+    [shootoutKicks, setShootoutKicks] = useState<Row[]>([]),
     [reason, setReason] = useState(""),
     [preview, setPreview] = useState<Row[] | null>(null),
     [error, setError] = useState(""),
@@ -347,6 +348,7 @@ function Results({ data }: { data: Row }) {
               setFirstGoal(f?.result_first_goal ?? "");
               setShootoutWinner(f?.result_shootout_winner ?? "");
               const existing=(data.goalEvents ?? []).filter((event:Row)=>event.fixture_id===f?.id);
+              setShootoutKicks((data.shootoutKicks ?? []).filter((kick:Row)=>kick.fixture_id===f?.id));
               if(f) fitEvents(f.result_home??0,f.result_away??0,f,existing);
               else setGoalEvents([]);
               setReason("");
@@ -394,7 +396,7 @@ function Results({ data }: { data: Row }) {
                   value={home}
                   onChange={(e) => {
                     const value=Number(e.target.value);setHome(value);fitEvents(value,away,fixture,goalEvents);
-                    if(value!==away) setShootoutWinner("");
+                    if(value!==away) { setShootoutWinner(""); setShootoutKicks([]); }
                     setPreview(null);
                   }}
                 />
@@ -410,7 +412,7 @@ function Results({ data }: { data: Row }) {
                   value={away}
                   onChange={(e) => {
                     const value=Number(e.target.value);setAway(value);fitEvents(home,value,fixture,goalEvents);
-                    if(home!==value) setShootoutWinner("");
+                    if(home!==value) { setShootoutWinner(""); setShootoutKicks([]); }
                     setPreview(null);
                   }}
                 />
@@ -442,6 +444,27 @@ function Results({ data }: { data: Row }) {
                 </fieldset>;
               })}
             </div>
+            {home === away && <div className="shootout-editor">
+              <div className="section-heading">
+                <div><h3>{t("shootoutKicks")}</h3><small>{t("shootoutKicksHelp")}</small></div>
+                <button type="button" className="button secondary small" onClick={() => {
+                  setShootoutKicks([...shootoutKicks,{team_id:shootoutKicks.length%2===0?fixture.home_id:fixture.away_id,player_id:"",scored:true}]);
+                  setPreview(null);
+                }}><Plus size={16}/>{t("addKick")}</button>
+              </div>
+              {shootoutKicks.map((kick,index)=>{
+                const players=data.players.filter((p:Row)=>p.team_id===kick.team_id);
+                const update=(change:Row)=>{setShootoutKicks(shootoutKicks.map((item,i)=>i===index?{...item,...change}:item));setPreview(null);};
+                return <fieldset className="shootout-kick-row" key={index}>
+                  <legend>{t("spotKick")} {index+1}</legend>
+                  <label>{t("team_id")}<select value={kick.team_id} onChange={e=>update({team_id:e.target.value,player_id:""})}><option value={fixture.home_id}>{localized(fixture,"home",lang)}</option><option value={fixture.away_id}>{localized(fixture,"away",lang)}</option></select></label>
+                  <label>{t("scorer")}<select required value={kick.player_id} onChange={e=>update({player_id:e.target.value})}><option value="">—</option>{players.map((p:Row)=><option key={p.id} value={p.id}>{localized(p,"name",lang)}{p.shirt_number?` · #${p.shirt_number}`:""}</option>)}</select></label>
+                  <label>{t("kickResult")}<select value={kick.scored?"scored":"missed"} onChange={e=>update({scored:e.target.value==="scored"})}><option value="scored">{t("kickScored")}</option><option value="missed">{t("kickMissed")}</option></select></label>
+                  <button type="button" className="icon-button danger" aria-label={t("removeKick")} onClick={()=>{setShootoutKicks(shootoutKicks.filter((_,i)=>i!==index));setPreview(null);}}><Trash2 size={17}/></button>
+                </fieldset>;
+              })}
+              {!shootoutKicks.length&&<p className="fine">{t("noShootoutKicks")}</p>}
+            </div>}
             <label>
               {t("resultReason")}
               <textarea
@@ -516,6 +539,7 @@ function Results({ data }: { data: Row }) {
                   shootout_winner: home === away ? shootoutWinner || null : null,
                   reason,
                   goal_events: goalEvents,
+                  shootout_kicks: shootoutKicks,
                 });
                 setPreview(null);
                 setDone(true);

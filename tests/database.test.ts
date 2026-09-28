@@ -395,6 +395,42 @@ test("public football functions expose safe standings and finalized player stati
   assert.equal(anonymousDirect.rows.length, 0);
 });
 
+test("scored shootout kicks count in public top-scorer statistics", async () => {
+  const homePlayer = randomUUID(), awayPlayer = randomUUID(), f = await fixture();
+  await as(admin, (tx) => tx.query(
+    "INSERT INTO sbk.players(id,team_id,name_en,name_ml,shirt_number) VALUES($1,$3,'Home Taker','ഹോം കിക്കർ',7),($2,$4,'Away Taker','എവേ കിക്കർ',8)",
+    [homePlayer, awayPlayer, home, away],
+  ));
+  await as(admin, (tx) => tx.query(
+    "UPDATE sbk.fixtures SET kickoff=clock_timestamp()-interval '2 hours',status='awaiting_result',schedule_note_en='Shootout test',schedule_note_ml='ഷൂട്ടൗട്ട് ടെസ്റ്റ്' WHERE id=$1",
+    [f],
+  ));
+  await finalize(f, 0, 0, "", "home");
+  await as(admin, (tx) => tx.query(
+    "INSERT INTO sbk.shootout_kicks(fixture_id,team_id,player_id,scored,sort_order,updated_by) VALUES($1,$2,$3,true,0,$5),($1,$4,$6,false,1,$5)",
+    [f, home, homePlayer, away, admin, awayPlayer],
+  ));
+  await assert.rejects(
+    as(admin, (tx) => tx.query(
+      "INSERT INTO sbk.shootout_kicks(fixture_id,team_id,player_id,scored,sort_order,updated_by) VALUES($1,$2,$3,true,2,$4)",
+      [f, away, homePlayer, admin],
+    )),
+    /invalid_shootout_kick/,
+  );
+
+  const stats = (await as(null, (tx) => tx.query(
+    "SELECT * FROM sbk.public_player_stats() WHERE player_id=ANY($1::uuid[])",
+    [[homePlayer, awayPlayer]],
+  ))) as any;
+  assert.equal(Number(stats.rows.find((row: any) => row.player_id === homePlayer).goals), 1);
+  assert.equal(Number(stats.rows.find((row: any) => row.player_id === awayPlayer).goals), 0);
+  const publicKicks = (await as(null, (tx) => tx.query("SELECT * FROM sbk.public_shootout_kicks() WHERE fixture_id=$1", [f]))) as any;
+  assert.equal(publicKicks.rows.length, 2);
+  assert.equal(publicKicks.rows.filter((row: any) => row.scored).length, 1);
+  const direct = (await as(null, (tx) => tx.query("SELECT * FROM sbk.shootout_kicks"))) as any;
+  assert.equal(direct.rows.length, 0);
+});
+
 test("SLK table awards 2/1 for a shootout while predictions remain based on 90 minutes", async () => {
   const f = await fixture();
   await predict(alice, f, 1, 1);
@@ -402,6 +438,10 @@ test("SLK table awards 2/1 for a shootout while predictions remain based on 90 m
     "UPDATE sbk.fixtures SET kickoff=clock_timestamp()-interval '2 hours',status='awaiting_result',schedule_note_en='Draw test',schedule_note_ml='സമനില ടെസ്റ്റ്' WHERE id=$1",
     [f],
   ));
+  const beforeTable = (await as(null, (tx) => tx.query(
+    "SELECT team_id,shootout_wins,shootout_losses FROM sbk.public_points_table() WHERE team_id=ANY($1::uuid[])",
+    [[home, away]],
+  ))) as any;
   await assert.rejects(finalize(f, 1, 1, "", null), /shootout_winner_mismatch/);
   await finalize(f, 1, 1, "", "home");
   const table = (await as(null, (tx) => tx.query(
@@ -409,8 +449,9 @@ test("SLK table awards 2/1 for a shootout while predictions remain based on 90 m
     [[home, away]],
   ))) as any;
   const homeRow=table.rows.find((row:any)=>row.team_id===home), awayRow=table.rows.find((row:any)=>row.team_id===away);
-  assert.equal(Number(homeRow.shootout_wins), 1);
-  assert.equal(Number(awayRow.shootout_losses), 1);
+  const beforeHome=beforeTable.rows.find((row:any)=>row.team_id===home), beforeAway=beforeTable.rows.find((row:any)=>row.team_id===away);
+  assert.equal(Number(homeRow.shootout_wins), Number(beforeHome.shootout_wins) + 1);
+  assert.equal(Number(awayRow.shootout_losses), Number(beforeAway.shootout_losses) + 1);
   assert.ok(Number(homeRow.points) > 0 && Number(awayRow.points) > 0);
   const prediction = await db.query<{points:number}>("SELECT sbk.prediction_points(1,1,'draw','home',1,1,'draw','home') points");
   assert.equal(Number(prediction.rows[0].points), 3);
