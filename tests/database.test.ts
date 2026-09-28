@@ -34,11 +34,11 @@ async function predict(id: string, f: string, h = 2, a = 1) {
     ),
   );
 }
-async function finalize(f: string, h: number, a: number, reason = "") {
+async function finalize(f: string, h: number, a: number, reason = "", shootoutWinner: "home"|"away"|null = h === a ? "home" : null) {
   return as(admin, (tx) =>
     tx.query(
-      "INSERT INTO sbk.results(fixture_id,home_goals,away_goals,winner,first_goal,updated_by,reason) VALUES($1,$2,$3,$4,$5,$6,$7) ON CONFLICT(fixture_id) DO UPDATE SET home_goals=EXCLUDED.home_goals,away_goals=EXCLUDED.away_goals,winner=EXCLUDED.winner,first_goal=EXCLUDED.first_goal,reason=EXCLUDED.reason",
-      [f, h, a, h > a ? "home" : h < a ? "away" : "draw", h === 0 && a === 0 ? "nobody" : "home", admin, reason],
+      "INSERT INTO sbk.results(fixture_id,home_goals,away_goals,winner,first_goal,shootout_winner,updated_by,reason) VALUES($1,$2,$3,$4,$5,$6,$7,$8) ON CONFLICT(fixture_id) DO UPDATE SET home_goals=EXCLUDED.home_goals,away_goals=EXCLUDED.away_goals,winner=EXCLUDED.winner,first_goal=EXCLUDED.first_goal,shootout_winner=EXCLUDED.shootout_winner,reason=EXCLUDED.reason",
+      [f, h, a, h > a ? "home" : h < a ? "away" : "draw", h === 0 && a === 0 ? "nobody" : "home", shootoutWinner, admin, reason],
     ),
   );
 }
@@ -344,4 +344,25 @@ test("public football functions expose safe standings and finalized player stati
   assert.equal(publicData.rounds[0].name_en, "Round");
   const anonymousDirect = await as(null, (tx) => tx.query("SELECT * FROM sbk.match_events")) as any;
   assert.equal(anonymousDirect.rows.length, 0);
+});
+
+test("SLK table awards 2/1 for a shootout while predictions remain based on 90 minutes", async () => {
+  const f = await fixture();
+  await predict(alice, f, 1, 1);
+  await as(admin, (tx) => tx.query(
+    "UPDATE sbk.fixtures SET kickoff=clock_timestamp()-interval '2 hours',status='awaiting_result',schedule_note_en='Draw test',schedule_note_ml='സമനില ടെസ്റ്റ്' WHERE id=$1",
+    [f],
+  ));
+  await assert.rejects(finalize(f, 1, 1, "", null), /shootout_winner_mismatch/);
+  await finalize(f, 1, 1, "", "home");
+  const table = (await as(null, (tx) => tx.query(
+    "SELECT team_id,points,shootout_wins,shootout_losses FROM sbk.public_points_table() WHERE team_id=ANY($1::uuid[])",
+    [[home, away]],
+  ))) as any;
+  const homeRow=table.rows.find((row:any)=>row.team_id===home), awayRow=table.rows.find((row:any)=>row.team_id===away);
+  assert.equal(Number(homeRow.shootout_wins), 1);
+  assert.equal(Number(awayRow.shootout_losses), 1);
+  assert.ok(Number(homeRow.points) > 0 && Number(awayRow.points) > 0);
+  const prediction = await db.query<{points:number}>("SELECT sbk.prediction_points(1,1,'draw','home',1,1,'draw','home') points");
+  assert.equal(Number(prediction.rows[0].points), 3);
 });

@@ -135,6 +135,8 @@ public/slk-logo-white.webp Official Super League Kerala white logo used on the p
 
 SQL is authoritative. Each fixture has three independent questions: match winner (home/draw/away), exact regulation-time score, and first-goal team (home/away/Nobody for 0–0). Each correct answer earns **1 point**, for a maximum of **3 points per match**. Missing answers and non-finalized matches score zero. Participation counts predictions on finalized fixtures only. Cancelled/postponed/unfinalized matches do not affect any ranking count.
 
+The public Super League Kerala tournament table is separate from SBK prediction scoring. It awards 3 points for a regulation-time win, 2 for a penalty-shootout win after a regulation draw, 1 to the shootout loser, and 0 for a regulation-time loss. Admins select a shootout winner only when the 90-minute score is level. It orders teams by points, head-to-head points, head-to-head goal difference, overall goal difference, goals scored, and the optional organizer-entered Fair Play rank. Penalty shootouts and extra time never alter SBK prediction answers or points.
+
 Standings are derived in a database query and ordered by total points. SQL `rank()` produces honest ties (`1,1,3`) whenever totals match. Pagination is on the server; display name/ID merely stabilize display order within a shared rank. Round filtering occurs before aggregation. Corrections update the authoritative result in one transaction; there are no duplicated point totals to become stale. The displayed standings timestamp is the **calculation time**, not a claim that a match finished at that time.
 
 | State           | Editing predictions                   | Scored | Permitted organizer transitions                                                             |

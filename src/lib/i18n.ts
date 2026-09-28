@@ -206,7 +206,10 @@ export const en = {
   preview: "Preview points changes",
   resultReason: "Correction reason (required for corrections)",
   resultHelp:
-    "Confirm the winner, regulation-time score, and first-goal team. Finalizing or correcting immediately recalculates the table.",
+    "Enter the 90-minute score and first-goal team for prediction scoring. If the score is level, also enter the shootout winner for the SLK tournament table.",
+  shootoutWinner: "Penalty shootout winner",
+  shootoutWinnerHelp: "Used only for the SLK tournament table. It never changes prediction points.",
+  fair_play_rank: "Fair Play rank (tiebreaker, optional)",
   playerHelp: "Add players before entering goal scorers and assists in Results.",
   team_id: "Team",
   shirt_number: "Shirt number (optional)",
@@ -546,7 +549,10 @@ export const ml: Record<Key, string> = {
   preview: "പോയിന്റിലെ മാറ്റം പരിശോധിക്കുക",
   resultReason: "തിരുത്താനുള്ള കാരണം (നിർബന്ധം)",
   resultHelp:
-    "വിജയി, നിശ്ചിത സമയത്തെ സ്കോർ, ആദ്യം ഗോൾ നേടിയ ടീം എന്നിവ ഉറപ്പാക്കുക. പട്ടിക ഉടൻ പുതുക്കും.",
+    "പ്രവചന പോയിന്റിനായി 90 മിനിറ്റിലെ സ്കോറും ആദ്യം ഗോൾ നേടിയ ടീമും നൽകുക. സ്കോർ സമനിലയെങ്കിൽ SLK പോയിന്റ് പട്ടികയ്ക്കായി ഷൂട്ടൗട്ട് വിജയിയെയും നൽകുക.",
+  shootoutWinner: "പെനാൽറ്റി ഷൂട്ടൗട്ട് വിജയി",
+  shootoutWinnerHelp: "SLK ടൂർണമെന്റ് പട്ടികയ്ക്ക് മാത്രം. പ്രവചന പോയിന്റിനെ ഇത് ബാധിക്കില്ല.",
+  fair_play_rank: "ഫെയർ പ്ലേ റാങ്ക് (ടൈബ്രേക്കർ, ഐച്ഛികം)",
   playerHelp: "ഫലത്തിൽ ഗോൾ സ്കോററും അസിസ്റ്റും നൽകുന്നതിന് മുമ്പ് കളിക്കാരെ ചേർക്കുക.",
   team_id: "ടീം",
   shirt_number: "ജേഴ്സി നമ്പർ (ഐച്ഛികം)",

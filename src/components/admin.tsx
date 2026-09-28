@@ -285,6 +285,7 @@ function Results({ data }: { data: Row }) {
     [away, setAway] = useState(0),
     [winner, setWinner] = useState(""),
     [firstGoal, setFirstGoal] = useState(""),
+    [shootoutWinner, setShootoutWinner] = useState(""),
     [goalEvents, setGoalEvents] = useState<Row[]>([]),
     [reason, setReason] = useState(""),
     [preview, setPreview] = useState<Row[] | null>(null),
@@ -319,6 +320,7 @@ function Results({ data }: { data: Row }) {
               away_goals: away,
               winner,
               first_goal: firstGoal,
+              shootout_winner: home === away ? shootoutWinner || null : null,
               reason,
             });
             setPreview(result.rows);
@@ -343,6 +345,7 @@ function Results({ data }: { data: Row }) {
               setAway(f?.result_away ?? 0);
               setWinner(f?.result_winner ?? "");
               setFirstGoal(f?.result_first_goal ?? "");
+              setShootoutWinner(f?.result_shootout_winner ?? "");
               const existing=(data.goalEvents ?? []).filter((event:Row)=>event.fixture_id===f?.id);
               if(f) fitEvents(f.result_home??0,f.result_away??0,f,existing);
               else setGoalEvents([]);
@@ -390,6 +393,7 @@ function Results({ data }: { data: Row }) {
                   value={home}
                   onChange={(e) => {
                     const value=Number(e.target.value);setHome(value);fitEvents(value,away,fixture,goalEvents);
+                    if(value!==away) setShootoutWinner("");
                     setPreview(null);
                   }}
                 />
@@ -405,10 +409,20 @@ function Results({ data }: { data: Row }) {
                   value={away}
                   onChange={(e) => {
                     const value=Number(e.target.value);setAway(value);fitEvents(home,value,fixture,goalEvents);
+                    if(home!==value) setShootoutWinner("");
                     setPreview(null);
                   }}
                 />
               </label>
+              {home === away && <label>
+                {t("shootoutWinner")}
+                <select required value={shootoutWinner} onChange={(e)=>{setShootoutWinner(e.target.value);setPreview(null);}}>
+                  <option value="">—</option>
+                  <option value="home">{localized(fixture,"home",lang)}</option>
+                  <option value="away">{localized(fixture,"away",lang)}</option>
+                </select>
+                <small>{t("shootoutWinnerHelp")}</small>
+              </label>}
             </div>
             <div className="goal-events-editor">
               <div className="section-heading"><h3>{t("goalEvents")}</h3><small>{home + away} {t("normalGoal")}</small></div>
@@ -460,6 +474,7 @@ function Results({ data }: { data: Row }) {
           <p>
             <b>{t("winnerQuestion")}</b>: {winner === "home" ? localized(fixture, "home", lang) : winner === "away" ? localized(fixture, "away", lang) : t("draw")} ·{" "}
             <b>{t("firstGoalQuestion")}</b>: {firstGoal === "home" ? localized(fixture, "home", lang) : firstGoal === "away" ? localized(fixture, "away", lang) : t("nobody")}
+            {home === away && <> · <b>{t("shootoutWinner")}</b>: {shootoutWinner === "home" ? localized(fixture,"home",lang) : localized(fixture,"away",lang)}</>}
           </p>
           <p>{t("resultHelp")}</p>
           <div className="table-wrap">
@@ -497,6 +512,7 @@ function Results({ data }: { data: Row }) {
                   away_goals: away,
                   winner,
                   first_goal: firstGoal,
+                  shootout_winner: home === away ? shootoutWinner || null : null,
                   reason,
                   goal_events: goalEvents,
                 });
@@ -615,6 +631,7 @@ export function Admin({
     field("name_ml", "text", false),
     field("short_name"),
     field("badge", "text", false),
+    field("fair_play_rank", "number", false),
     field("active", "checkbox"),
   ];
   const playerFields: Field[] = [

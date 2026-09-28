@@ -40,6 +40,7 @@ export const schemas = {
       z.literal(""),
       z.url().refine((v) => v.startsWith("https://")),
     ]),
+    fair_play_rank: z.number().int().min(1).max(999).nullable().default(null),
     active: bool,
   }),
   rounds: z.object({
@@ -89,6 +90,7 @@ export const schemas = {
     away_goals: goals,
     winner: z.enum(["home", "draw", "away"]),
     first_goal: z.enum(["home", "away", "nobody"]),
+    shootout_winner: z.enum(["home", "away"]).nullable().default(null),
     reason: text.max(1000),
     expected_updated_at: z.iso
       .datetime({ offset: true })
@@ -119,7 +121,7 @@ export const schemas = {
     contact: text.max(500),
   }),
 };
-export const fixtureSelect = `SELECT f.*,h.name_en home_en,h.name_ml home_ml,h.short_name home_short,h.badge home_badge,a.name_en away_en,a.name_ml away_ml,a.short_name away_short,a.badge away_badge,o.name_en round_en,o.name_ml round_ml,p.home_goals predicted_home,p.away_goals predicted_away,p.predicted_winner,p.first_goal predicted_first_goal,p.updated_at saved_at,r.home_goals result_home,r.away_goals result_away,r.winner result_winner,r.first_goal result_first_goal,r.updated_at result_at,CASE WHEN f.status='finalized' THEN sbk.prediction_points(p.home_goals,p.away_goals,p.predicted_winner,p.first_goal,r.home_goals,r.away_goals,r.winner,r.first_goal) ELSE NULL END points FROM sbk.fixtures f JOIN sbk.teams h ON h.id=f.home_id JOIN sbk.teams a ON a.id=f.away_id JOIN sbk.rounds o ON o.id=f.round_id LEFT JOIN sbk.predictions p ON p.fixture_id=f.id AND p.member_id=sbk.uid() LEFT JOIN sbk.results r ON r.fixture_id=f.id`;
+export const fixtureSelect = `SELECT f.*,h.name_en home_en,h.name_ml home_ml,h.short_name home_short,h.badge home_badge,a.name_en away_en,a.name_ml away_ml,a.short_name away_short,a.badge away_badge,o.name_en round_en,o.name_ml round_ml,p.home_goals predicted_home,p.away_goals predicted_away,p.predicted_winner,p.first_goal predicted_first_goal,p.updated_at saved_at,r.home_goals result_home,r.away_goals result_away,r.winner result_winner,r.first_goal result_first_goal,r.shootout_winner result_shootout_winner,r.updated_at result_at,CASE WHEN f.status='finalized' THEN sbk.prediction_points(p.home_goals,p.away_goals,p.predicted_winner,p.first_goal,r.home_goals,r.away_goals,r.winner,r.first_goal) ELSE NULL END points FROM sbk.fixtures f JOIN sbk.teams h ON h.id=f.home_id JOIN sbk.teams a ON a.id=f.away_id JOIN sbk.rounds o ON o.id=f.round_id LEFT JOIN sbk.predictions p ON p.fixture_id=f.id AND p.member_id=sbk.uid() LEFT JOIN sbk.results r ON r.fixture_id=f.id`;
 export async function loadPublicSportsData() {
   return transaction(null, async (db) => ({
     fixtures: (await db.query("SELECT * FROM sbk.public_fixtures()")).rows,
@@ -480,13 +482,14 @@ export async function mutate(
         throw new Error("goal_event_count_mismatch");
       const result = (
         await db.query(
-          "INSERT INTO sbk.results(fixture_id,home_goals,away_goals,winner,first_goal,reason,updated_by) VALUES($1,$2,$3,$4,$5,$6,$7) ON CONFLICT(fixture_id) DO UPDATE SET home_goals=EXCLUDED.home_goals,away_goals=EXCLUDED.away_goals,winner=EXCLUDED.winner,first_goal=EXCLUDED.first_goal,reason=EXCLUDED.reason,updated_by=EXCLUDED.updated_by RETURNING *",
+          "INSERT INTO sbk.results(fixture_id,home_goals,away_goals,winner,first_goal,shootout_winner,reason,updated_by) VALUES($1,$2,$3,$4,$5,$6,$7,$8) ON CONFLICT(fixture_id) DO UPDATE SET home_goals=EXCLUDED.home_goals,away_goals=EXCLUDED.away_goals,winner=EXCLUDED.winner,first_goal=EXCLUDED.first_goal,shootout_winner=EXCLUDED.shootout_winner,reason=EXCLUDED.reason,updated_by=EXCLUDED.updated_by RETURNING *",
           [
             value.fixture_id,
             value.home_goals,
             value.away_goals,
             value.winner,
             value.first_goal,
+            value.shootout_winner,
             value.reason,
             id,
           ],

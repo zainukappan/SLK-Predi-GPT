@@ -129,6 +129,7 @@ export async function POST(request: NextRequest) {
       "member_create_failed",
       "admin_auth_missing",
       "winner_score_mismatch",
+      "shootout_winner_mismatch",
       "first_goal_mismatch",
       "identifier_kind_change",
       "member_update_failed",
