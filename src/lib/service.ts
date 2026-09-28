@@ -141,7 +141,7 @@ async function lockedMemberPredictions(db: DB, memberIds: string[]) {
       `SELECT * FROM (
          SELECT p.member_id,p.fixture_id,p.home_goals,p.away_goals,p.predicted_winner,p.first_goal,p.updated_at,
            f.kickoff,f.status,h.name_en home_en,h.name_ml home_ml,a.name_en away_en,a.name_ml away_ml,
-           o.name_en round_en,o.name_ml round_ml,r.home_goals result_home,r.away_goals result_away,
+           o.name_en round_en,o.name_ml round_ml,r.home_goals result_home,r.away_goals result_away,r.first_goal result_first_goal,
            CASE WHEN f.status='finalized' THEN sbk.prediction_points(
              p.home_goals,p.away_goals,p.predicted_winner,p.first_goal,
              r.home_goals,r.away_goals,r.winner,r.first_goal

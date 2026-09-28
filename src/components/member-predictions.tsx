@@ -10,6 +10,12 @@ function labelFor(value: string, row: Row, lang: "en" | "ml", nobody: string, dr
   return nobody;
 }
 
+function resultWinner(row: Row) {
+  if (row.result_home > row.result_away) return "home";
+  if (row.result_home < row.result_away) return "away";
+  return "draw";
+}
+
 export function MemberPredictions({ rows }: { rows: Row[] }) {
   const { t, lang } = useLanguage();
   if (!rows.length) return <p className="member-prediction-empty">{t("noPastPredictions")}</p>;
@@ -22,9 +28,9 @@ export function MemberPredictions({ rows }: { rows: Row[] }) {
             <small>{row[`round_${lang}`] || row.round_en} · {ist(row.kickoff, lang)}</small>
           </div>
           <dl>
-            <div><dt>{t("winnerQuestion")}</dt><dd>{labelFor(row.predicted_winner, row, lang, t("nobody"), t("draw"))}</dd></div>
-            <div><dt>{t("scoreQuestion")}</dt><dd>{row.home_goals}–{row.away_goals}</dd></div>
-            <div><dt>{t("firstGoalQuestion")}</dt><dd>{labelFor(row.first_goal, row, lang, t("nobody"), t("draw"))}</dd></div>
+            <div className={row.status === "finalized" && row.predicted_winner === resultWinner(row) ? "prediction-answer-correct" : ""}><dt>{t("winnerQuestion")}</dt><dd>{labelFor(row.predicted_winner, row, lang, t("nobody"), t("draw"))}</dd></div>
+            <div className={row.status === "finalized" && row.home_goals === row.result_home && row.away_goals === row.result_away ? "prediction-answer-correct" : ""}><dt>{t("scoreQuestion")}</dt><dd>{row.home_goals}–{row.away_goals}</dd></div>
+            <div className={row.status === "finalized" && row.first_goal === row.result_first_goal ? "prediction-answer-correct" : ""}><dt>{t("firstGoalQuestion")}</dt><dd>{labelFor(row.first_goal, row, lang, t("nobody"), t("draw"))}</dd></div>
             <div><dt>{t("earned")}</dt><dd>{row.points == null ? "—" : row.points}</dd></div>
           </dl>
           {row.status === "finalized" && (

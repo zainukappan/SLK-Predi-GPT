@@ -1094,6 +1094,7 @@ tr:last-child td {
   font-size: 10px;
   font-weight: 700;
 }
+.member-prediction-item dl .prediction-answer-correct{background:#e7f8ee;border-color:#8bd2a8;box-shadow:inset 0 0 0 1px #bce7cd}.member-prediction-item dl .prediction-answer-correct dt{color:#247446}.member-prediction-item dl .prediction-answer-correct dd{color:#075d32}
 .member-prediction-result {
   display: block;
   margin-top: 6px;

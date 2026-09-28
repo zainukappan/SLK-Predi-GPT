@@ -388,6 +388,7 @@ test("public prediction details expose only deadline-locked answers without acco
   assert.equal(rows.rows.length,1);
   assert.equal(rows.rows[0].fixture_id,locked);
   assert.ok(rows.rows[0].public_key);
+  assert.ok("result_first_goal" in rows.rows[0]);
   assert.ok(!("member_id" in rows.rows[0]));
   assert.ok(!("email" in rows.rows[0]));
 });
