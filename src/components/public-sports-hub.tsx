@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
-import { useState } from "react";
-import { CalendarDays, ChevronRight, Clock3, Goal, Handshake, MapPin, Menu, Shield, Trophy, Users } from "lucide-react";
+import { useState, type ReactNode } from "react";
+import { CalendarDays, ChevronRight, Goal, Handshake, MapPin, Menu, Shield, Trophy, Users } from "lucide-react";
 import type { Row } from "@/lib/db";
 import { ist } from "@/lib/domain";
 import { LanguageSwitch, useLanguage } from "./provider";
@@ -18,11 +18,11 @@ const name = (row: Row, key: string, lang: "en"|"ml") => row[`${key}_${lang}`] |
 function Badge({src,label}:{src?:string;label:string}) { return src ? <img className="slk-team-badge" src={src} alt="" /> : <span className="slk-team-placeholder"><Shield /></span>; }
 
 export function PublicSportsHub({data}:{data:Row}) {
-  const {lang} = useLanguage(), t=copy[lang], [tab,setTab]=useState<"table"|"top"|"assists"|"contrib">("table"), [menu,setMenu]=useState(false);
+  const {lang} = useLanguage(), t=copy[lang], [menu,setMenu]=useState(false);
   const upcoming=[...data.fixtures].filter((f:Row)=>f.status==="scheduled"&&new Date(f.kickoff)>new Date()).sort((a:Row,b:Row)=>+new Date(a.kickoff)-+new Date(b.kickoff))[0];
   const finals=[...data.fixtures].filter((f:Row)=>f.status==="finalized").sort((a:Row,b:Row)=>+new Date(b.kickoff)-+new Date(a.kickoff));
   const latest=finals[0];
-  const playerRows=[...data.players].sort((a:Row,b:Row)=>Number(b[tab==="top"?"goals":tab==="assists"?"assists":"contributions"])-Number(a[tab==="top"?"goals":tab==="assists"?"assists":"contributions"]));
+  const playerRows=(metric:"top"|"assists"|"contrib")=>{const key=metric==="top"?"goals":metric==="assists"?"assists":"contributions";return [...data.players].filter((player:Row)=>Number(player[key])>0).sort((a:Row,b:Row)=>Number(b[key])-Number(a[key])).slice(0,5);};
   return <div className="slk-public">
     <header className="slk-public-header">
       <Link href="/SuperLeagueKerala" className="slk-public-brand"><img src="/sbk-logo.png" alt="SBK"/><span>SBK <b>Football Hub</b></span></Link>
@@ -38,10 +38,12 @@ export function PublicSportsHub({data}:{data:Row}) {
         <MatchFeature title={t.latest} fixture={latest} empty={t.noResults} lang={lang} result action={t.fullTime}/>
       </section>
       <section className="slk-data-section" id="table">
-        <div className="slk-tabs" role="tablist">
-          {(["table","top","assists","contrib"] as const).map(key=><button key={key} className={tab===key?"active":""} onClick={()=>setTab(key)}>{key==="table"?<Trophy/>:key==="top"?<Goal/>:key==="assists"?<Handshake/>:<Users/>}{t[key]}</button>)}
+        <article className="slk-data-card slk-table-card"><CardTitle icon={<Trophy/>} title={t.table}/><Standings rows={data.table} t={t} lang={lang}/></article>
+        <div className="slk-stat-cards" id="players">
+          <article className="slk-data-card slk-stat-card"><CardTitle icon={<Goal/>} title={t.top}/><PlayerStats rows={playerRows("top")} metric="top" t={t} lang={lang}/></article>
+          <article className="slk-data-card slk-stat-card"><CardTitle icon={<Handshake/>} title={t.assists}/><PlayerStats rows={playerRows("assists")} metric="assists" t={t} lang={lang}/></article>
+          <article className="slk-data-card slk-stat-card"><CardTitle icon={<Users/>} title={t.contrib}/><PlayerStats rows={playerRows("contrib")} metric="contrib" t={t} lang={lang}/></article>
         </div>
-        {tab==="table" ? <Standings rows={data.table} t={t} lang={lang}/> : <PlayerStats rows={playerRows} metric={tab} t={t} lang={lang}/>} 
       </section>
       <section className="slk-results-section"><div className="slk-section-title"><div><small>{t.matchCentre}</small><h2>{t.matches}</h2></div></div><div className="slk-results-grid">{finals.slice(0,6).map((f:Row)=><ResultCard key={f.id} fixture={f} events={data.events.filter((e:Row)=>e.fixture_id===f.id)} lang={lang} t={t}/>)}</div></section>
       <section className="slk-prediction-public" id="predictions"><div className="slk-section-title"><div><small>SBK COMMUNITY</small><h2>{t.prediction}</h2></div><span>{t.updated}: {ist(data.generatedAt,lang)}</span></div><PredictionLeaderboard rows={data.predictions} rounds={data.rounds} t={t} lang={lang}/></section>
@@ -49,6 +51,7 @@ export function PublicSportsHub({data}:{data:Row}) {
     <footer className="slk-public-footer"><img src="/sbk-logo.png" alt="SBK"/><p>Soccer Blues of Keralam · Fans predict. Football unites.</p><Link href="/">{t.login}<ChevronRight/></Link></footer>
   </div>;
 }
+function CardTitle({icon,title}:{icon:ReactNode;title:string}) { return <div className="slk-data-card-title"><span>{icon}</span><h2>{title}</h2></div>; }
 function MatchFeature({title,fixture,empty,lang,result,action}:{title:string;fixture?:Row;empty:string;lang:"en"|"ml";result?:boolean;action:string}) { return <article className="slk-match-feature"><div className="slk-card-head"><strong>{title}</strong><span>{result?"FULL TIME":"UPCOMING"}</span></div>{fixture?<><div className="slk-versus"><div><Badge src={fixture.home_badge} label={name(fixture,"home",lang)}/><b>{name(fixture,"home",lang)}</b></div><strong>{result?`${fixture.home_goals} – ${fixture.away_goals}`:"VS"}</strong><div><Badge src={fixture.away_badge} label={name(fixture,"away",lang)}/><b>{name(fixture,"away",lang)}</b></div></div><div className="slk-match-meta"><span><CalendarDays/>{ist(fixture.kickoff,lang)}</span>{name(fixture,"venue",lang)!=="—"&&<span><MapPin/>{name(fixture,"venue",lang)}</span>}</div></>:<p className="slk-empty">{empty}</p>}</article>; }
 function Standings({rows,t,lang}:{rows:Row[];t:any;lang:"en"|"ml"}) { return <div className="slk-public-table"><table><thead><tr><th>Pos</th><th>Club</th><th>{t.played}</th><th>{t.wins}</th><th>{t.draws}</th><th>{t.losses}</th><th>{t.gf}</th><th>{t.ga}</th><th>{t.gd}</th><th>{t.pts}</th></tr></thead><tbody>{rows.map(r=><tr key={r.team_id}><td><b>{r.table_position}</b></td><td><span className="slk-club"><Badge src={r.badge} label={name(r,"name",lang)}/><strong>{name(r,"name",lang)}</strong></span></td><td>{r.played}</td><td>{r.wins}</td><td>{r.draws}</td><td>{r.losses}</td><td>{r.goals_for}</td><td>{r.goals_against}</td><td>{r.goal_difference}</td><td><b>{r.points}</b></td></tr>)}</tbody></table></div>; }
 function PredictionLeaderboard({rows,rounds,t,lang}:{rows:Row[];rounds:Row[];t:any;lang:"en"|"ml"}) { const labels=leaderboardCopy[lang]; return <div className="slk-public-table slk-prediction-table"><table><thead><tr><th rowSpan={2}>{labels.serial}</th><th rowSpan={2}>{t.rank}</th><th rowSpan={2}>{t.member}</th><th rowSpan={2}>{labels.winner}</th><th rowSpan={2}>{labels.score}</th><th rowSpan={2}>{labels.first}</th><th rowSpan={2}>{t.predicted}</th>{rounds.length>0&&<th colSpan={rounds.length} className="round-group">{labels.round}</th>}<th rowSpan={2}>{t.total}</th></tr>{rounds.length>0&&<tr>{rounds.map(round=><th key={round.id} title={name(round,"name",lang)}>{round.sort_order}</th>)}</tr>}</thead><tbody>{rows.map((r:Row,index:number)=><tr key={`${r.display_name}-${index}`}><td>{index+1}</td><td><span className={`slk-rank-badge rank-${r.rank}`}>{r.rank}</span></td><td><strong>{r.display_name}</strong></td><td>{r.correct}</td><td>{r.exact}</td><td>{r.first_goal_correct}</td><td>{r.participation}</td>{rounds.map(round=><td key={round.id} className="round-score">{r.round_points?.[round.id]??0}</td>)}<td><strong>{r.points}</strong></td></tr>)}</tbody></table></div>; }
