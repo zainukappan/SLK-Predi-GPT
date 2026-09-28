@@ -378,3 +378,16 @@ test("SLK table awards zero points for a regulation-time loss", async () => {
   assert.equal(Number(loserRow.points),0);
   assert.equal(Number(loserRow.regulation_losses),1);
 });
+
+test("public prediction details expose only deadline-locked answers without account identifiers", async () => {
+  const locked=await fixture(), upcoming=await fixture();
+  await as(admin,(tx)=>tx.query("UPDATE sbk.fixtures SET kickoff=clock_timestamp()-interval '1 hour',status='awaiting_result',schedule_note_en='Played',schedule_note_ml='കളിച്ചു' WHERE id=$1",[locked]));
+  await as(admin,(tx)=>tx.query("SELECT sbk.admin_upsert_prediction($1,$2,1,0,'home','home')",[alice,locked]));
+  await predict(alice,upcoming,2,1);
+  const rows=(await as(null,(tx)=>tx.query("SELECT * FROM sbk.public_locked_predictions() WHERE fixture_id=ANY($1::uuid[])",[[locked,upcoming]]))) as any;
+  assert.equal(rows.rows.length,1);
+  assert.equal(rows.rows[0].fixture_id,locked);
+  assert.ok(rows.rows[0].public_key);
+  assert.ok(!("member_id" in rows.rows[0]));
+  assert.ok(!("email" in rows.rows[0]));
+});
