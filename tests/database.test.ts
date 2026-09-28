@@ -400,3 +400,12 @@ test("public prediction ties share rank and display in English alphabetical orde
   assert.deepEqual(rows.rows.map(row=>row.display_name),["Alpha Public","Zebra Public"]);
   assert.equal(Number(rows.rows[0].rank),Number(rows.rows[1].rank));
 });
+
+test("approved members can see only the aggregate prediction count", async () => {
+  const f=await fixture();
+  await predict(alice,f,1,0);
+  await predict(bob,f,2,0);
+  const result=(await as(alice,(tx)=>tx.query("SELECT sbk.fixture_prediction_count($1) count",[f]))) as any;
+  assert.equal(Number(result.rows[0].count),2);
+  await assert.rejects(as(null,(tx)=>tx.query("SELECT sbk.fixture_prediction_count($1)",[f])),/forbidden/);
+});

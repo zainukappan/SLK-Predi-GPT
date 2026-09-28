@@ -20,6 +20,7 @@ import {
   ShieldCheck,
   Download,
   Share2,
+  Users,
 } from "lucide-react";
 import { useLanguage, action, ErrorMessage } from "./provider";
 import { canPredict, ist, type Lang } from "@/lib/domain";
@@ -97,7 +98,7 @@ function Countdown({ deadline }: { deadline: string }) {
     return () => clearInterval(timer);
   }, [deadline]);
   if (remaining === null)
-    return <span className="countdown">{t("closesIn")} —</span>;
+    return <span className="countdown">{t("predictionClosesIn")} —</span>;
   const seconds = Math.floor(remaining / 1000),
     hours = Math.floor(seconds / 3600);
   return (
@@ -105,7 +106,7 @@ function Countdown({ deadline }: { deadline: string }) {
       <Clock3 size={14} />
       {remaining === 0
         ? t("locked")
-        : t("closesIn") +
+        : t("predictionClosesIn") +
           " " +
           [hours, Math.floor(seconds / 60) % 60, seconds % 60]
             .map((v) => String(v).padStart(2, "0"))
@@ -130,7 +131,10 @@ export function FixtureCard({
           {f.demo && <b className="sample">{t("sample")}</b>}
         </span>
         {open ? (
-          <Countdown deadline={f.deadline} />
+          <div className="fixture-status-badges">
+            <span className="prediction-count"><Users size={14}/><b>{f.prediction_count ?? 0}</b> {t(Number(f.prediction_count) === 1 ? "memberPredicted" : "membersPredicted")}</span>
+            <Countdown deadline={f.deadline} />
+          </div>
         ) : (
           <span className={"status " + f.status}>{t(f.status as Key)}</span>
         )}

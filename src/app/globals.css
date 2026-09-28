@@ -721,7 +721,11 @@ input[type="checkbox"] {
   font-size: 12px;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
+  min-height: 34px;
+  border: 1px solid #efcf5d;
+  font-weight: 700;
 }
+.fixture-status-badges{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}.prediction-count{display:flex;align-items:center;gap:5px;min-height:34px;padding:5px 9px;border:1px solid #8eb3ff;border-radius:6px;background:#eaf1ff;color:#1246a3;font-size:12px;font-weight:700;white-space:nowrap}.prediction-count svg{color:#1450df}.prediction-count b{font-size:15px}
 .versus {
   display: grid;
   grid-template-columns: 1fr 0.8fr 1fr;
