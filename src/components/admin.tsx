@@ -101,7 +101,7 @@ function Editor({
                 f.type === "checkbox"
                   ? raw === "on"
                   : f.type === "number"
-                    ? Number(raw)
+                    ? raw === "" ? null : Number(raw)
                     : f.type === "datetime-local"
                       ? raw
                         ? new Date(raw + ":00+05:30").toISOString()
@@ -285,12 +285,21 @@ function Results({ data }: { data: Row }) {
     [away, setAway] = useState(0),
     [winner, setWinner] = useState(""),
     [firstGoal, setFirstGoal] = useState(""),
+    [goalEvents, setGoalEvents] = useState<Row[]>([]),
     [reason, setReason] = useState(""),
     [preview, setPreview] = useState<Row[] | null>(null),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false),
     [done, setDone] = useState(false);
   const fixture = data.fixtures.find((f: Row) => f.id === selected);
+  const fitEvents = (nextHome:number,nextAway:number,f:Row,existing:Row[]) => {
+    const fit = (teamId:string,count:number) => {
+      const current=existing.filter((event)=>event.team_id===teamId).slice(0,count);
+      while(current.length<count) current.push({team_id:teamId,scorer_id:"",assist_id:null,minute:1,added_time:0,event_type:"goal"});
+      return current;
+    };
+    setGoalEvents([...fit(f.home_id,nextHome),...fit(f.away_id,nextAway)]);
+  };
   return (
     <section className="panel">
       <h2>{t("results")}</h2>
@@ -334,6 +343,9 @@ function Results({ data }: { data: Row }) {
               setAway(f?.result_away ?? 0);
               setWinner(f?.result_winner ?? "");
               setFirstGoal(f?.result_first_goal ?? "");
+              const existing=(data.goalEvents ?? []).filter((event:Row)=>event.fixture_id===f?.id);
+              if(f) fitEvents(f.result_home??0,f.result_away??0,f,existing);
+              else setGoalEvents([]);
               setReason("");
             }}
           >
@@ -377,7 +389,7 @@ function Results({ data }: { data: Row }) {
                   required
                   value={home}
                   onChange={(e) => {
-                    setHome(Number(e.target.value));
+                    const value=Number(e.target.value);setHome(value);fitEvents(value,away,fixture,goalEvents);
                     setPreview(null);
                   }}
                 />
@@ -392,11 +404,28 @@ function Results({ data }: { data: Row }) {
                   required
                   value={away}
                   onChange={(e) => {
-                    setAway(Number(e.target.value));
+                    const value=Number(e.target.value);setAway(value);fitEvents(home,value,fixture,goalEvents);
                     setPreview(null);
                   }}
                 />
               </label>
+            </div>
+            <div className="goal-events-editor">
+              <div className="section-heading"><h3>{t("goalEvents")}</h3><small>{home + away} {t("normalGoal")}</small></div>
+              {goalEvents.map((event,index)=>{
+                const scoringTeam=event.team_id;
+                const scorerTeam=event.event_type==="own_goal"?(scoringTeam===fixture.home_id?fixture.away_id:fixture.home_id):scoringTeam;
+                const scorers=data.players.filter((p:Row)=>p.team_id===scorerTeam);
+                const assists=data.players.filter((p:Row)=>p.team_id===scoringTeam&&p.id!==event.scorer_id);
+                const update=(change:Row)=>setGoalEvents(goalEvents.map((item,i)=>i===index?{...item,...change}:item));
+                return <fieldset key={index} className="goal-event-row"><legend>{index+1}. {scoringTeam===fixture.home_id?localized(fixture,"home",lang):localized(fixture,"away",lang)}</legend>
+                  <label>{t("eventType")}<select value={event.event_type} onChange={e=>update({event_type:e.target.value,scorer_id:"",assist_id:null})}><option value="goal">{t("normalGoal")}</option><option value="penalty">{t("penaltyGoal")}</option><option value="own_goal">{t("ownGoal")}</option></select></label>
+                  <label>{t("scorer")}<select required value={event.scorer_id} onChange={e=>update({scorer_id:e.target.value,assist_id:null})}><option value="">—</option>{scorers.map((p:Row)=><option key={p.id} value={p.id}>{localized(p,"name",lang)}{p.shirt_number?` · #${p.shirt_number}`:""}</option>)}</select></label>
+                  <label>{t("assist")}<select value={event.assist_id??""} disabled={event.event_type!=="goal"} onChange={e=>update({assist_id:e.target.value||null})}><option value="">—</option>{assists.map((p:Row)=><option key={p.id} value={p.id}>{localized(p,"name",lang)}</option>)}</select></label>
+                  <label>{t("goalMinute")}<input type="number" min="1" max="130" required value={event.minute} onChange={e=>update({minute:Number(e.target.value)})}/></label>
+                  <label>{t("addedTime")}<input type="number" min="0" max="30" required value={event.added_time} onChange={e=>update({added_time:Number(e.target.value)})}/></label>
+                </fieldset>;
+              })}
             </div>
             <label>
               {t("resultReason")}
@@ -469,6 +498,7 @@ function Results({ data }: { data: Row }) {
                   winner,
                   first_goal: firstGoal,
                   reason,
+                  goal_events: goalEvents,
                 });
                 setPreview(null);
                 setDone(true);
@@ -571,6 +601,7 @@ export function Admin({
     "overview",
     "members",
     "teams",
+    "players",
     "rounds",
     "fixtures",
     "results",
@@ -585,6 +616,10 @@ export function Admin({
     field("short_name"),
     field("badge", "text", false),
     field("active", "checkbox"),
+  ];
+  const playerFields: Field[] = [
+    {...field("team_id","select"),options:(data.teams??[]).map((team:Row)=>({value:team.id,label:localized(team,"name",lang)}))},
+    field("name_en"),field("name_ml","text",false),field("shirt_number","number",false),field("active","checkbox"),
   ];
   const roundFields = [
     field("name_en"),
@@ -863,7 +898,7 @@ export function Admin({
           </section>
         </>
       )}
-      {(tab === "teams" || tab === "rounds") && (
+      {(tab === "teams" || tab === "rounds" || tab === "players") && (
         <>
           <div className="section-heading">
             <h2>{t(tab)}</h2>
@@ -872,8 +907,9 @@ export function Admin({
               onClick={() =>
                 open(
                   tab,
-                  { sort_order: 0 },
-                  tab === "teams" ? teamFields : roundFields,
+                  tab === "players" ? { active:true,shirt_number:null } : { sort_order: 0 },
+                  tab === "teams" ? teamFields : tab === "players" ? playerFields : roundFields,
+                  tab === "players" ? t("playerHelp") : undefined,
                 )
               }
             >
@@ -882,10 +918,10 @@ export function Admin({
             </button>
           </div>
           <div className="admin-records">
-            {(tab === "teams" ? data.teams : data.rounds).map((r: Row) => (
+            {(tab === "teams" ? data.teams : tab === "players" ? data.players : data.rounds).map((r: Row) => (
               <article className="panel" key={r.id}>
                 <span className="record-short">
-                  {r.short_name ?? r.sort_order}
+                  {r.short_name ?? r.shirt_number ?? r.sort_order}
                 </span>
                 <h3>{localized(r, "name", lang)}</h3>
                 <p className="fine">
@@ -906,7 +942,7 @@ export function Admin({
                   <button
                     className="button secondary small"
                     onClick={() =>
-                      open(tab, r, tab === "teams" ? teamFields : roundFields)
+                      open(tab, r, tab === "teams" ? teamFields : tab === "players" ? playerFields : roundFields,tab === "players" ? t("playerHelp") : undefined)
                     }
                   >
                     {t("edit")}

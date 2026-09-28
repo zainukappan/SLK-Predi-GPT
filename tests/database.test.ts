@@ -309,3 +309,36 @@ test("transactional finalization and correction recompute ranks with a private h
     /finalized_immutable/,
   );
 });
+
+test("public football functions expose safe standings and finalized player statistics", async () => {
+  const scorer = randomUUID(), assister = randomUUID(), f = await fixture();
+  await as(admin, (tx) => tx.query(
+    "INSERT INTO sbk.players(id,team_id,name_en,name_ml,shirt_number) VALUES($1,$3,'Public Scorer','സ്കോറർ',9),($2,$3,'Public Assister','അസിസ്റ്റർ',10)",
+    [scorer, assister, home],
+  ));
+  await as(admin, (tx) => tx.query(
+    "UPDATE sbk.fixtures SET kickoff=clock_timestamp()-interval '2 hours',status='awaiting_result',schedule_note_en='Test match completed',schedule_note_ml='ടെസ്റ്റ് മത്സരം പൂർത്തിയായി' WHERE id=$1",
+    [f],
+  ));
+  await finalize(f, 1, 0);
+  await as(admin, (tx) => tx.query(
+    "INSERT INTO sbk.match_events(fixture_id,team_id,scorer_id,assist_id,minute,event_type,updated_by) VALUES($1,$2,$3,$4,42,'goal',$5)",
+    [f, home, scorer, assister, admin],
+  ));
+
+  const publicData = await as(null, async (tx) => ({
+    fixtures: (await tx.query("SELECT * FROM sbk.public_fixtures() WHERE id=$1", [f])).rows,
+    table: (await tx.query("SELECT * FROM sbk.public_points_table() WHERE team_id=$1", [home])).rows,
+    players: (await tx.query("SELECT * FROM sbk.public_player_stats() WHERE player_id=ANY($1::uuid[])", [[scorer, assister]])).rows,
+    events: (await tx.query("SELECT * FROM sbk.public_match_events() WHERE fixture_id=$1", [f])).rows,
+    predictions: (await tx.query("SELECT * FROM sbk.public_prediction_standings() LIMIT 1")).rows,
+  })) as any;
+  assert.equal(publicData.fixtures.length, 1);
+  assert.ok(Number(publicData.table[0].played) >= 1);
+  assert.equal(Number(publicData.players.find((row: any) => row.player_id === scorer).goals), 1);
+  assert.equal(Number(publicData.players.find((row: any) => row.player_id === assister).assists), 1);
+  assert.equal(publicData.events[0].scorer_en, "Public Scorer");
+  assert.ok(!("email" in publicData.predictions[0]));
+  const anonymousDirect = await as(null, (tx) => tx.query("SELECT * FROM sbk.match_events")) as any;
+  assert.equal(anonymousDirect.rows.length, 0);
+});

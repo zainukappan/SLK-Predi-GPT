@@ -53,6 +53,14 @@ export const schemas = {
     starts_at: z.iso.datetime({ offset: true }).nullable().default(null),
     ends_at: z.iso.datetime({ offset: true }).nullable().default(null),
   }),
+  players: z.object({
+    id: uuid.optional(),
+    team_id: uuid,
+    name_en: name,
+    name_ml: text.max(100),
+    shirt_number: z.number().int().min(1).max(99).nullable(),
+    active: bool,
+  }),
   fixtures: z
     .object({
       id: uuid.optional(),
@@ -86,6 +94,14 @@ export const schemas = {
       .datetime({ offset: true })
       .nullable()
       .default(null),
+    goal_events: z.array(z.object({
+      team_id: uuid,
+      scorer_id: uuid,
+      assist_id: uuid.nullable(),
+      minute: z.number().int().min(1).max(130),
+      added_time: z.number().int().min(0).max(30),
+      event_type: z.enum(["goal", "penalty", "own_goal"]),
+    })).max(40).default([]),
   }),
   announcements: z.object({
     id: uuid.optional(),
@@ -104,6 +120,16 @@ export const schemas = {
   }),
 };
 export const fixtureSelect = `SELECT f.*,h.name_en home_en,h.name_ml home_ml,h.short_name home_short,h.badge home_badge,a.name_en away_en,a.name_ml away_ml,a.short_name away_short,a.badge away_badge,o.name_en round_en,o.name_ml round_ml,p.home_goals predicted_home,p.away_goals predicted_away,p.predicted_winner,p.first_goal predicted_first_goal,p.updated_at saved_at,r.home_goals result_home,r.away_goals result_away,r.winner result_winner,r.first_goal result_first_goal,r.updated_at result_at,CASE WHEN f.status='finalized' THEN sbk.prediction_points(p.home_goals,p.away_goals,p.predicted_winner,p.first_goal,r.home_goals,r.away_goals,r.winner,r.first_goal) ELSE NULL END points FROM sbk.fixtures f JOIN sbk.teams h ON h.id=f.home_id JOIN sbk.teams a ON a.id=f.away_id JOIN sbk.rounds o ON o.id=f.round_id LEFT JOIN sbk.predictions p ON p.fixture_id=f.id AND p.member_id=sbk.uid() LEFT JOIN sbk.results r ON r.fixture_id=f.id`;
+export async function loadPublicSportsData() {
+  return transaction(null, async (db) => ({
+    fixtures: (await db.query("SELECT * FROM sbk.public_fixtures()")).rows,
+    table: (await db.query("SELECT * FROM sbk.public_points_table() ORDER BY table_position,name_en")).rows,
+    players: (await db.query("SELECT * FROM sbk.public_player_stats()")).rows,
+    predictions: (await db.query("SELECT * FROM sbk.public_prediction_standings()")).rows,
+    events: (await db.query("SELECT * FROM sbk.public_match_events()")).rows,
+    generatedAt: new Date().toISOString(),
+  }));
+}
 async function lockedMemberPredictions(db: DB, memberIds: string[]) {
   if (!memberIds.length) return [];
   return (
@@ -326,9 +352,13 @@ export async function loadData(
           await db.query(fixtureSelect + " WHERE (f.deadline<=clock_timestamp() OR f.status<>'scheduled') AND f.status<>'cancelled' ORDER BY f.kickoff DESC LIMIT 250")
         ).rows;
       }
-      if (["teams", "fixtures", "results"].includes(tab))
+      if (["teams", "players", "fixtures", "results"].includes(tab))
         data.teams = (
           await db.query("SELECT * FROM sbk.teams ORDER BY name_en LIMIT 250")
+        ).rows;
+      if (tab === "players")
+        data.players = (
+          await db.query("SELECT p.*,t.name_en team_en,t.name_ml team_ml FROM sbk.players p JOIN sbk.teams t ON t.id=p.team_id ORDER BY p.name_en LIMIT 250")
         ).rows;
       if (tab === "fixtures" || tab === "results") {
         data.fixtures = (
@@ -339,6 +369,14 @@ export async function loadData(
         ).rows;
         data.hasNext = data.fixtures.length > 30;
         data.fixtures = data.fixtures.slice(0, 30);
+        if (tab === "results") {
+          data.players = (
+            await db.query("SELECT p.*,t.name_en team_en,t.name_ml team_ml FROM sbk.players p JOIN sbk.teams t ON t.id=p.team_id WHERE p.active ORDER BY p.name_en LIMIT 500")
+          ).rows;
+          data.goalEvents = (
+            await db.query("SELECT * FROM sbk.match_events WHERE fixture_id=ANY($1::uuid[]) ORDER BY fixture_id,sort_order,minute", [data.fixtures.map((f: Row) => f.id)])
+          ).rows;
+        }
       }
       if (tab === "content") {
         data.announcements = (
@@ -419,9 +457,12 @@ export async function mutate(
       ).rows[0];
     }
     if (kind === "results") {
-      await db.query("SELECT id FROM sbk.fixtures WHERE id=$1 FOR UPDATE", [
-        value.fixture_id,
-      ]);
+      const dataFixture = (
+        await db.query("SELECT id,home_id,away_id FROM sbk.fixtures WHERE id=$1 FOR UPDATE", [
+          value.fixture_id,
+        ])
+      ).rows[0];
+      if (!dataFixture) throw new Error("invalid");
       const current = (
         await db.query(
           "SELECT updated_at FROM sbk.results WHERE fixture_id=$1",
@@ -430,7 +471,13 @@ export async function mutate(
       ).rows[0];
       const stamp = current ? new Date(current.updated_at).toISOString() : null;
       if (stamp !== value.expected_updated_at) throw new Error("stale_result");
-      return (
+      const homeEvents = value.goal_events.filter((event: Row) => event.team_id === (
+        dataFixture.home_id
+      )).length;
+      const awayEvents = value.goal_events.filter((event: Row) => event.team_id === dataFixture.away_id).length;
+      if (homeEvents !== value.home_goals || awayEvents !== value.away_goals)
+        throw new Error("goal_event_count_mismatch");
+      const result = (
         await db.query(
           "INSERT INTO sbk.results(fixture_id,home_goals,away_goals,winner,first_goal,reason,updated_by) VALUES($1,$2,$3,$4,$5,$6,$7) ON CONFLICT(fixture_id) DO UPDATE SET home_goals=EXCLUDED.home_goals,away_goals=EXCLUDED.away_goals,winner=EXCLUDED.winner,first_goal=EXCLUDED.first_goal,reason=EXCLUDED.reason,updated_by=EXCLUDED.updated_by RETURNING *",
           [
@@ -444,6 +491,13 @@ export async function mutate(
           ],
         )
       ).rows[0];
+      await db.query("DELETE FROM sbk.match_events WHERE fixture_id=$1", [value.fixture_id]);
+      for (const [index, event] of value.goal_events.entries())
+        await db.query(
+          "INSERT INTO sbk.match_events(fixture_id,team_id,scorer_id,assist_id,minute,added_time,event_type,sort_order,updated_by) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)",
+          [value.fixture_id,event.team_id,event.scorer_id,event.assist_id,event.minute,event.added_time,event.event_type,index,id],
+        );
+      return result;
     }
     const table = kind === "rules" ? "rules_revisions" : kind,
       recordId = value.id;

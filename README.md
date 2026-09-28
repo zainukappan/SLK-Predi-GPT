@@ -1,6 +1,6 @@
 # SBK SLK Prediction Contest
 
-A bilingual, mobile-first prediction app for approved Soccer Blues of Keralam members. Participation is free. There are no payments, wagers, prizes, or betting features. This project has **not been deployed**.
+A bilingual, mobile-first prediction app for approved Soccer Blues of Keralam members. Participation is free. There are no payments, wagers, prizes, or betting features. The production site is available at [sbkpredictions.vercel.app](https://sbkpredictions.vercel.app/).
 
 ## Start locally — no external credentials needed
 
@@ -35,6 +35,7 @@ Local mode uses server-side PGlite, a PostgreSQL engine persisted in `.local/pos
 - Approved members can save/edit one score per fixture before its database deadline, view standings and prediction history, and download bilingual PNG rank cards.
 - Open **Organizer desk** in desktop navigation or Profile on mobile. The member queue supports search, status filters, pagination, multi-selection, and private review notes.
 - Create teams in both languages, then rounds, then fixtures. Fixture date fields are explicitly **IST**; storage is UTC. For real fixtures turn off the sample flag. No live score feed is fabricated.
+- Create each squad in **Organizer desk → Players**, including team, bilingual name and optional shirt number. When finalizing a result, enter one goal event for every goal, selecting the scorer, optional assist, event type and minute. These finalized events drive the public top-scorer, assist and goal-contribution tables.
 - Use fixture editing to postpone, reschedule, cancel, restore, or mark a match in progress / awaiting result. Reschedules require explanations in both languages.
 - After regulation-time play ends, set the match to awaiting result, enter the full-time result, preview point changes, and confirm. Corrections require a reason and immediately update standings.
 - Publish bilingual announcements with optional visibility windows. Add organizer contact details and rules revisions in **Announcements & rules**. Fixed scoring/deadline rules remain visible; organizer revisions add community guidance rather than silently changing the scoring algorithm.
@@ -85,7 +86,8 @@ Do not expose the local demo to the internet. A production instance requires you
 
 7. Sign in as organizer, enter genuine teams/rounds/fixtures, bilingual announcements and contact information. The Members tab can approve requests or directly create an approved member. For mobile login, choose the international country code and enter only the national mobile number; the organizer sets the initial password. The member row allows an organizer to change that member's login number/email or reset their password. Passwords are handled only by Supabase Auth and are never stored in application tables or audit events. Organizers can also promote an approved member to admin; this grants full organizer access and is audited.
 8. If members submitted predictions through WhatsApp before the website was available, use **Admin → Enter past predictions**. Select the approved member and a fixture whose deadline has passed, then enter all three answers. The import is audited, preserves revision history on corrections, and immediately affects standings when the fixture already has a finalized result.
-9. Run checks and build:
+9. The public match centre is available without login at `/SuperLeagueKerala`. It uses non-demo fixtures and finalized results from the same organizer workflow, plus safe aggregate functions for the points table, player statistics and prediction leaderboard. It never exposes account identifiers or individual predictions.
+10. Run checks and build:
 
    ```sh
    npm run typecheck
@@ -113,6 +115,7 @@ migrations/              Tables, indexes, constraints, RLS, triggers, aggregate 
 scripts/                 Migration, secure bootstrap, local setup, deterministic logo crop
 tests/                   Domain, real PostgreSQL/RLS integration, browser end-to-end checks
 public/sbk-logo.png       Authentic screenshot logo cropped with circular alpha mask
+public/slk-logo-white.webp Official Super League Kerala white logo used on the public hub
 ```
 
 ## Security and correctness
