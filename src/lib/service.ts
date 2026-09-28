@@ -66,6 +66,7 @@ export const schemas = {
   fixtures: z
     .object({
       id: uuid.optional(),
+      match_number: z.number().int().min(1).max(9999).nullable(),
       round_id: uuid,
       home_id: uuid,
       away_id: uuid,
@@ -84,7 +85,8 @@ export const schemas = {
       schedule_note_en: text.max(500),
       schedule_note_ml: text.max(500),
     })
-    .refine((v) => v.home_id !== v.away_id),
+    .refine((v) => v.home_id !== v.away_id)
+    .refine((v) => v.demo || v.match_number !== null),
   results: z.object({
     fixture_id: uuid,
     home_goals: goals,
@@ -141,7 +143,7 @@ async function lockedMemberPredictions(db: DB, memberIds: string[]) {
     await db.query(
       `SELECT * FROM (
          SELECT p.member_id,p.fixture_id,p.home_goals,p.away_goals,p.predicted_winner,p.first_goal,p.updated_at,
-           f.kickoff,f.status,h.name_en home_en,h.name_ml home_ml,a.name_en away_en,a.name_ml away_ml,
+           f.match_number,f.kickoff,f.status,h.name_en home_en,h.name_ml home_ml,a.name_en away_en,a.name_ml away_ml,
            o.name_en round_en,o.name_ml round_ml,r.home_goals result_home,r.away_goals result_away,r.first_goal result_first_goal,
            CASE WHEN f.status='finalized' THEN sbk.prediction_points(
              p.home_goals,p.away_goals,p.predicted_winner,p.first_goal,

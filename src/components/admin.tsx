@@ -355,6 +355,7 @@ function Results({ data }: { data: Row }) {
             <option value="">—</option>
             {data.fixtures.map((f: Row) => (
               <option value={f.id} key={f.id}>
+                {!f.demo && f.match_number ? `${t("matchNumber")} ${f.match_number} · ` : ""}
                 {localized(f, "home", lang)} – {localized(f, "away", lang)} ·{" "}
                 {t(f.status as Key)} · {ist(f.kickoff, lang)}
               </option>
@@ -573,7 +574,7 @@ function PredictionImport({ data }: { data: Row }) {
       }}>
         <div className="form-grid">
           <label>{t("member")}<select name="member_id" required value={memberId} onChange={(e)=>{setMemberId(e.target.value);loadPrediction(e.target.value,fixtureId);}}><option value="">—</option>{data.members.map((m: Row) => <option value={m.id} key={m.id}>{m.display_name} · {m.email}</option>)}</select></label>
-          <label>{t("selectFixture")}<select name="fixture_id" required value={fixtureId} onChange={(e)=>{setFixtureId(e.target.value);loadPrediction(memberId,e.target.value);}}><option value="">—</option>{data.fixtures.map((f: Row) => <option value={f.id} key={f.id}>{localized(f,"home",lang)} – {localized(f,"away",lang)} · {ist(f.kickoff,lang)}</option>)}</select></label>
+          <label>{t("selectFixture")}<select name="fixture_id" required value={fixtureId} onChange={(e)=>{setFixtureId(e.target.value);loadPrediction(memberId,e.target.value);}}><option value="">—</option>{data.fixtures.map((f: Row) => <option value={f.id} key={f.id}>{!f.demo && f.match_number ? `${t("matchNumber")} ${f.match_number} · ` : ""}{localized(f,"home",lang)} – {localized(f,"away",lang)} · {ist(f.kickoff,lang)}</option>)}</select></label>
           <label>{t("winnerQuestion")}<select name="predicted_winner" required disabled={!fixture} value={winner} onChange={(e)=>setWinner(e.target.value)}><option value="">—</option><option value="home">{fixture ? localized(fixture,"home",lang) : t("homeWin")}</option><option value="draw">{t("draw")}</option><option value="away">{fixture ? localized(fixture,"away",lang) : t("awayWin")}</option></select></label>
           <label>{t("firstGoalQuestion")}<select name="first_goal" required disabled={!fixture} value={firstGoal} onChange={(e)=>setFirstGoal(e.target.value)}><option value="">—</option><option value="home">{fixture ? localized(fixture,"home",lang) : t("homeWin")}</option><option value="away">{fixture ? localized(fixture,"away",lang) : t("awayWin")}</option><option value="nobody">{t("nobody")}</option></select></label>
           <label>{t("homeGoals")}<input type="number" min="0" max="20" value={home} onChange={(e)=>setHome(Number(e.target.value))} required /></label>
@@ -662,6 +663,7 @@ export function Admin({
     field("active", "checkbox"),
   ];
   const fixtureFields: Field[] = [
+    field("match_number", "number", false, "matchNumberInput"),
     {
       ...field("round_id", "select"),
       options: data.rounds.map((r: Row) => ({
@@ -992,7 +994,7 @@ export function Admin({
               onClick={() =>
                 open(
                   "fixtures",
-                  { status: "scheduled", knockout: false, demo: false },
+                  { status: "scheduled", knockout: false, demo: false, match_number: Math.max(0, ...(data.fixtures ?? []).filter((f: Row) => !f.demo).map((f: Row) => Number(f.match_number) || 0)) + 1 },
                   fixtureFields,
                   t("fixtureHelp") + " " + t("identityHelp"),
                 )
@@ -1013,7 +1015,7 @@ export function Admin({
                     {localized(f, "home", lang)} – {localized(f, "away", lang)}
                   </h3>
                   <p>
-                    {ist(f.kickoff, lang)} · {localized(f, "round", lang)}
+                    {!f.demo && f.match_number ? `${t("matchNumber")} ${f.match_number} · ` : ""}{ist(f.kickoff, lang)} · {localized(f, "round", lang)}
                   </p>
                   <small>
                     {t("deadline")}: {ist(f.deadline, lang)}

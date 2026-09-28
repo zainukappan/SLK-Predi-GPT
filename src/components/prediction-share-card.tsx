@@ -102,7 +102,7 @@ export function PredictionShareCard({ fixture, prediction, displayName, locked, 
       write(displayName, 540, 310, fit(displayName, 850, 51, 28), "#ffcf18", 700, 880);
       write("SUPER LEAGUE KERALA", 540, 354, 27, "#fff", 700, 900);
       write("PREDICTION CONTEST", 540, 390, 27, "#fff", 700, 900);
-      write(localized(fixture, "round", lang), 540, 428, 20, "#c9d6ff", 600, 900);
+      write(`${!fixture.demo && fixture.match_number ? `${t("matchNumber")} ${fixture.match_number} · ` : ""}${localized(fixture, "round", lang)}`, 540, 428, 20, "#c9d6ff", 600, 900);
       ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.roundRect(60, 460, 960, 680, 38); ctx.fill();
       drawBadge(homeBadge, 285, 560, String(fixture.home_short ?? "H").slice(0, 3));
       drawBadge(awayBadge, 795, 560, String(fixture.away_short ?? "A").slice(0, 3));

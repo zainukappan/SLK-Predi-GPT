@@ -127,7 +127,7 @@ export function FixtureCard({
     <article className={"fixture-card " + (featured ? "featured" : "")}>
       <div className="fixture-meta">
         <span>
-          {localized(f, "round", lang)}
+          {!f.demo && f.match_number ? `${t("matchNumber")} ${f.match_number} · ` : ""}{localized(f, "round", lang)}
           {f.demo && <b className="sample">{t("sample")}</b>}
         </span>
         {open ? (
@@ -480,7 +480,7 @@ function Prediction({ f, others, profile, demo }: { f: Row; others: Row[]; profi
     <>
       <PageTitle
         title={t("yourPrediction")}
-        kicker={localized(f, "round", lang)}
+        kicker={`${!f.demo && f.match_number ? `${t("matchNumber")} ${f.match_number} · ` : ""}${localized(f, "round", lang)}`}
       />
       <div className="prediction-layout">
         <section className="panel prediction-panel">
@@ -1107,7 +1107,7 @@ export function Dashboard({
               >
                 <div>
                   <span className="fine">
-                    {localized(f, "round", lang)} · {ist(f.kickoff, lang)}
+                    {!f.demo && f.match_number ? `${t("matchNumber")} ${f.match_number} · ` : ""}{localized(f, "round", lang)} · {ist(f.kickoff, lang)}
                   </span>
                   <h3>
                     {localized(f, "home", lang)} <span>–</span>{" "}

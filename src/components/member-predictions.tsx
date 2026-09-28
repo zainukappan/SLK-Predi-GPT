@@ -25,7 +25,7 @@ export function MemberPredictions({ rows }: { rows: Row[] }) {
         <article className="member-prediction-item" key={row.fixture_id}>
           <div className="member-prediction-match">
             <strong>{row[`home_${lang}`] || row.home_en} <span>{row.home_goals}–{row.away_goals}</span> {row[`away_${lang}`] || row.away_en}</strong>
-            <small>{row[`round_${lang}`] || row.round_en} · {ist(row.kickoff, lang)}</small>
+            <small>{row.match_number ? `${t("matchNumber")} ${row.match_number} · ` : ""}{row[`round_${lang}`] || row.round_en} · {ist(row.kickoff, lang)}</small>
           </div>
           <dl>
             <div className={row.status === "finalized" && row.predicted_winner === resultWinner(row) ? "prediction-answer-correct" : ""}><dt>{t("winnerQuestion")}</dt><dd>{labelFor(row.predicted_winner, row, lang, t("nobody"), t("draw"))}</dd></div>
