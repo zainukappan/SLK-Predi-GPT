@@ -366,3 +366,15 @@ test("SLK table awards 2/1 for a shootout while predictions remain based on 90 m
   const prediction = await db.query<{points:number}>("SELECT sbk.prediction_points(1,1,'draw','home',1,1,'draw','home') points");
   assert.equal(Number(prediction.rows[0].points), 3);
 });
+
+test("SLK table awards zero points for a regulation-time loss", async () => {
+  const winner=randomUUID(), loser=randomUUID();
+  await db.query("INSERT INTO sbk.teams(id,name_en,short_name) VALUES($1,'Regulation Winner','RW'),($2,'Regulation Loser','RL')", [winner,loser]);
+  const f=(await db.query<{id:string}>("INSERT INTO sbk.fixtures(round_id,home_id,away_id,kickoff,status,schedule_note_en,schedule_note_ml) VALUES($1,$2,$3,clock_timestamp()-interval '2 hours','awaiting_result','Completed','പൂർത്തിയായി') RETURNING id", [round,winner,loser])).rows[0].id;
+  await finalize(f,2,0);
+  const rows=(await as(null,(tx)=>tx.query("SELECT team_id,points,regulation_losses FROM sbk.public_points_table() WHERE team_id=ANY($1::uuid[])",[[winner,loser]]))) as any;
+  const winnerRow=rows.rows.find((row:any)=>row.team_id===winner), loserRow=rows.rows.find((row:any)=>row.team_id===loser);
+  assert.equal(Number(winnerRow.points),3);
+  assert.equal(Number(loserRow.points),0);
+  assert.equal(Number(loserRow.regulation_losses),1);
+});
