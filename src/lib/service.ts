@@ -355,6 +355,14 @@ export async function loadData(
         data.fixtures = (
           await db.query(fixtureSelect + " WHERE (f.deadline<=clock_timestamp() OR f.status<>'scheduled') AND f.status<>'cancelled' ORDER BY f.kickoff DESC LIMIT 250")
         ).rows;
+        data.existingPredictions = (
+          await db.query(
+            `SELECT p.member_id,p.fixture_id,p.home_goals,p.away_goals,p.predicted_winner,p.first_goal
+             FROM sbk.predictions p JOIN sbk.fixtures f ON f.id=p.fixture_id
+             WHERE (f.deadline<=clock_timestamp() OR f.status<>'scheduled') AND f.status<>'cancelled'
+             ORDER BY p.updated_at DESC LIMIT 5000`,
+          )
+        ).rows;
       }
       if (["teams", "players", "fixtures", "results"].includes(tab))
         data.teams = (

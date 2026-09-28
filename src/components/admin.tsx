@@ -541,9 +541,20 @@ function PredictionImport({ data }: { data: Row }) {
   const { t, lang } = useLanguage();
   const router = useRouter();
   const [home, setHome] = useState(0), [away, setAway] = useState(0),
+    [memberId, setMemberId] = useState(""),
     [fixtureId, setFixtureId] = useState(""),
+    [winner, setWinner] = useState(""), [firstGoal, setFirstGoal] = useState(""),
     [busy, setBusy] = useState(false), [error, setError] = useState(""), [done, setDone] = useState(false);
   const fixture = data.fixtures.find((f: Row) => f.id === fixtureId);
+  const loadPrediction = (nextMemberId: string, nextFixtureId: string) => {
+    const existing = (data.existingPredictions ?? []).find((p: Row) => p.member_id === nextMemberId && p.fixture_id === nextFixtureId);
+    setHome(existing?.home_goals ?? 0);
+    setAway(existing?.away_goals ?? 0);
+    setWinner(existing?.predicted_winner ?? "");
+    setFirstGoal(existing?.first_goal ?? "");
+    setDone(false);
+    setError("");
+  };
   return (
     <section className="panel">
       <h2>{t("importPrediction")}</h2>
@@ -561,10 +572,10 @@ function PredictionImport({ data }: { data: Row }) {
         } catch (e) { setError((e as Error).message); } finally { setBusy(false); }
       }}>
         <div className="form-grid">
-          <label>{t("member")}<select name="member_id" required><option value="">—</option>{data.members.map((m: Row) => <option value={m.id} key={m.id}>{m.display_name} · {m.email}</option>)}</select></label>
-          <label>{t("selectFixture")}<select name="fixture_id" required value={fixtureId} onChange={(e)=>setFixtureId(e.target.value)}><option value="">—</option>{data.fixtures.map((f: Row) => <option value={f.id} key={f.id}>{localized(f,"home",lang)} – {localized(f,"away",lang)} · {ist(f.kickoff,lang)}</option>)}</select></label>
-          <label>{t("winnerQuestion")}<select name="predicted_winner" required disabled={!fixture}><option value="">—</option><option value="home">{fixture ? localized(fixture,"home",lang) : t("homeWin")}</option><option value="draw">{t("draw")}</option><option value="away">{fixture ? localized(fixture,"away",lang) : t("awayWin")}</option></select></label>
-          <label>{t("firstGoalQuestion")}<select name="first_goal" required disabled={!fixture}><option value="">—</option><option value="home">{fixture ? localized(fixture,"home",lang) : t("homeWin")}</option><option value="away">{fixture ? localized(fixture,"away",lang) : t("awayWin")}</option><option value="nobody">{t("nobody")}</option></select></label>
+          <label>{t("member")}<select name="member_id" required value={memberId} onChange={(e)=>{setMemberId(e.target.value);loadPrediction(e.target.value,fixtureId);}}><option value="">—</option>{data.members.map((m: Row) => <option value={m.id} key={m.id}>{m.display_name} · {m.email}</option>)}</select></label>
+          <label>{t("selectFixture")}<select name="fixture_id" required value={fixtureId} onChange={(e)=>{setFixtureId(e.target.value);loadPrediction(memberId,e.target.value);}}><option value="">—</option>{data.fixtures.map((f: Row) => <option value={f.id} key={f.id}>{localized(f,"home",lang)} – {localized(f,"away",lang)} · {ist(f.kickoff,lang)}</option>)}</select></label>
+          <label>{t("winnerQuestion")}<select name="predicted_winner" required disabled={!fixture} value={winner} onChange={(e)=>setWinner(e.target.value)}><option value="">—</option><option value="home">{fixture ? localized(fixture,"home",lang) : t("homeWin")}</option><option value="draw">{t("draw")}</option><option value="away">{fixture ? localized(fixture,"away",lang) : t("awayWin")}</option></select></label>
+          <label>{t("firstGoalQuestion")}<select name="first_goal" required disabled={!fixture} value={firstGoal} onChange={(e)=>setFirstGoal(e.target.value)}><option value="">—</option><option value="home">{fixture ? localized(fixture,"home",lang) : t("homeWin")}</option><option value="away">{fixture ? localized(fixture,"away",lang) : t("awayWin")}</option><option value="nobody">{t("nobody")}</option></select></label>
           <label>{t("homeGoals")}<input type="number" min="0" max="20" value={home} onChange={(e)=>setHome(Number(e.target.value))} required /></label>
           <label>{t("awayGoals")}<input type="number" min="0" max="20" value={away} onChange={(e)=>setAway(Number(e.target.value))} required /></label>
         </div>
