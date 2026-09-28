@@ -112,6 +112,10 @@ export function Shell({
             {t("community")}
           </span>
           <div className="topbar-right">
+            <Link className="slk-hub-link" href="/SuperLeagueKerala">
+              <img src="/slk-logo-white.webp" alt="" />
+              <span>{t("goToSlk")}</span>
+            </Link>
             <LanguageSwitch member />
             <Link className="avatar" aria-label={t("profile")} href="/profile">
               {user.display_name.slice(0, 1).toUpperCase()}
@@ -127,7 +131,7 @@ export function Shell({
           </Link>
         </footer>
       </div>
-      <nav className="bottom-nav" aria-label={t("title")}>
+      <nav className={`bottom-nav${user.role === "admin" ? " admin-nav" : ""}`} aria-label={t("title")}>
         {primary.map(([key, Icon]) => (
           <Link
             key={key}
@@ -139,6 +143,16 @@ export function Shell({
             <span>{t(key)}</span>
           </Link>
         ))}
+        {user.role === "admin" && (
+          <Link
+            aria-current={pathname === "/admin" ? "page" : undefined}
+            className={pathname === "/admin" ? "active" : ""}
+            href="/admin"
+          >
+            <ShieldCheck size={21} />
+            <span>{t("admin")}</span>
+          </Link>
+        )}
       </nav>
     </div>
   );

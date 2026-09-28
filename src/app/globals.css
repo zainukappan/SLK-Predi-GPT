@@ -427,6 +427,7 @@ input[type="checkbox"] {
   align-items: center;
   gap: 25px;
 }
+.slk-hub-link{display:flex;align-items:center;gap:8px;min-height:40px;padding:7px 12px;border-radius:9px;background:#c51f2f;color:#fff;font-size:11px;font-weight:800;box-shadow:0 6px 15px #a6162730}.slk-hub-link:hover{background:#a91625}.slk-hub-link img{width:34px;height:24px;object-fit:contain}
 .language-switch {
   border: 1px solid #dce2ee;
   background: transparent;
@@ -2355,6 +2356,7 @@ html[lang="ml"] .sidebar nav a {
   .topbar-right {
     gap: 13px;
   }
+  .slk-hub-link{gap:5px;padding:6px 8px;font-size:9px;line-height:1.05;text-align:center}.slk-hub-link img{width:27px;height:21px}.slk-hub-link span{max-width:52px}
   .topbar-right > .avatar {
     display: none;
   }
@@ -2486,6 +2488,9 @@ html[lang="ml"] .sidebar nav a {
     border-top: 1px solid var(--line);
     z-index: 40;
     padding: 8px 8px calc(8px + env(safe-area-inset-bottom));
+  }
+  .bottom-nav.admin-nav {
+    grid-template-columns: repeat(5, 1fr);
   }
   .bottom-nav a {
     position: relative;
