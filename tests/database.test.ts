@@ -254,6 +254,36 @@ test("admin can permanently delete a member and dependent private data", async (
   assert.equal(Number((await db.query<{ count: number }>("SELECT count(*) count FROM sbk.predictions WHERE member_id=$1", [removable])).rows[0].count), 0);
   assert.equal(Number((await db.query<{ count: number }>("SELECT count(*) count FROM sbk.membership_reviews WHERE member_id=$1", [removable])).rows[0].count), 0);
 });
+
+test("only an admin can permanently delete a fixture and its contest data", async () => {
+  const f = await fixture();
+  await predict(alice, f, 2, 1);
+  const prediction = (await db.query<{ id: string }>(
+    "SELECT id FROM sbk.predictions WHERE fixture_id=$1 AND member_id=$2",
+    [f, alice],
+  )).rows[0];
+  await db.query(
+    "INSERT INTO sbk.prediction_revisions(prediction_id,home_goals,away_goals,predicted_winner,first_goal,saved_at) VALUES($1,1,0,'home','home',clock_timestamp())",
+    [prediction.id],
+  );
+  await as(admin, (tx) => tx.query(
+    "UPDATE sbk.fixtures SET kickoff=clock_timestamp()-interval '1 hour',status='awaiting_result',schedule_note_en='Played match',schedule_note_ml='കളിച്ച മത്സരം' WHERE id=$1",
+    [f],
+  ));
+  await finalize(f, 2, 1);
+
+  await assert.rejects(
+    as(alice, (tx) => tx.query("SELECT sbk.admin_delete_fixture($1)", [f])),
+    /forbidden/,
+  );
+  await as(admin, (tx) => tx.query("SELECT sbk.admin_delete_fixture($1)", [f]));
+
+  assert.equal(Number((await db.query<{ count: number }>("SELECT count(*) count FROM sbk.fixtures WHERE id=$1", [f])).rows[0].count), 0);
+  assert.equal(Number((await db.query<{ count: number }>("SELECT count(*) count FROM sbk.predictions WHERE fixture_id=$1", [f])).rows[0].count), 0);
+  assert.equal(Number((await db.query<{ count: number }>("SELECT count(*) count FROM sbk.prediction_revisions WHERE prediction_id=$1", [prediction.id])).rows[0].count), 0);
+  assert.equal(Number((await db.query<{ count: number }>("SELECT count(*) count FROM sbk.results WHERE fixture_id=$1", [f])).rows[0].count), 0);
+  assert.equal(Number((await db.query<{ count: number }>("SELECT count(*) count FROM sbk.admin_audit_events WHERE action='DELETE_FIXTURE' AND before_value->>'id'=$1", [f])).rows[0].count), 1);
+});
 test("transactional finalization and correction recompute ranks with a private history", async () => {
   const f = await fixture();
   await predict(alice, f, 2, 1);

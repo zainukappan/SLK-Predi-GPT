@@ -135,6 +135,7 @@ export async function POST(request: NextRequest) {
       "member_update_failed",
       "member_delete_failed",
       "member_not_found",
+      "fixture_not_found",
       "prediction_not_locked",
       "member_not_approved",
       "goal_event_count_mismatch",

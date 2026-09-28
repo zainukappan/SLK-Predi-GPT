@@ -23,6 +23,7 @@ export const schemas = {
     note: text,
   }),
   promote: z.object({ member_id: uuid }),
+  deleteFixture: z.object({ fixture_id: uuid }),
   adminPrediction: z.object({
     member_id: uuid,
     fixture_id: uuid,
@@ -458,6 +459,10 @@ export async function mutate(
     }
     if (kind === "promote") {
       await db.query("SELECT sbk.promote_member($1)", [value.member_id]);
+      return {};
+    }
+    if (kind === "deleteFixture") {
+      await db.query("SELECT sbk.admin_delete_fixture($1)", [value.fixture_id]);
       return {};
     }
     if (kind === "adminPrediction") {

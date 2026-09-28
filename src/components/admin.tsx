@@ -607,6 +607,7 @@ export function Admin({
     [newMember, setNewMember] = useState(false),
     [editMember, setEditMember] = useState<Row | null>(null),
     [deleteMember, setDeleteMember] = useState<Row | null>(null),
+    [deleteFixture, setDeleteFixture] = useState<Row | null>(null),
     [credentials, setCredentials] = useState<Row | null>(null),
     [newAccountType, setNewAccountType] = useState<"phone" | "email">("phone"),
     [promote, setPromote] = useState<Row | null>(null),
@@ -615,12 +616,13 @@ export function Admin({
     [predictionMember, setPredictionMember] = useState<string | null>(null),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false);
-  useDialog(Boolean(review || newMember || editMember || deleteMember || promote), () => {
+  useDialog(Boolean(review || newMember || editMember || deleteMember || deleteFixture || promote), () => {
     if (!busy) {
       setReview(null);
       setNewMember(false);
       setEditMember(null);
       setDeleteMember(null);
+      setDeleteFixture(null);
       setPromote(null);
     }
   });
@@ -1039,6 +1041,12 @@ export function Admin({
                       {t("edit")}
                     </button>
                   )}
+                  <button
+                    className="button danger small"
+                    onClick={() => { setError(""); setDeleteFixture(f); }}
+                  >
+                    <Trash2 size={15} /> {t("deleteFixture")}
+                  </button>
                 </div>
               </article>
             ))}
@@ -1300,6 +1308,28 @@ export function Admin({
                 try {
                   await action("deleteMember", { member_id: deleteMember.id });
                   setDeleteMember(null); router.refresh();
+                } catch (e) { setError((e as Error).message); } finally { setBusy(false); }
+              }}><Trash2 size={18} /> {busy ? t("saving") : t("deletePermanently")}</button>
+            </div>
+          </section>
+        </div>
+      )}
+      {deleteFixture && (
+        <div className="modal-backdrop">
+          <section className="modal" role="dialog" aria-modal="true" aria-label={t("deleteFixture")}>
+            <div className="section-heading">
+              <h2>{t("deleteFixture")} · {localized(deleteFixture, "home", lang)} – {localized(deleteFixture, "away", lang)}</h2>
+              <button className="icon-button" aria-label={t("close")} onClick={() => setDeleteFixture(null)}><X /></button>
+            </div>
+            <p>{t("deleteFixtureHelp")}</p>
+            <ErrorMessage message={error} />
+            <div className="button-row">
+              <button className="button secondary" disabled={busy} onClick={() => setDeleteFixture(null)}>{t("cancel")}</button>
+              <button className="button danger" disabled={busy} onClick={async () => {
+                setBusy(true); setError("");
+                try {
+                  await action("deleteFixture", { fixture_id: deleteFixture.id });
+                  setDeleteFixture(null); router.refresh();
                 } catch (e) { setError((e as Error).message); } finally { setBusy(false); }
               }}><Trash2 size={18} /> {busy ? t("saving") : t("deletePermanently")}</button>
             </div>
