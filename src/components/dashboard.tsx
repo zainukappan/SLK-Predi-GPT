@@ -1105,15 +1105,20 @@ export function Dashboard({
                 className="prediction-item"
                 key={f.id}
               >
-                <div>
-                  <span className="fine">
+                <div className="prediction-item-main">
+                  <span className="fine prediction-item-meta">
                     {!f.demo && f.match_number ? <><b className="match-number-label">{t("matchNumber")} {f.match_number}</b> · </> : null}{localized(f, "round", lang)} · {ist(f.kickoff, lang)}
                   </span>
-                  <h3>
-                    {localized(f, "home", lang)} <span>–</span>{" "}
-                    {localized(f, "away", lang)}
-                  </h3>
-                  <small>
+                  <div className="prediction-team-logos">
+                    <div className="prediction-team-logo">
+                      {f.home_badge ? <img src={f.home_badge} alt={localized(f, "home", lang)} /> : <b>{f.home_short}</b>}
+                    </div>
+                    <span>VS</span>
+                    <div className="prediction-team-logo">
+                      {f.away_badge ? <img src={f.away_badge} alt={localized(f, "away", lang)} /> : <b>{f.away_short}</b>}
+                    </div>
+                  </div>
+                  <small className="prediction-saved-at">
                     {f.saved_at
                       ? t("savedAt") + " " + ist(f.saved_at, lang)
                       : t("notPredicted")}
@@ -1127,7 +1132,7 @@ export function Dashboard({
                       : `${f.predicted_home} – ${f.predicted_away}`}
                   </strong>
                 </div>
-                <div>
+                <div className="prediction-result">
                   <span className="status">
                     {f.status === "finalized"
                       ? f.result_home + " – " + f.result_away
@@ -1149,7 +1154,7 @@ export function Dashboard({
                 {f.points !== null && (
                   <b className="points-pill">+{f.points}</b>
                 )}
-                <ChevronRight size={18} />
+                <ChevronRight className="prediction-card-arrow" size={18} />
               </Link>
             ))}
           </div>
