@@ -127,7 +127,7 @@ export function FixtureCard({
     <article className={"fixture-card " + (featured ? "featured" : "")}>
       <div className="fixture-meta">
         <span>
-          {!f.demo && f.match_number ? `${t("matchNumber")} ${f.match_number} · ` : ""}{localized(f, "round", lang)}
+          {!f.demo && f.match_number ? <><b className="match-number-label">{t("matchNumber")} {f.match_number}</b> · </> : null}{localized(f, "round", lang)}
           {f.demo && <b className="sample">{t("sample")}</b>}
         </span>
         {open ? (
@@ -1107,7 +1107,7 @@ export function Dashboard({
               >
                 <div>
                   <span className="fine">
-                    {!f.demo && f.match_number ? `${t("matchNumber")} ${f.match_number} · ` : ""}{localized(f, "round", lang)} · {ist(f.kickoff, lang)}
+                    {!f.demo && f.match_number ? <><b className="match-number-label">{t("matchNumber")} {f.match_number}</b> · </> : null}{localized(f, "round", lang)} · {ist(f.kickoff, lang)}
                   </span>
                   <h3>
                     {localized(f, "home", lang)} <span>–</span>{" "}

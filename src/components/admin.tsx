@@ -1015,7 +1015,7 @@ export function Admin({
                     {localized(f, "home", lang)} – {localized(f, "away", lang)}
                   </h3>
                   <p>
-                    {!f.demo && f.match_number ? `${t("matchNumber")} ${f.match_number} · ` : ""}{ist(f.kickoff, lang)} · {localized(f, "round", lang)}
+                    {!f.demo && f.match_number ? <><b className="match-number-label">{t("matchNumber")} {f.match_number}</b> · </> : null}{ist(f.kickoff, lang)} · {localized(f, "round", lang)}
                   </p>
                   <small>
                     {t("deadline")}: {ist(f.deadline, lang)}
