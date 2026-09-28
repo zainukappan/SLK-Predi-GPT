@@ -392,3 +392,11 @@ test("public prediction details expose only deadline-locked answers without acco
   assert.ok(!("member_id" in rows.rows[0]));
   assert.ok(!("email" in rows.rows[0]));
 });
+
+test("public prediction ties share rank and display in English alphabetical order", async () => {
+  const alpha=randomUUID(), zebra=randomUUID();
+  await db.query("INSERT INTO sbk.profiles(id,display_name,email,membership) VALUES($1,'Alpha Public','alpha-public@test.example','approved'),($2,'Zebra Public','zebra-public@test.example','approved')",[alpha,zebra]);
+  const rows=await db.query<{display_name:string;rank:number}>("SELECT display_name,rank FROM sbk.public_prediction_standings() WHERE display_name IN ('Alpha Public','Zebra Public')");
+  assert.deepEqual(rows.rows.map(row=>row.display_name),["Alpha Public","Zebra Public"]);
+  assert.equal(Number(rows.rows[0].rank),Number(rows.rows[1].rank));
+});
