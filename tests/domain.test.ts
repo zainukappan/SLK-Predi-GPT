@@ -44,21 +44,21 @@ test("equal total points share competition rank", () => {
 test("deadline immediately before, at and after; rescheduling and match states", () => {
   const kickoff = "2026-09-25T14:30:00Z";
   assert.equal(
-    canPredict("scheduled", kickoff, new Date("2026-09-25T14:24:59.999Z")),
+    canPredict("scheduled", kickoff, new Date("2026-09-25T12:59:59.999Z")),
     true,
   );
   assert.equal(
-    canPredict("scheduled", kickoff, new Date("2026-09-25T14:25:00.000Z")),
+    canPredict("scheduled", kickoff, new Date("2026-09-25T13:00:00.000Z")),
     false,
   );
   assert.equal(
-    canPredict("scheduled", kickoff, new Date("2026-09-25T14:25:00.001Z")),
+    canPredict("scheduled", kickoff, new Date("2026-09-25T13:00:00.001Z")),
     false,
   );
   assert.equal(
     canPredict(
       "scheduled",
-      "2026-09-25T15:30:00Z",
+      "2026-09-25T16:00:00Z",
       new Date("2026-09-25T14:25:00Z"),
     ),
     true,

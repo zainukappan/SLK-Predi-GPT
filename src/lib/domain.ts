@@ -29,7 +29,7 @@ export function points(
 export function canPredict(status: Status, kickoff: string, now = new Date()) {
   return (
     status === "scheduled" &&
-    now.getTime() < new Date(kickoff).getTime() - 300000
+    now.getTime() < new Date(kickoff).getTime() - 5_400_000
   );
 }
 export function ranks<T extends { points: number }>(rows: T[]) {

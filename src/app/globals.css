@@ -252,6 +252,12 @@ hr {
   background: #eef3ff;
   border: 1px solid #d7e1fc;
 }
+.prediction-final-warning {
+  color: #a82535;
+  background: #fff0f1;
+  border: 1px solid #efb7bf;
+  font-weight: 700;
+}
 label {
   display: flex;
   flex-direction: column;

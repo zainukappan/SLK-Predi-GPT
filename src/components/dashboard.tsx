@@ -532,7 +532,7 @@ function Prediction({ f, others, profile, demo }: { f: Row; others: Row[]; profi
               }
             }}
           >
-            <fieldset className="prediction-question" disabled={!open || busy}>
+            <fieldset className="prediction-question" disabled={!open || busy || saved !== null}>
               <legend>1. {t("winnerQuestion")}</legend>
               <div className="choice-grid three">
                 <label><input type="radio" name="winner" value="home" checked={winner === "home"} onChange={(e) => setWinner(e.target.value)} required />{localized(f, "home", lang)}</label>
@@ -540,25 +540,25 @@ function Prediction({ f, others, profile, demo }: { f: Row; others: Row[]; profi
                 <label><input type="radio" name="winner" value="away" checked={winner === "away"} onChange={(e) => setWinner(e.target.value)} required />{localized(f, "away", lang)}</label>
               </div>
             </fieldset>
-            <fieldset className="prediction-question" disabled={!open || busy}>
+            <fieldset className="prediction-question" disabled={!open || busy || saved !== null}>
               <legend>2. {t("scoreQuestion")}</legend>
             <div className="score-row">
               <ScoreControl
                 label={t("homeGoals") + " · " + localized(f, "home", lang)}
                 value={home}
                 set={setHome}
-                disabled={!open || busy}
+                disabled={!open || busy || saved !== null}
               />
               <span>:</span>
               <ScoreControl
                 label={t("awayGoals") + " · " + localized(f, "away", lang)}
                 value={away}
                 set={setAway}
-                disabled={!open || busy}
+                disabled={!open || busy || saved !== null}
               />
             </div>
             </fieldset>
-            <fieldset className="prediction-question" disabled={!open || busy}>
+            <fieldset className="prediction-question" disabled={!open || busy || saved !== null}>
               <legend>3. {t("firstGoalQuestion")}</legend>
               <div className="choice-grid three">
                 <label><input type="radio" name="first_goal" value="home" checked={firstGoal === "home"} onChange={(e) => setFirstGoal(e.target.value)} disabled={home === 0 && away === 0} required />{localized(f, "home", lang)}</label>
@@ -567,6 +567,10 @@ function Prediction({ f, others, profile, demo }: { f: Row; others: Row[]; profi
               </div>
             </fieldset>
             <p className="message info">{t("onePointEach")}</p>
+            <p className="message prediction-final-warning" role="note">
+              <LockKeyhole size={17} />
+              {saved ? t("submittedPredictionLocked") : t("predictionFinalWarning")}
+            </p>
             <ErrorMessage message={error} />
             {success && (
               <p className="message success" role="status">
@@ -579,6 +583,7 @@ function Prediction({ f, others, profile, demo }: { f: Row; others: Row[]; profi
               disabled={
                 !open ||
                 busy ||
+                saved !== null ||
                 !Number.isInteger(home) ||
                 !Number.isInteger(away) ||
                 !winner ||
@@ -588,16 +593,14 @@ function Prediction({ f, others, profile, demo }: { f: Row; others: Row[]; profi
               <LockKeyhole size={18} />
               {busy
                 ? t("saving")
-                : t(
-                    f.predicted_home !== null
-                      ? "updatePrediction"
-                      : "savePrediction",
-                  )}
+                : t("savePrediction")}
             </button>
           </form>
           <p className="fine center">
-            {open
-              ? t("privateNotice")
+            {saved
+              ? t("submittedPredictionLocked")
+              : open
+                ? t("privateNotice")
               : t(
                   f.status === "postponed"
                     ? "postponedText"

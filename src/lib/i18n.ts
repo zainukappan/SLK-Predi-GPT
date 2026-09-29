@@ -102,6 +102,10 @@ export const en = {
   plus: "Increase goals",
   savePrediction: "Save prediction",
   updatePrediction: "Update prediction",
+  predictionFinalWarning:
+    "Check all three answers carefully before submitting. Once submitted, your prediction is final and cannot be edited.",
+  submittedPredictionLocked:
+    "Prediction submitted. This entry is final and can no longer be edited.",
   savedAt: "Saved at",
   notPredicted: "Not predicted",
   awaiting: "Awaiting result",
@@ -156,7 +160,7 @@ export const en = {
   scoring: "Every prediction has a story.",
   scoringText:
     "1 point each for the winner, exact score, and first-goal team. Maximum 3 per match.",
-  privateNotice: "Your prediction stays private until the deadline.",
+  privateNotice: "Your prediction stays private until the deadline. A submitted prediction cannot be edited.",
   search: "Search teams or rounds",
   searchMembers: "Search name or account",
   overview: "Overview",
@@ -202,7 +206,7 @@ export const en = {
   schedule_note_en: "Schedule change explanation in English",
   schedule_note_ml: "Schedule change explanation in Malayalam",
   fixtureHelp:
-    "Deadlines are always five minutes before kickoff. Rescheduling retains predictions. Add an explanation in both languages when changing kickoff.",
+    "Predictions close 1 hour 30 minutes before kickoff. Rescheduling retains predictions. Add an explanation in both languages when changing kickoff.",
   identityHelp:
     "Teams and round cannot change after a prediction is saved. Finalized fixtures cannot be rescheduled or cancelled.",
   translationWarning:
@@ -278,6 +282,8 @@ export const en = {
   forbidden: "You do not have permission to do that.",
   prediction_locked:
     "The prediction deadline has passed or this match is not open.",
+  prediction_already_submitted:
+    "Your prediction has already been submitted and cannot be edited.",
   invalid: "Please check all required fields and enter valid values.",
   registration_failed:
     "Unable to register. Check your details or try signing in.",
@@ -467,6 +473,10 @@ export const ml: Record<Key, string> = {
   plus: "ഗോൾ കൂട്ടുക",
   savePrediction: "പ്രവചനം സൂക്ഷിക്കുക",
   updatePrediction: "പ്രവചനം തിരുത്തുക",
+  predictionFinalWarning:
+    "സമർപ്പിക്കുന്നതിന് മുമ്പ് മൂന്ന് ഉത്തരങ്ങളും ശ്രദ്ധാപൂർവം പരിശോധിക്കുക. ഒരിക്കൽ സമർപ്പിച്ചാൽ പ്രവചനം അന്തിമമാണ്; പിന്നീട് തിരുത്താൻ കഴിയില്ല.",
+  submittedPredictionLocked:
+    "പ്രവചനം സമർപ്പിച്ചു. ഇത് അന്തിമമാണ്; ഇനി തിരുത്താൻ കഴിയില്ല.",
   savedAt: "സൂക്ഷിച്ച സമയം",
   notPredicted: "പ്രവചിച്ചിട്ടില്ല",
   awaiting: "ഫലം കാത്തിരിക്കുന്നു",
@@ -520,7 +530,7 @@ export const ml: Record<Key, string> = {
   rulesUpdated: "നിയമങ്ങൾ പുതുക്കിയത്",
   contact: "സംഘാടകരെ ബന്ധപ്പെടാൻ",
   contactEmpty: "എസ്‌ബികെ വാട്സ്ആപ്പ് ഗ്രൂപ്പ് അഡ്മിനെ ബന്ധപ്പെടുക.",
-  privateNotice: "അവസാന സമയം വരെ നിങ്ങളുടെ പ്രവചനം സ്വകാര്യമാണ്.",
+  privateNotice: "അവസാന സമയം വരെ നിങ്ങളുടെ പ്രവചനം സ്വകാര്യമാണ്. സമർപ്പിച്ച ശേഷം തിരുത്താൻ കഴിയില്ല.",
   search: "ടീമോ റൗണ്ടോ തിരയുക",
   searchMembers: "പേരോ അക്കൗണ്ടോ തിരയുക",
   overview: "അവലോകനം",
@@ -566,7 +576,7 @@ export const ml: Record<Key, string> = {
   schedule_note_en: "സമയമാറ്റത്തിന്റെ വിശദീകരണം ഇംഗ്ലീഷിൽ",
   schedule_note_ml: "സമയമാറ്റത്തിന്റെ വിശദീകരണം മലയാളത്തിൽ",
   fixtureHelp:
-    "മത്സരത്തിന് അഞ്ച് മിനിറ്റ് മുമ്പാണ് അവസാന സമയം. സമയം മാറ്റുമ്പോൾ പ്രവചനങ്ങൾ നിലനിൽക്കും. സമയമാറ്റത്തിന്റെ കാരണം ഇരുഭാഷകളിലും നൽകുക.",
+    "മത്സരം തുടങ്ങുന്നതിന് 1 മണിക്കൂർ 30 മിനിറ്റ് മുമ്പ് പ്രവചന സമയം അവസാനിക്കും. സമയം മാറ്റുമ്പോൾ പ്രവചനങ്ങൾ നിലനിൽക്കും. സമയമാറ്റത്തിന്റെ കാരണം ഇരുഭാഷകളിലും നൽകുക.",
   identityHelp:
     "പ്രവചനം ലഭിച്ച ശേഷം ടീമുകളും റൗണ്ടും മാറ്റാനാവില്ല. ഫലം സ്ഥിരീകരിച്ച മത്സരം മാറ്റാനോ റദ്ദാക്കാനോ കഴിയില്ല.",
   translationWarning:
@@ -642,6 +652,8 @@ export const ml: Record<Key, string> = {
   rate_limit: "വളരെയധികം അഭ്യർത്ഥനകൾ. ഒരു മിനിറ്റിന് ശേഷം വീണ്ടും ശ്രമിക്കുക.",
   forbidden: "ഈ പ്രവർത്തനത്തിന് അനുമതിയില്ല.",
   prediction_locked: "പ്രവചന സമയം അവസാനിച്ചു അല്ലെങ്കിൽ മത്സരം തുറന്നിട്ടില്ല.",
+  prediction_already_submitted:
+    "ഈ പ്രവചനം ഇതിനകം സമർപ്പിച്ചു. ഇനി തിരുത്താൻ കഴിയില്ല.",
   invalid: "നിർബന്ധമായ വിവരങ്ങളും നൽകിയ മൂല്യങ്ങളും പരിശോധിക്കുക.",
   registration_failed:
     "രജിസ്റ്റർ ചെയ്യാനായില്ല. വിവരങ്ങൾ പരിശോധിക്കുക അല്ലെങ്കിൽ പ്രവേശിക്കാൻ ശ്രമിക്കുക.",
@@ -732,9 +744,9 @@ Answer three questions for every match: (1) winner — home team, draw, or away 
 
 Each correct answer earns 1 point: correct winner = 1, exact score = 1, correct first-goal team = 1. The maximum is 3 points per match. The questions are scored independently. A wrong or missing answer earns 0 for that question. For a 0–0 result, Nobody is the correct first-goal answer.
 
-Predictions close exactly five minutes before kickoff. The database clock is authoritative; a save at or after the deadline is rejected. You can edit one prediction per match until it closes. Other members and admins cannot see your individual score before the deadline.
+Predictions close exactly 1 hour 30 minutes before kickoff. The database clock is authoritative; a save at or after the deadline is rejected. Each member can submit only once per match. Check all three answers carefully because a submitted prediction cannot be edited. Other members and admins cannot see your individual score before the deadline.
 
-Rescheduling retains predictions and recalculates the deadline. Editing reopens only for a scheduled match with a future deadline. An earlier kickoff can immediately close predictions. Postponed matches retain predictions but cannot be edited or scored until rescheduled and finalized. Cancelled matches earn no points and are excluded from all standings counts.
+Rescheduling retains predictions and recalculates the deadline. An existing submission remains final even when the match is rescheduled. An earlier kickoff can immediately close predictions. Postponed matches retain predictions and cannot be scored until rescheduled and finalized. Cancelled matches earn no points and are excluded from all standings counts.
 
 Rank order uses total points descending. Equal totals share a competition rank (1, 1, 3). Participation counts submitted predictions on finalized matches. Round tables use only that round. Unfinalized matches contribute no points.
 
@@ -745,9 +757,9 @@ Organizers may correct finalized results with a recorded reason. All affected st
 
 ഓരോ ശരിയായ ഉത്തരത്തിനും 1 പോയിന്റ്: ശരിയായ വിജയി = 1, കൃത്യമായ സ്കോർ = 1, ആദ്യം ഗോൾ നേടിയ ശരിയായ ടീം = 1. ഒരു മത്സരത്തിൽ പരമാവധി 3 പോയിന്റ്. മൂന്ന് ചോദ്യങ്ങളും വേർതിരിച്ചാണ് കണക്കാക്കുന്നത്. തെറ്റായതോ നൽകാത്തതോ ആയ ഓരോ ഉത്തരത്തിനും 0. മത്സരം 0–0 ആണെങ്കിൽ ആദ്യ ഗോൾ ചോദ്യത്തിന്റെ ശരിയായ ഉത്തരം ആരുമില്ല എന്നതാണ്.
 
-മത്സരം തുടങ്ങുന്നതിന് കൃത്യം അഞ്ച് മിനിറ്റ് മുമ്പ് പ്രവചന സമയം അവസാനിക്കും. ഡാറ്റാബേസിലെ സമയമാണ് നിർണായകം. അവസാന സമയത്തോ അതിന് ശേഷമോ നൽകിയ പ്രവചനം സ്വീകരിക്കില്ല. അതിനു മുമ്പ് ഒരേ മത്സരത്തിന്റെ പ്രവചനം തിരുത്താം. അവസാന സമയം വരെ മറ്റ് അംഗങ്ങൾക്കും അഡ്മിനുകൾക്കും നിങ്ങളുടെ വ്യക്തിഗത സ്കോർ കാണാനാവില്ല.
+മത്സരം തുടങ്ങുന്നതിന് കൃത്യം 1 മണിക്കൂർ 30 മിനിറ്റ് മുമ്പ് പ്രവചന സമയം അവസാനിക്കും. ഡാറ്റാബേസിലെ സമയമാണ് നിർണായകം. അവസാന സമയത്തോ അതിന് ശേഷമോ നൽകിയ പ്രവചനം സ്വീകരിക്കില്ല. ഓരോ മത്സരത്തിനും ഒരിക്കൽ മാത്രമേ പ്രവചനം സമർപ്പിക്കാനാകൂ. സമർപ്പിക്കുന്നതിന് മുമ്പ് മൂന്ന് ഉത്തരങ്ങളും ശ്രദ്ധാപൂർവം പരിശോധിക്കുക; പിന്നീട് തിരുത്താൻ കഴിയില്ല. അവസാന സമയം വരെ മറ്റ് അംഗങ്ങൾക്കും അഡ്മിനുകൾക്കും നിങ്ങളുടെ വ്യക്തിഗത സ്കോർ കാണാനാവില്ല.
 
-മത്സരസമയം മാറിയാലും പ്രവചനങ്ങൾ നിലനിൽക്കും; അവസാന സമയം വീണ്ടും കണക്കാക്കും. പുതിയ അവസാന സമയം ഭാവിയിലാണെങ്കിൽ നിശ്ചയിച്ച മത്സരത്തിന് തിരുത്തൽ തുറക്കും. നേരത്തെയാക്കിയാൽ ഉടൻ അടഞ്ഞേക്കാം. മാറ്റിവെച്ച മത്സരത്തിന്റെ പ്രവചനങ്ങൾ സൂക്ഷിക്കും; വീണ്ടും നിശ്ചയിക്കുകയും ഫലം ഉറപ്പാക്കുകയും ചെയ്യുന്നതുവരെ തിരുത്തലോ പോയിന്റോ ഇല്ല. റദ്ദാക്കിയ മത്സരത്തിന് പോയിന്റില്ല; പട്ടികയിലെ കണക്കുകളിലും ഉൾപ്പെടില്ല.
+മത്സരസമയം മാറിയാലും പ്രവചനങ്ങൾ നിലനിൽക്കും; അവസാന സമയം വീണ്ടും കണക്കാക്കും. ഇതിനകം സമർപ്പിച്ച പ്രവചനം സമയം മാറ്റിയാലും അന്തിമമായി തുടരും. മത്സരം നേരത്തെയാക്കിയാൽ പ്രവചന സമയം ഉടൻ അവസാനിച്ചേക്കാം. മാറ്റിവെച്ച മത്സരത്തിന്റെ പ്രവചനങ്ങൾ സൂക്ഷിക്കും; വീണ്ടും നിശ്ചയിക്കുകയും ഫലം ഉറപ്പാക്കുകയും ചെയ്യുന്നതുവരെ പോയിന്റ് കണക്കാക്കില്ല. റദ്ദാക്കിയ മത്സരത്തിന് പോയിന്റില്ല; പട്ടികയിലെ കണക്കുകളിലും ഉൾപ്പെടില്ല.
 
 ആകെ പോയിന്റ് കൂടുതലുള്ള ക്രമത്തിലാണ് റാങ്ക്. ആകെ പോയിന്റ് തുല്യമായാൽ ഒരേ റാങ്ക് (1, 1, 3). പങ്കാളിത്തം എന്നത് പ്രവചനം നൽകിയ, ഫലം സ്ഥിരീകരിച്ച മത്സരങ്ങളുടെ എണ്ണമാണ്. റൗണ്ട് പട്ടികയിൽ ആ റൗണ്ടിലെ മത്സരങ്ങൾ മാത്രം. ഫലം സ്ഥിരീകരിക്കാത്ത മത്സരത്തിന് പോയിന്റില്ല.
 

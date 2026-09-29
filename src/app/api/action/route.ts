@@ -113,6 +113,7 @@ export async function POST(request: NextRequest) {
       "forbidden",
       "rate_limit",
       "prediction_locked",
+      "prediction_already_submitted",
       "invalid_login",
       "registration_failed",
       "correction_reason",

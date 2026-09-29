@@ -21,7 +21,7 @@ async function as<T>(id: string | null, fn: (tx: any) => Promise<T>) {
 async function fixture() {
   return (
     await db.query<{ id: string }>(
-      "INSERT INTO sbk.fixtures(round_id,home_id,away_id,kickoff,match_number) VALUES($1,$2,$3,clock_timestamp()+interval '1 hour',(SELECT coalesce(max(match_number),0)+1 FROM sbk.fixtures WHERE NOT demo)) RETURNING id",
+      "INSERT INTO sbk.fixtures(round_id,home_id,away_id,kickoff,match_number) VALUES($1,$2,$3,clock_timestamp()+interval '2 hours',(SELECT coalesce(max(match_number),0)+1 FROM sbk.fixtures WHERE NOT demo)) RETURNING id",
       [round, home, away],
     )
   ).rows[0].id;
@@ -173,16 +173,21 @@ test("database enforces approval, cross-member privacy, and protected writes", a
     as(alice, (tx) => tx.query("SELECT * FROM sbk.local_credentials")),
   );
 });
-test("database deadline, idempotency, revision history, rescheduling, postponement, cancellation", async () => {
+test("database deadline, immutable member submission, rescheduling, postponement, cancellation", async () => {
   const f = await fixture();
+  const deadlineGap = await db.query<{ seconds: number }>(
+    "SELECT extract(epoch FROM kickoff-deadline)::integer seconds FROM sbk.fixtures WHERE id=$1",
+    [f],
+  );
+  assert.equal(Number(deadlineGap.rows[0].seconds), 5_400);
   await predict(alice, f, 1, 0);
-  await predict(alice, f, 1, 0);
+  await assert.rejects(predict(alice, f, 1, 0), /prediction_already_submitted/);
   assert.equal(
     (await db.query("SELECT * FROM sbk.predictions WHERE fixture_id=$1", [f]))
       .rows.length,
     1,
   );
-  await predict(alice, f, 2, 1);
+  await assert.rejects(predict(alice, f, 2, 1), /prediction_already_submitted/);
   assert.equal(
     (
       await db.query(
@@ -190,7 +195,7 @@ test("database deadline, idempotency, revision history, rescheduling, postponeme
         [f],
       )
     ).rows.length,
-    1,
+    0,
   );
   await as(admin, (tx) =>
     tx.query(
@@ -205,7 +210,7 @@ test("database deadline, idempotency, revision history, rescheduling, postponeme
       [f],
     ),
   );
-  await predict(alice, f, 3, 1);
+  await assert.rejects(predict(alice, f, 3, 1), /prediction_already_submitted/);
   await as(admin, (tx) =>
     tx.query("UPDATE sbk.fixtures SET status='postponed' WHERE id=$1", [f]),
   );
@@ -223,7 +228,7 @@ test("database deadline, idempotency, revision history, rescheduling, postponeme
   await as(admin, (tx) =>
     tx.query("UPDATE sbk.fixtures SET status='scheduled' WHERE id=$1", [f]),
   );
-  await predict(alice, f, 2, 0);
+  await assert.rejects(predict(alice, f, 2, 0), /prediction_already_submitted/);
 });
 test("admin can import a locked WhatsApp prediction and update a member identifier", async () => {
   const f = await fixture();
@@ -234,6 +239,8 @@ test("admin can import a locked WhatsApp prediction and update a member identifi
   await as(admin, (tx) => tx.query("UPDATE sbk.fixtures SET kickoff=clock_timestamp()-interval '1 hour',status='awaiting_result',schedule_note_en='Played',schedule_note_ml='കളിച്ചു' WHERE id=$1", [f]));
   await as(admin, (tx) => tx.query("SELECT sbk.admin_upsert_prediction($1,$2,2,1,'home','home')", [alice, f]));
   assert.equal(Number((await db.query<{ count: number }>("SELECT count(*) FROM sbk.predictions WHERE fixture_id=$1 AND member_id=$2", [f, alice])).rows[0].count), 1);
+  await as(admin, (tx) => tx.query("SELECT sbk.admin_upsert_prediction($1,$2,1,0,'home','home')", [alice, f]));
+  assert.equal(Number((await db.query<{ home_goals: number }>("SELECT home_goals FROM sbk.predictions WHERE fixture_id=$1 AND member_id=$2", [f, alice])).rows[0].home_goals), 1);
   await assert.rejects(
     as(admin, (tx) => tx.query("SELECT sbk.admin_upsert_prediction($1,$2,0,0,'draw','nobody')", [pending, f])),
     /member_not_approved/,

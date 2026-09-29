@@ -124,12 +124,11 @@ test("complete community flow, deadline enforcement, admin result and bilingual 
     .getByRole("button", { name: "Save prediction", exact: true })
     .click();
   await expect(member.getByRole("status")).toContainText("Prediction saved");
-  await member.getByRole("spinbutton", { name: /^Home goals ·/ }).fill("2");
-  await member.getByRole("spinbutton", { name: /^Away goals ·/ }).fill("1");
-  await member
-    .getByRole("button", { name: "Update prediction", exact: true })
-    .click();
-  await expect(member.locator(".saved-score")).toHaveText("2 – 1");
+  await expect(member.getByRole("spinbutton", { name: /^Home goals ·/ })).toBeDisabled();
+  await expect(member.getByRole("spinbutton", { name: /^Away goals ·/ })).toBeDisabled();
+  await expect(member.getByRole("button", { name: "Save prediction", exact: true })).toBeDisabled();
+  await expect(member.getByText(/final and can no longer be edited/i).first()).toBeVisible();
+  await expect(member.locator(".saved-score")).toHaveText("1 – 0");
   const fixtureId = new URL(member.url()).searchParams.get("id")!;
   // Read admin fixture fields from the real editing form, then reschedule through the normal endpoint.
   await admin.goto("/admin?tab=fixtures");
@@ -173,7 +172,7 @@ test("complete community flow, deadline enforcement, admin result and bilingual 
   expect(stale.error).toBe("prediction_locked");
   await member.reload();
   await expect(
-    member.getByRole("button", { name: "Update prediction", exact: true }),
+    member.getByRole("button", { name: "Save prediction", exact: true }),
   ).toBeDisabled();
   await admin.goto("/admin?tab=results");
   await admin.getByLabel("Choose a fixture").selectOption(fixtureId);
