@@ -100,9 +100,10 @@ function Countdown({ deadline }: { deadline: string }) {
   if (remaining === null)
     return <span className="countdown">{t("predictionClosesIn")} —</span>;
   const seconds = Math.floor(remaining / 1000),
-    hours = Math.floor(seconds / 3600);
+    hours = Math.floor(seconds / 3600),
+    urgent = remaining > 0 && remaining <= 3_600_000;
   return (
-    <span className="countdown">
+    <span className={`countdown${urgent ? " urgent" : ""}`}>
       <Clock3 size={14} />
       {remaining === 0
         ? t("locked")

@@ -731,6 +731,28 @@ input[type="checkbox"] {
   border: 1px solid #efcf5d;
   font-weight: 700;
 }
+.countdown.urgent {
+  color: #a60f24;
+  background: #fff0f2;
+  border-color: #e43b52;
+  animation: countdown-urgent-pulse 1.35s ease-in-out infinite;
+}
+.countdown.urgent svg {
+  color: #d11732;
+}
+@keyframes countdown-urgent-pulse {
+  0%, 100% {
+    background: #fff0f2;
+    box-shadow: 0 0 0 0 rgb(209 23 50 / 0%);
+  }
+  50% {
+    background: #ffd9df;
+    box-shadow: 0 0 0 4px rgb(209 23 50 / 12%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .countdown.urgent { animation: none; }
+}
 .fixture-status-badges{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}.prediction-count{display:flex;align-items:center;gap:5px;min-height:34px;padding:5px 9px;border:1px solid #8eb3ff;border-radius:6px;background:#eaf1ff;color:#1246a3;font-size:12px;font-weight:700;white-space:nowrap}.prediction-count svg{color:#1450df}.prediction-count b{font-size:15px}
 .versus {
   display: grid;
