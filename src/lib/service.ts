@@ -390,6 +390,15 @@ export async function loadData(
         ).rows;
         data.hasNext = data.fixtures.length > 30;
         data.fixtures = data.fixtures.slice(0, 30);
+        if (tab === "fixtures")
+          data.fixturePredictors = data.fixtures.length
+            ? (
+                await db.query(
+                  "SELECT * FROM sbk.admin_fixture_predictors($1::uuid[])",
+                  [data.fixtures.map((f: Row) => f.id)],
+                )
+              ).rows
+            : [];
         if (tab === "results") {
           data.players = (
             await db.query("SELECT p.*,t.name_en team_en,t.name_ml team_ml FROM sbk.players p JOIN sbk.teams t ON t.id=p.team_id WHERE p.active ORDER BY p.name_en LIMIT 500")

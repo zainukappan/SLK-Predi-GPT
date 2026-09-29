@@ -506,3 +506,15 @@ test("approved members can see only the aggregate prediction count", async () =>
   assert.equal(Number(result.rows[0].count),2);
   await assert.rejects(as(null,(tx)=>tx.query("SELECT sbk.fixture_prediction_count($1)",[f])),/forbidden/);
 });
+test("only admins can list fixture predictors before the deadline", async () => {
+  const f = await fixture();
+  await predict(alice, f, 1, 0);
+  const rows = await as(admin, (tx) => tx.query("SELECT * FROM sbk.admin_fixture_predictors($1::uuid[])", [[f]])) as any;
+  assert.equal(rows.rows.length, 1);
+  assert.equal(rows.rows[0].display_name, "Alice");
+  assert.ok(rows.rows[0].submitted_at);
+  await assert.rejects(
+    as(alice, (tx) => tx.query("SELECT * FROM sbk.admin_fixture_predictors($1::uuid[])", [[f]])),
+    /forbidden/,
+  );
+});

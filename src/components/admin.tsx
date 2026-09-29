@@ -639,6 +639,7 @@ export function Admin({
     [copied, setCopied] = useState(false),
     [selected, setSelected] = useState<string[]>([]),
     [predictionMember, setPredictionMember] = useState<string | null>(null),
+    [predictorFixture, setPredictorFixture] = useState<string | null>(null),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false);
   useDialog(Boolean(review || newMember || editMember || deleteMember || deleteFixture || promote), () => {
@@ -1068,12 +1069,38 @@ export function Admin({
                     </button>
                   )}
                   <button
+                    className="button secondary small"
+                    aria-expanded={predictorFixture === f.id}
+                    aria-controls={`fixture-predictors-${f.id}`}
+                    onClick={() => setPredictorFixture(predictorFixture === f.id ? null : f.id)}
+                  >
+                    <Users size={15} /> {t("viewPredictors")} ({f.prediction_count ?? 0})
+                  </button>
+                  <button
                     className="button danger small"
                     onClick={() => { setError(""); setDeleteFixture(f); }}
                   >
                     <Trash2 size={15} /> {t("deleteFixture")}
                   </button>
                 </div>
+                {predictorFixture === f.id && (
+                  <div className="fixture-predictors" id={`fixture-predictors-${f.id}`}>
+                    <div className="fixture-predictors-heading">
+                      <strong>{t("matchPredictors")}</strong>
+                      <span>{f.prediction_count ?? 0} {Number(f.prediction_count) === 1 ? t("memberPredicted") : t("membersPredicted")}</span>
+                    </div>
+                    {(data.fixturePredictors ?? []).filter((p: Row) => p.fixture_id === f.id).length ? (
+                      <div className="fixture-predictor-grid">
+                        {(data.fixturePredictors ?? []).filter((p: Row) => p.fixture_id === f.id).map((p: Row, index: number) => (
+                          <div className="fixture-predictor" key={p.member_id}>
+                            <span>{index + 1}</span>
+                            <div><b>{p.display_name}</b><small>{t("submittedAt")} {ist(p.submitted_at, lang)}</small></div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : <p className="fixture-predictors-empty">{t("noPredictors")}</p>}
+                  </div>
+                )}
               </article>
             ))}
           </div>

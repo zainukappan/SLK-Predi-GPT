@@ -78,6 +78,10 @@ export const en = {
   predictionClosesIn: "Prediction closes in",
   memberPredicted: "member predicted",
   membersPredicted: "members predicted",
+  viewPredictors: "View predictors",
+  matchPredictors: "Members who predicted this match",
+  submittedAt: "Submitted",
+  noPredictors: "No members have predicted this match yet.",
   lockedText: "Predictions are closed. The server deadline is final.",
   postponedText:
     "Predictions are retained. Editing resumes only after the organizer schedules a future kickoff.",
@@ -449,6 +453,10 @@ export const ml: Record<Key, string> = {
   predictionClosesIn: "പ്രവചനം അവസാനിക്കാൻ",
   memberPredicted: "പേർ പ്രവചിച്ചു",
   membersPredicted: "പേർ പ്രവചിച്ചു",
+  viewPredictors: "പ്രവചിച്ചവർ",
+  matchPredictors: "ഈ മത്സരം പ്രവചിച്ച അംഗങ്ങൾ",
+  submittedAt: "സമർപ്പിച്ചത്",
+  noPredictors: "ഈ മത്സരം ഇതുവരെ ആരും പ്രവചിച്ചിട്ടില്ല.",
   lockedText: "പ്രവചന സമയം അവസാനിച്ചു. സെർവറിലെ സമയമാണ് നിർണായകം.",
   postponedText:
     "പ്രവചനങ്ങൾ സൂക്ഷിച്ചിട്ടുണ്ട്. സംഘാടകർ പുതിയ മത്സരസമയം നിശ്ചയിച്ചാൽ മാത്രമേ വീണ്ടും തിരുത്താനാകൂ.",
