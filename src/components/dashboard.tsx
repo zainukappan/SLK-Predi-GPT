@@ -178,23 +178,24 @@ export function FixtureCard({
           )}
         </div>
       )}
-      <Link
-        href={"/match?id=" + f.id}
-        className={
-          "button " +
-          (featured ? "primary" : "secondary") +
-          (open ? " prediction-cta" : "")
-        }
-      >
-        {t(
-          open
-            ? f.predicted_home !== null
-              ? "updatePrediction"
-              : "predict"
-            : "viewDetails",
-        )}
-        <ArrowRight size={17} />
-      </Link>
+      {open && f.predicted_home !== null ? (
+        <div className="button prediction-submitted" role="status">
+          <LockKeyhole size={17} />
+          {t("predictionSubmittedLocked")}
+        </div>
+      ) : (
+        <Link
+          href={"/match?id=" + f.id}
+          className={
+            "button " +
+            (featured ? "primary" : "secondary") +
+            (open ? " prediction-cta" : "")
+          }
+        >
+          {t(open ? "predict" : "viewDetails")}
+          <ArrowRight size={17} />
+        </Link>
+      )}
     </article>
   );
 }

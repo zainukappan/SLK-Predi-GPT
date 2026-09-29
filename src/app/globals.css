@@ -897,6 +897,17 @@ input[type="checkbox"] {
 .fixture-card > .prediction-cta:hover {
   background: #ffe463;
 }
+.fixture-card > .prediction-submitted {
+  cursor: default;
+  justify-content: center;
+  color: #176245;
+  background: #eaf8f0;
+  border: 1px solid #b7dfc9;
+  box-shadow: none;
+}
+.fixture-card > .prediction-submitted svg {
+  color: #25805d;
+}
 .featured {
   padding: 23px;
 }

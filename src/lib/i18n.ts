@@ -110,6 +110,7 @@ export const en = {
     "Check all three answers carefully before submitting. Once submitted, your prediction is final and cannot be edited.",
   submittedPredictionLocked:
     "Prediction submitted. This entry is final and can no longer be edited.",
+  predictionSubmittedLocked: "Prediction submitted · Locked",
   savedAt: "Saved at",
   notPredicted: "Not predicted",
   awaiting: "Awaiting result",
@@ -485,6 +486,7 @@ export const ml: Record<Key, string> = {
     "സമർപ്പിക്കുന്നതിന് മുമ്പ് മൂന്ന് ഉത്തരങ്ങളും ശ്രദ്ധാപൂർവം പരിശോധിക്കുക. ഒരിക്കൽ സമർപ്പിച്ചാൽ പ്രവചനം അന്തിമമാണ്; പിന്നീട് തിരുത്താൻ കഴിയില്ല.",
   submittedPredictionLocked:
     "പ്രവചനം സമർപ്പിച്ചു. ഇത് അന്തിമമാണ്; ഇനി തിരുത്താൻ കഴിയില്ല.",
+  predictionSubmittedLocked: "പ്രവചനം സമർപ്പിച്ചു · ലോക്ക് ചെയ്തു",
   savedAt: "സൂക്ഷിച്ച സമയം",
   notPredicted: "പ്രവചിച്ചിട്ടില്ല",
   awaiting: "ഫലം കാത്തിരിക്കുന്നു",
