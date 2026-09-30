@@ -3098,3 +3098,8 @@ html[lang="ml"] .sidebar nav a {
 .match-number-label{font-weight:800;color:var(--navy)}
 @media(max-width:760px){.predictions-list{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:520px){.predictions-list{grid-template-columns:1fr}.prediction-item{min-height:300px}}
+
+/* MatchFeature variations */
+.slk-match-feature.upcoming { background: #f6f9ff; border: 1px solid #dce6f9; }
+.slk-card-head > span.upcoming { background: #eef3ff; color: #1450df; }
+.slk-match-feature.result { background: #ffffff; }
