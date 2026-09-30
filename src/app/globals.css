@@ -3103,3 +3103,7 @@ html[lang="ml"] .sidebar nav a {
 .slk-match-feature.upcoming { background: #f6f9ff; border: 1px solid #dce6f9; }
 .slk-card-head > span.upcoming { background: #eef3ff; color: #1450df; }
 .slk-match-feature.result { background: #ffffff; }
+
+.slk-match-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 18px; }
+.slk-match-feature.result .slk-match-footer { justify-content: center; }
+@media (max-width: 600px) { .slk-match-footer { flex-direction: column; gap: 12px; } }
