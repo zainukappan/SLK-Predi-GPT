@@ -143,6 +143,14 @@ export function Shell({
             <span>{t(key)}</span>
           </Link>
         ))}
+        <Link
+          aria-current={pathname === "/predictions" ? "page" : undefined}
+          className={pathname === "/predictions" ? "active" : ""}
+          href="/predictions"
+        >
+          <ClipboardList size={21} />
+          <span>{t("predictions")}</span>
+        </Link>
         {user.role === "admin" && (
           <Link
             aria-current={pathname === "/admin" ? "page" : undefined}

@@ -2638,7 +2638,7 @@ html[lang="ml"] .sidebar nav a {
     left: 0;
     right: 0;
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     background: #fffffff5;
     backdrop-filter: blur(12px);
     border-top: 1px solid var(--line);
@@ -2646,7 +2646,7 @@ html[lang="ml"] .sidebar nav a {
     padding: 8px 8px calc(8px + env(safe-area-inset-bottom));
   }
   .bottom-nav.admin-nav {
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(6, 1fr);
   }
   .bottom-nav a {
     position: relative;
