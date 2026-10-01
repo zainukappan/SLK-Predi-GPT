@@ -179,9 +179,15 @@ export function FixtureCard({
         </div>
       )}
       {open && f.predicted_home !== null ? (
-        <div className="button prediction-submitted" role="status">
-          <LockKeyhole size={17} />
-          {t("predictionSubmittedLocked")}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div className="button prediction-submitted" role="status">
+            <LockKeyhole size={17} />
+            {t("predictionSubmittedLocked")}
+          </div>
+          <Link href={"/match?id=" + f.id} className="button secondary">
+            {t("viewMyPrediction")}
+            <ArrowRight size={17} />
+          </Link>
         </div>
       ) : (
         <Link

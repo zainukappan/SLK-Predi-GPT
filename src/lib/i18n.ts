@@ -372,6 +372,7 @@ export const en = {
   savedPrediction: "Prediction saved",
   rulesRequired: "Both language variants are required.",
   viewDetails: "Match details",
+  viewMyPrediction: "View my prediction",
   close: "Close",
 } as const;
 export type Key = keyof typeof en;
@@ -744,6 +745,7 @@ export const ml: Record<Key, string> = {
   savedPrediction: "പ്രവചനം സൂക്ഷിച്ചു",
   rulesRequired: "ഇരുഭാഷകളിലുമുള്ള ഉള്ളടക്കം നിർബന്ധമാണ്.",
   viewDetails: "മത്സരവിവരങ്ങൾ",
+  viewMyPrediction: "എന്റെ പ്രവചനം കാണുക",
   close: "അടയ്ക്കുക",
 };
 export const dict = (lang: Lang) => (lang === "ml" ? ml : en);
@@ -775,3 +777,4 @@ Organizers may correct finalized results with a recorded reason. All affected st
 
 കാരണം രേഖപ്പെടുത്തി സംഘാടകർക്ക് ഫലം തിരുത്താം. ബന്ധപ്പെട്ട റാങ്കുകളും പോയിന്റുകളും ഉടൻ പുതുക്കും. പഴയ ഫലം സ്വകാര്യ പ്രവർത്തനരേഖയിൽ നിലനിൽക്കും. തിരുത്തൽ ആവശ്യമെങ്കിൽ ഗ്രൂപ്പ് സംഘാടകരെ ബന്ധപ്പെടുക. പാസ്‌വേഡും സ്വകാര്യ അംഗത്വ റിപ്പോർട്ടുകളും പങ്കുവെക്കരുത്.`,
 };
+
