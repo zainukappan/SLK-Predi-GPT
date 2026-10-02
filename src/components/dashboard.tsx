@@ -522,6 +522,11 @@ function Prediction({ f, others, profile, demo }: { f: Row; others: Row[]; profi
               e.preventDefault();
               setBusy(true);
               setError("");
+              if (winner === "draw" && home !== away) {
+                setError(t("drawScoreMismatch" as Key));
+                setBusy(false);
+                return;
+              }
               try {
                 const r = await action("prediction", {
                   fixture_id: f.id,

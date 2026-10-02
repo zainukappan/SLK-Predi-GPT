@@ -587,6 +587,11 @@ function PredictionImport({ data }: { data: Row }) {
       <form onSubmit={async (e) => {
         e.preventDefault(); setBusy(true); setError(""); setDone(false);
         const form = new FormData(e.currentTarget);
+        if (form.get("predicted_winner") === "draw" && home !== away) {
+          setError(t("drawScoreMismatch" as any));
+          setBusy(false);
+          return;
+        }
         try {
           await action("adminPrediction", {
             member_id: form.get("member_id"), fixture_id: form.get("fixture_id"),
