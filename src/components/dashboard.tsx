@@ -523,7 +523,7 @@ function Prediction({ f, others, profile, demo }: { f: Row; others: Row[]; profi
               setBusy(true);
               setError("");
               if (winner === "draw" && home !== away) {
-                setError(t("drawScoreMismatch" as Key));
+                setError("drawScoreMismatch");
                 setBusy(false);
                 return;
               }

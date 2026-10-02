@@ -588,7 +588,7 @@ function PredictionImport({ data }: { data: Row }) {
         e.preventDefault(); setBusy(true); setError(""); setDone(false);
         const form = new FormData(e.currentTarget);
         if (form.get("predicted_winner") === "draw" && home !== away) {
-          setError(t("drawScoreMismatch" as any));
+          setError("drawScoreMismatch");
           setBusy(false);
           return;
         }
