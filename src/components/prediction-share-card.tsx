@@ -8,19 +8,16 @@ import { ErrorMessage, useLanguage } from "./provider";
 import type { Key } from "@/lib/i18n";
 
 const localized = (row: Row, prefix: string, lang: Lang) => row[prefix + "_" + lang] || row[prefix + "_en"];
-const localBadges: Record<string, string> = {
-  "calicut.webp": "/team-badges/calicut.webp",
-  "kochi.webp": "/team-badges/kochi.webp",
-  "kannur.webp": "/team-badges/kannur.webp",
-  "mallapuram.webp": "/team-badges/malappuram.webp",
-  "kombans.webp": "/team-badges/kombans.webp",
-  "thrissur.webp": "/team-badges/thrissur.webp",
-};
-
 function shareCardBadge(source: unknown) {
   if (typeof source !== "string" || !source) return "";
   const file = source.split("/").pop()?.toLowerCase() ?? "";
-  return localBadges[file] ?? source;
+  if (file.includes("calicut")) return "/team-badges/calicut.webp";
+  if (file.includes("kochi") || file.includes("forca")) return "/team-badges/kochi.webp";
+  if (file.includes("kannur")) return "/team-badges/kannur.webp";
+  if (file.includes("malappuram") || file.includes("mallapuram")) return "/team-badges/malappuram.webp";
+  if (file.includes("komban") || file.includes("trivandrum") || file.includes("thiruvananthapuram")) return "/team-badges/kombans.webp";
+  if (file.includes("thrissur") || file.includes("magic")) return "/team-badges/thrissur.webp";
+  return source;
 }
 
 export type SavedPrediction = {
