@@ -332,7 +332,11 @@ function LeagueTable({
           )}
         </thead>
         <tbody>
-          {rows?.map((r, i) => (
+          {rows?.map((r, i) => {
+            const position = Number(r.rank);
+            const prev = r.previous_rank ? Number(r.previous_rank) : position;
+            const movement = prev - position;
+            return (
             <Fragment key={r.member_id}>
             <tr
               className={r.member_id === userId ? "me" : ""}
@@ -340,7 +344,16 @@ function LeagueTable({
             >
               {!compact && <td className="serial-cell">{(page - 1) * 30 + i + 1}</td>}
               <td>
-                <span className={"rank-badge rank-" + r.rank}>{r.rank}</span>
+                <div className="slk-pos-wrap">
+                  <span className={"rank-badge rank-" + r.rank}>{r.rank}</span>
+                  {movement > 0 ? (
+                    <span className="pos-up">↑ {movement}</span>
+                  ) : movement < 0 ? (
+                    <span className="pos-down">↓ {-movement}</span>
+                  ) : (
+                    <span className="pos-same">-</span>
+                  )}
+                </div>
               </td>
               <td>
                 <span className={"member-avatar color-" + (i % 4)}>
@@ -395,7 +408,8 @@ function LeagueTable({
               </tr>
             )}
             </Fragment>
-          ))}
+          );
+        })}
         </tbody>
       </table>
       {!rows?.length && <p className="empty">{t("noRows")}</p>}
