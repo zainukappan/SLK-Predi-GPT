@@ -668,6 +668,7 @@ export function Admin({
     "results",
     "predictions",
     "content",
+    "news",
     "reports",
     "audit",
   ];

@@ -153,7 +153,8 @@ export async function loadPublicSportsData() {
     memberPredictions: (await db.query("SELECT * FROM sbk.public_locked_predictions()")).rows,
     events: (await db.query("SELECT * FROM sbk.public_match_events()")).rows,
     shootoutKicks: (await db.query("SELECT * FROM sbk.public_shootout_kicks()")).rows,
-    generatedAt: new Date().toISOString(),
+      news: (await db.query("SELECT * FROM sbk.public_news_feed()")).rows,
+      generatedAt: new Date().toISOString(),
   }));
 }
 async function lockedMemberPredictions(db: DB, memberIds: string[]) {
@@ -216,7 +217,14 @@ export async function loadData(
         await db.query("SELECT * FROM sbk.rounds ORDER BY sort_order,name_en")
       ).rows,
     };
-    if (section === "home") {
+    if (section === "admin") {
+        if (params.tab === "news") {
+          data.newsList = (
+            await db.query("SELECT * FROM sbk.news ORDER BY created_at DESC")
+          ).rows;
+        }
+      }
+      if (section === "home") {
       data.fixtures = (
         await db.query(
           fixtureSelect +
