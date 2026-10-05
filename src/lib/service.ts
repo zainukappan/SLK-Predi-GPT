@@ -32,6 +32,19 @@ export const schemas = {
     predicted_winner: z.enum(["home", "draw", "away"]),
     first_goal: z.enum(["home", "away", "nobody"]),
   }),
+  news: z.object({
+    id: uuid.optional(),
+    slug: z.string().trim().min(2).max(100),
+    title_en: name,
+    title_ml: name,
+    excerpt_en: text.optional().nullable(),
+    excerpt_ml: text.optional().nullable(),
+    content_en: text.optional().nullable(),
+    content_ml: text.optional().nullable(),
+    image_url: text.optional().nullable(),
+    published: bool.default(false),
+  }),
+  deleteNews: z.object({ id: uuid }),
   teams: z.object({
     id: uuid.optional(),
     name_en: name,
@@ -585,5 +598,16 @@ export async function previewResult(id: string, input: unknown) {
         [v.fixture_id, v.home_goals, v.away_goals, v.winner, v.first_goal],
       )
     ).rows;
+  });
+}
+
+export async function getNewsArticle(slug: string) {
+  return transaction(null, async (db) => {
+    return (
+      await db.query(
+        "SELECT n.id, n.slug, n.title_en, n.title_ml, n.content_en, n.content_ml, n.image_url, n.published_at, p.display_name as author_name FROM sbk.news n LEFT JOIN sbk.profiles p ON p.id = n.author_id WHERE n.slug = $1 AND n.published = true",
+        [slug]
+      )
+    ).rows[0];
   });
 }

@@ -28,6 +28,7 @@ import type { Row } from "@/lib/db";
 import { countryCodes, splitPhone } from "@/lib/countries";
 import { PasswordInput } from "./password-input";
 import { MemberPredictions } from "./member-predictions";
+import { AdminNews } from "./admin-news";
 type Field = {
   name: string;
   label?: Key;
@@ -1113,6 +1114,7 @@ export function Admin({
       )}
       {tab === "results" && <Results key={data.page} data={data} />}
       {tab === "predictions" && <PredictionImport data={data} />}
+      {tab === "news" && <AdminNews data={data} lang={lang} t={t} />}
       {tab === "content" && (
         <>
           <div className="section-heading">
