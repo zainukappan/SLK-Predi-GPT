@@ -5,8 +5,9 @@ import { ChevronRight, Clock, User } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { PublicHeader } from "@/components/public-sports-hub";
 
-export default async function NewsArticlePage({ params }: { params: { slug: string } }) {
-  const article = await getNewsArticle(params.slug);
+export default async function NewsArticlePage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const article = await getNewsArticle(slug);
   const head = await headers();
   const langHeader = head.get("accept-language") || "en";
   const lang = langHeader.includes("ml") ? "ml" : "en";
