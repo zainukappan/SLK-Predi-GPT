@@ -2,6 +2,7 @@ import { loadPublicSportsData } from "@/lib/service";
 import Link from "next/link";
 import { headers } from "next/headers";
 import { ChevronRight, Clock } from "lucide-react";
+import { PublicHeader } from "@/components/public-sports-hub";
 
 export default async function NewsIndexPage() {
   const data = await loadPublicSportsData();
@@ -13,7 +14,8 @@ export default async function NewsIndexPage() {
   const news = (data as any).news || [];
 
   return (
-    <div className="slk-public-layout">
+    <div className="slk-public-layout slk-public">
+      <PublicHeader />
       <main className="slk-public-main">
         <section className="slk-section-title" style={{ marginTop: "2rem" }}>
           <div>

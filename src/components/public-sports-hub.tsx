@@ -18,21 +18,37 @@ const leaderboardCopy = {
 const name = (row: Row, key: string, lang: "en"|"ml") => row[`${key}_${lang}`] || row[`${key}_en`] || "—";
 function Badge({src,label}:{src?:string;label:string}) { return src ? <img className="slk-team-badge" src={src} alt={label} /> : <span className="slk-team-placeholder" role="img" aria-label={label}><Shield /></span>; }
 
-export function PublicSportsHub({data}:{data:Row}) {
-  const {lang} = useLanguage(), t=copy[lang], [menu,setMenu]=useState(false);
-  const upcoming=[...data.fixtures].filter((f:Row)=>f.status==="scheduled"&&new Date(f.kickoff)>new Date()).sort((a:Row,b:Row)=>+new Date(a.kickoff)-+new Date(b.kickoff))[0];
-  const finals=[...data.fixtures].filter((f:Row)=>f.status==="finalized").sort((a:Row,b:Row)=>+new Date(b.kickoff)-+new Date(a.kickoff));
-  const latest=finals[0];
-  const playerRows=(metric:"top"|"assists"|"contrib")=>{const key=metric==="top"?"goals":metric==="assists"?"assists":"contributions";return [...data.players].filter((player:Row)=>Number(player[key])>0).sort((a:Row,b:Row)=>Number(b[key])-Number(a[key])).slice(0,5);};
-  return <div className="slk-public">
+
+export function PublicHeader() {
+  const {lang} = useLanguage(), t=copy[lang];
+  const [menu,setMenu]=useState(false);
+  return (
     <header className="slk-public-header">
       <Link href="/SuperLeagueKerala" className="slk-public-brand"><img src="/sbk-logo.png" alt="SBK"/><span>SBK <b>Football Hub</b></span></Link>
       <button className="slk-menu-button" aria-label="Menu" onClick={()=>setMenu(!menu)}><Menu/></button>
-      <nav className={menu?"open":""}><a href="#overview">{t.overview}</a><a href="#matches">{t.matches}</a><a href="#table">{t.table}</a><a href="#players">{t.players}</a><a href="#predictions">{t.prediction}</a></nav>
+      <nav className={menu?"open":""}>
+        <Link href="/SuperLeagueKerala#overview">{t.overview}</Link>
+        <Link href="/SuperLeagueKerala#matches">{t.matches}</Link>
+        <Link href="/SuperLeagueKerala#table">{t.table}</Link>
+        <Link href="/SuperLeagueKerala#players">{t.players}</Link>
+        <Link href="/SuperLeagueKerala#predictions">{t.prediction}</Link>
+        <Link href="/news" className="slk-news-link">{lang === "ml" ? "വാർത്തകൾ" : "News Portal"}</Link>
+      </nav>
       <LanguageSwitch />
       <Link className="slk-login" href="/">{t.login}</Link>
     </header>
-    <main>
+  );
+}
+
+export function PublicSportsHub({data}:{data:Row}) {
+    const {lang} = useLanguage(), t=copy[lang], [menu,setMenu]=useState(false);
+    const upcoming=[...data.fixtures].filter((f:Row)=>f.status==="scheduled"&&new Date(f.kickoff)>new Date()).sort((a:Row,b:Row)=>+new Date(a.kickoff)-+new Date(b.kickoff))[0];
+    const finals=[...data.fixtures].filter((f:Row)=>f.status==="finalized").sort((a:Row,b:Row)=>+new Date(b.kickoff)-+new Date(a.kickoff));
+    const latest=finals[0];
+    const playerRows=(metric:"top"|"assists"|"contrib")=>{const key=metric==="top"?"goals":metric==="assists"?"assists":"contributions";return [...data.players].filter((player:Row)=>Number(player[key])>0).sort((a:Row,b:Row)=>Number(b[key])-Number(a[key])).slice(0,5);};
+    return <div className="slk-public">
+      <PublicHeader />
+      <main>
       <section className="slk-hero" id="overview"><div><span className="slk-public-pill">{t.public}</span><h1>{t.title}</h1><p>{t.sub}</p></div><img src="/slk-logo-white.webp" alt="Super League Kerala"/></section>
       <section className="slk-match-grid" id="matches">
         <MatchFeature title={t.next} fixture={upcoming} empty={t.noNext} lang={lang} action={t.matchCentre}/>

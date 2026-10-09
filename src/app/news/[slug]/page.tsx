@@ -3,6 +3,7 @@ import Link from "next/link";
 import { headers } from "next/headers";
 import { ChevronRight, Clock, User } from "lucide-react";
 import ReactMarkdown from "react-markdown";
+import { PublicHeader } from "@/components/public-sports-hub";
 
 export default async function NewsArticlePage({ params }: { params: { slug: string } }) {
   const article = await getNewsArticle(params.slug);
@@ -12,7 +13,8 @@ export default async function NewsArticlePage({ params }: { params: { slug: stri
 
   if (!article) {
     return (
-      <div className="slk-public-layout">
+      <div className="slk-public-layout slk-public">
+      <PublicHeader />
         <main className="slk-public-main" style={{ textAlign: "center", padding: "100px 20px" }}>
           <h2>Article not found</h2>
           <Link href="/news" className="button primary" style={{ marginTop: "20px", display: "inline-block" }}>Back to News</Link>
@@ -25,7 +27,8 @@ export default async function NewsArticlePage({ params }: { params: { slug: stri
   const content = lang === "ml" ? article.content_ml : article.content_en;
 
   return (
-    <div className="slk-public-layout">
+    <div className="slk-public-layout slk-public">
+      <PublicHeader />
       <main className="slk-public-main">
         <div style={{ marginBottom: "20px", marginTop: "20px" }}>
           <Link href="/news" style={{ display: "inline-flex", alignItems: "center", color: "var(--primary)", fontWeight: 700, fontSize: "14px", textDecoration: "none" }}>
