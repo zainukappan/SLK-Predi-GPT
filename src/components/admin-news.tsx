@@ -55,9 +55,24 @@ export function AdminNews({ data, lang, t }: { data: any; lang: "en" | "ml"; t: 
           {error && <div className="error-message">{error}</div>}
           <input type="hidden" name="id" value={editing.id || ""} />
           
-          <div className="field">
-            <label>Slug (URL snippet, e.g. calicut-fc-wins)</label>
-            <input type="text" name="slug" defaultValue={editing.slug} required pattern="[a-z0-9-]+" />
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "20px" }}>
+            <div className="field">
+              <label>Slug (URL snippet, e.g. calicut-fc-wins)</label>
+              <input type="text" name="slug" defaultValue={editing.slug} required pattern="[a-z0-9-]+" />
+            </div>
+            <div className="field">
+              <label>Category</label>
+              <select name="category" defaultValue={editing.category || "football"}>
+                <option value="football">Football</option>
+                <option value="cricket">Cricket</option>
+                <option value="athletics">Athletics</option>
+                <option value="others">Others</option>
+              </select>
+            </div>
+            <div className="field">
+              <label>Tags (Comma separated, e.g. ISL, Kerala Blasters)</label>
+              <input type="text" name="tags" defaultValue={(editing.tags || []).join(", ")} />
+            </div>
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>

@@ -35,6 +35,10 @@ export const schemas = {
   news: z.object({
     id: uuid.optional(),
     slug: z.string().trim().min(2).max(100),
+    category: z.string().trim().default("football"),
+    tags: z.union([z.string(), z.array(z.string())]).transform((v) => 
+      (typeof v === "string" ? v.split(",").map((s) => s.trim()).filter(Boolean) : v)
+    ).default([]),
     title_en: name,
     title_ml: name,
     excerpt_en: text.optional().nullable(),
@@ -613,7 +617,7 @@ export async function getNewsArticle(slug: string) {
   return transaction(null, async (db) => {
     return (
       await db.query(
-        "SELECT n.id, n.slug, n.title_en, n.title_ml, n.content_en, n.content_ml, n.image_url, n.published_at, p.display_name as author_name FROM sbk.news n LEFT JOIN sbk.profiles p ON p.id = n.author_id WHERE n.slug = $1 AND n.published = true",
+        "SELECT n.id, n.slug, n.title_en, n.title_ml, n.content_en, n.content_ml, n.image_url, n.published_at, p.display_name as author_name, n.category, n.tags FROM sbk.news n LEFT JOIN sbk.profiles p ON p.id = n.author_id WHERE n.slug = $1 AND n.published = true",
         [slug]
       )
     ).rows[0];
