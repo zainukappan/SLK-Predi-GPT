@@ -20,6 +20,7 @@ export function AdminNews({ data, lang, t }: { data: any; lang: "en" | "ml"; t: 
     const formData = new FormData(e.currentTarget);
     const value = Object.fromEntries(formData.entries()) as Record<string, any>;
     value.published = value.published === "on";
+    if (!value.id) delete value.id;
 
     startTransition(async () => {
       try {
