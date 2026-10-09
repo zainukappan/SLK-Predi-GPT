@@ -47,6 +47,7 @@ export const schemas = {
     content_ml: text.optional().nullable(),
     image_url: text.optional().nullable(),
     published: bool.default(false),
+    published_at: z.union([z.string(), z.date()]).transform(d => d ? new Date(d).toISOString() : null).optional().nullable(),
   }),
   deleteNews: z.object({ id: uuid }),
   teams: z.object({

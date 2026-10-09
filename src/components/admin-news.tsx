@@ -113,10 +113,22 @@ export function AdminNews({ data, lang, t }: { data: any; lang: "en" | "ml"; t: 
             <input type="url" name="image_url" defaultValue={editing.image_url} placeholder="https://..." />
           </div>
 
-          <label className="checkbox-label" style={{ margin: "20px 0" }}>
-            <input type="checkbox" name="published" defaultChecked={editing.published} />
-            <b>Publish this article</b>
-          </label>
+          <div style={{ display: "flex", alignItems: "center", gap: "40px", margin: "20px 0" }}>
+            <label className="checkbox-label">
+              <input type="checkbox" name="published" defaultChecked={editing.published} />
+              <b>Publish this article</b>
+            </label>
+            
+            <div className="field" style={{ margin: 0, flex: 1, maxWidth: "300px" }}>
+              <label style={{ display: "inline-block", marginRight: "10px", fontSize: "14px", fontWeight: "bold" }}>Publish Date:</label>
+              <input 
+                type="date" 
+                name="published_at" 
+                defaultValue={editing.published_at ? new Date(editing.published_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]} 
+                style={{ padding: "6px 12px" }}
+              />
+            </div>
+          </div>
 
           <button type="submit" className="button primary" disabled={isPending}>
             {isPending ? "Saving..." : "Save Article"}
