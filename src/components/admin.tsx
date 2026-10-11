@@ -29,6 +29,7 @@ import { countryCodes, splitPhone } from "@/lib/countries";
 import { PasswordInput } from "./password-input";
 import { MemberPredictions } from "./member-predictions";
 import { AdminNews } from "./admin-news";
+import { AdminPlayers } from "./admin-players";
 type Field = {
   name: string;
   label?: Key;
@@ -962,7 +963,7 @@ export function Admin({
           </section>
         </>
       )}
-      {(tab === "teams" || tab === "rounds" || tab === "players") && (
+      {(tab === "teams" || tab === "rounds") && (
         <>
           <div className="section-heading">
             <h2>{t(tab)}</h2>
@@ -971,9 +972,8 @@ export function Admin({
               onClick={() =>
                 open(
                   tab,
-                  tab === "players" ? { active:true,shirt_number:null } : { sort_order: 0 },
-                  tab === "teams" ? teamFields : tab === "players" ? playerFields : roundFields,
-                  tab === "players" ? t("playerHelp") : undefined,
+                  { sort_order: 0 },
+                  tab === "teams" ? teamFields : roundFields,
                 )
               }
             >
@@ -982,10 +982,10 @@ export function Admin({
             </button>
           </div>
           <div className="admin-records">
-            {(tab === "teams" ? data.teams : tab === "players" ? data.players : data.rounds).map((r: Row) => (
+            {(tab === "teams" ? data.teams : data.rounds).map((r: Row) => (
               <article className="panel" key={r.id}>
                 <span className="record-short">
-                  {r.short_name ?? r.shirt_number ?? r.sort_order}
+                  {r.short_name ?? r.sort_order}
                 </span>
                 <h3>{localized(r, "name", lang)}</h3>
                 <p className="fine">
@@ -1006,7 +1006,7 @@ export function Admin({
                   <button
                     className="button secondary small"
                     onClick={() =>
-                      open(tab, r, tab === "teams" ? teamFields : tab === "players" ? playerFields : roundFields,tab === "players" ? t("playerHelp") : undefined)
+                      open(tab, r, tab === "teams" ? teamFields : roundFields)
                     }
                   >
                     {t("edit")}
@@ -1016,6 +1016,15 @@ export function Admin({
             ))}
           </div>
         </>
+      )}
+      {tab === "players" && (
+        <AdminPlayers
+          data={data}
+          lang={lang}
+          t={t}
+          open={open}
+          playerFields={playerFields}
+        />
       )}
       {tab === "fixtures" && (
         <>
