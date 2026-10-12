@@ -1,7 +1,8 @@
 "use client";
 import Link from "next/link";
 import { Fragment, useState, type ReactNode } from "react";
-import { CalendarDays, ChevronDown, ChevronRight, Goal, Handshake, MapPin, Menu, Shield, Trophy, Users } from "lucide-react";
+import { CalendarDays, ChevronDown, ChevronRight, Goal, Handshake, MapPin, Menu, Shield, Trophy, Users, Share2 } from "lucide-react";
+import { StandingsShareCard } from "./standings-share-card";
 import type { Row } from "@/lib/db";
 import { ist } from "@/lib/domain";
 import { LanguageSwitch, useLanguage } from "./provider";
@@ -41,7 +42,7 @@ export function PublicHeader() {
 }
 
 export function PublicSportsHub({data}:{data:Row}) {
-    const {lang} = useLanguage(), t=copy[lang], [menu,setMenu]=useState(false);
+    const {lang} = useLanguage(), t=copy[lang], [menu,setMenu]=useState(false), [showShareModal, setShowShareModal] = useState(false);
     const upcoming=[...data.fixtures].filter((f:Row)=>f.status==="scheduled"&&new Date(f.kickoff)>new Date()).sort((a:Row,b:Row)=>+new Date(a.kickoff)-+new Date(b.kickoff))[0];
     const finals=[...data.fixtures].filter((f:Row)=>f.status==="finalized").sort((a:Row,b:Row)=>+new Date(b.kickoff)-+new Date(a.kickoff));
     const latest=finals[0];
@@ -55,7 +56,7 @@ export function PublicSportsHub({data}:{data:Row}) {
         <MatchFeature title={t.latest} fixture={latest} empty={t.noResults} lang={lang} result action={t.fullTime}/>
       </section>
       <section className="slk-data-section" id="table">
-        <article className="slk-data-card slk-table-card"><CardTitle icon={<Trophy/>} title={t.table}/><div className="slk-points-note"><strong>{t.pointsRule}</strong><span>{t.tiebreakRule}</span><span>{t.predictionRule}</span></div><div className="slk-table-legend" aria-label="Standings highlights"><span><i className="shield"/>{t.shieldWinner}</span><span><i className="semifinal"/>{t.semiFinalist}</span></div><Standings rows={data.table} fixtures={data.fixtures} t={t} lang={lang}/></article>
+        <article className="slk-data-card slk-table-card"><div className="slk-data-card-title" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "10px" }}><div style={{ display: "flex", alignItems: "center", gap: "11px" }}><span><Trophy/></span><h2>{t.table}</h2></div><button type="button" className="button primary small" style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "12px", fontWeight: 800, padding: "8px 14px", borderRadius: "8px", background: "var(--yellow)", color: "var(--navy)", cursor: "pointer", border: "none", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }} onClick={()=>setShowShareModal(true)}><Share2 size={15} /><span>{lang === "ml" ? "ഗ്രാഫിക്സ് കാർഡ് ഷെയർ / ഡൗൺലോഡ്" : "Share / Download Poster"}</span></button></div><div className="slk-points-note"><strong>{t.pointsRule}</strong><span>{t.tiebreakRule}</span><span>{t.predictionRule}</span></div><div className="slk-table-legend" aria-label="Standings highlights"><span><i className="shield"/>{t.shieldWinner}</span><span><i className="semifinal"/>{t.semiFinalist}</span></div><Standings rows={data.table} fixtures={data.fixtures} t={t} lang={lang}/>{showShareModal && <StandingsShareCard rows={data.table} fixtures={data.fixtures} onClose={()=>setShowShareModal(false)} />}</article>
         <div className="slk-stat-cards" id="players">
           <article className="slk-data-card slk-stat-card"><CardTitle icon={<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="12 6 16.5 9 14.5 14 9.5 14 7.5 9"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="16.5" y1="9" x2="21.5" y2="8"/><line x1="14.5" y1="14" x2="18" y2="19"/><line x1="9.5" y1="14" x2="6" y2="19"/><line x1="7.5" y1="9" x2="2.5" y2="8"/></svg>} title={t.top}/><PlayerStats rows={playerRows("top")} metric="top" t={t} lang={lang}/></article>
           <article className="slk-data-card slk-stat-card"><CardTitle icon={<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 15v3a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-3c0-1.5-1-3-2.5-3.5L15 10l-2-3-6 3c-1.5.5-2.5 2-2.5 3.5V15z"/><line x1="7" y1="18" x2="7" y2="21"/><line x1="11" y1="18" x2="11" y2="21"/><line x1="15" y1="18" x2="15" y2="21"/><line x1="13" y1="10" x2="16" y2="14"/></svg>} title={t.assists}/><PlayerStats rows={playerRows("assists")} metric="assists" t={t} lang={lang}/></article>
