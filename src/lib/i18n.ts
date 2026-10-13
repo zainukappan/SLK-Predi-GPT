@@ -376,6 +376,16 @@ export const en = {
   viewDetails: "Match details",
   viewMyPrediction: "View my prediction",
   close: "Close",
+  send30MinReminder: "Send 30m Reminder",
+  reminderSent: "Reminder sent to members",
+  reminderSentAt: "Reminder sent at",
+  reminderScheduled: "Auto: 30m before deadline",
+  enableNotifications: "Enable Match Reminders",
+  notificationsEnabled: "Match reminders enabled",
+  notificationsBlocked: "Notifications blocked in browser",
+  urgentReminderBannerTitle: "Only 30 minutes left to predict!",
+  urgentReminderBannerText: "Predictions for this match lock in 30 minutes. Submit your call now!",
+  predictNow: "Predict Now",
 } as const;
 export type Key = keyof typeof en;
 export const ml: Record<Key, string> = {
@@ -751,6 +761,16 @@ export const ml: Record<Key, string> = {
   viewDetails: "മത്സരവിവരങ്ങൾ",
   viewMyPrediction: "എന്റെ പ്രവചനം കാണുക",
   close: "അടയ്ക്കുക",
+  send30MinReminder: "30-മിനിറ്റ് റിമൈൻഡർ അയക്കുക",
+  reminderSent: "അംഗങ്ങൾക്ക് റിമൈൻഡർ അയച്ചു",
+  reminderSentAt: "റിമൈൻഡർ അയച്ച സമയം:",
+  reminderScheduled: "ഓട്ടോമാറ്റിക്: ലോക്ക് ആകുന്നതിന് 30 മിനിറ്റ് മുമ്പ്",
+  enableNotifications: "മാച്ച് റിമൈൻഡറുകൾ ഓണാക്കുക",
+  notificationsEnabled: "മാച്ച് റിമൈൻഡറുകൾ ഓൺ ആക്കി",
+  notificationsBlocked: "ബ്രൗസറിൽ നോട്ടിഫിക്കേഷൻ ബ്ലോക്ക് ചെയ്തിരിക്കുന്നു",
+  urgentReminderBannerTitle: "പ്രവചനം ലോക്ക് ആകാൻ 30 മിനിറ്റ് മാത്രം!",
+  urgentReminderBannerText: "ഈ മത്സരത്തിന്റെ പ്രവചനം 30 മിനിറ്റിനുള്ളിൽ ലോക്ക് ആകും. ഇപ്പോൾ തന്നെ പ്രവചിക്കൂ!",
+  predictNow: "ഇപ്പോൾ പ്രവചിക്കുക",
 };
 export const dict = (lang: Lang) => (lang === "ml" ? ml : en);
 export const baseRules = {

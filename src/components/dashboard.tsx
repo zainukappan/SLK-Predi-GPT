@@ -28,6 +28,8 @@ import { baseRules, type Key } from "@/lib/i18n";
 import type { Row } from "@/lib/db";
 import { PredictionShareCard, type SavedPrediction } from "./prediction-share-card";
 import { MemberPredictions } from "./member-predictions";
+import { InAppReminderBanner } from "./reminder-banner";
+import { PushNotificationManager } from "./push-notification-manager";
 export const localized = (row: Row, prefix: string, lang: Lang) =>
   row[prefix + "_" + lang] || row[prefix + "_en"];
 export function PageTitle({
@@ -891,6 +893,7 @@ function Profile({ data, demo }: { data: Row; demo: boolean }) {
               <span className="status approved">{t("approved")}</span>
             </div>
           </div>
+          <PushNotificationManager t={t} />
           <h3>{t("editProfile")}</h3>
           <form
             onSubmit={async (e) => {
@@ -1159,6 +1162,7 @@ export function Dashboard({
             </button>
           </form>
         </div>
+        <InAppReminderBanner fixtures={data.fixtures} lang={lang} t={t} />
         {!data.fixtures.length ? (
           <Empty />
         ) : section === "matches" ? (
@@ -1249,6 +1253,7 @@ export function Dashboard({
       </PageTitle>
       <div className="home-grid">
         <div className="home-main">
+          <InAppReminderBanner fixtures={data.fixtures} lang={lang} t={t} />
           <section className="home-hero">
             <div className="hero-copy">
               <div className="eyebrow">{t("community")}</div>

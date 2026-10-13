@@ -18,6 +18,7 @@ import {
   Pencil,
   Trash2,
   Eye,
+  Bell,
 } from "lucide-react";
 import { useLanguage, action, ErrorMessage } from "./provider";
 import { PageTitle, Pagination, localized } from "./dashboard";
@@ -685,6 +686,7 @@ export function Admin({
     [selected, setSelected] = useState<string[]>([]),
     [predictionMember, setPredictionMember] = useState<string | null>(null),
     [predictorFixture, setPredictorFixture] = useState<string | null>(null),
+    [busyReminder, setBusyReminder] = useState<string | null>(null),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false);
   useDialog(Boolean(review || newMember || editMember || deleteMember || deleteFixture || promote), () => {
@@ -1099,6 +1101,16 @@ export function Admin({
                   <small>
                     {t("deadline")}: {ist(f.deadline, lang)}
                   </small>
+                  {f.status === "scheduled" && (
+                    <div style={{ marginTop: "4px", fontSize: "12px", display: "flex", alignItems: "center", gap: "6px" }}>
+                      <Bell size={13} style={{ color: f.reminder_sent_at ? "#16a34a" : "#ca8a04" }} />
+                      <span style={{ color: f.reminder_sent_at ? "#16a34a" : "#ca8a04", fontWeight: 500 }}>
+                        {f.reminder_sent_at
+                          ? `${t("reminderSentAt")} ${ist(f.reminder_sent_at, lang)}`
+                          : t("reminderScheduled")}
+                      </span>
+                    </div>
+                  )}
                 </div>
                 <div className="button-row">
                   <Link
@@ -1107,6 +1119,31 @@ export function Admin({
                   >
                     {t("view")}
                   </Link>
+                  {f.status === "scheduled" && (
+                    <button
+                      type="button"
+                      className="button secondary small"
+                      disabled={busyReminder === f.id}
+                      onClick={async () => {
+                        setBusyReminder(f.id);
+                        setError("");
+                        try {
+                          const res = await action("sendReminder", { fixture_id: f.id });
+                          alert(
+                            `${t("reminderSent")}\nPending members: ${res.result.unpredictedTotal}\nSubscribed devices: ${res.result.subscriptionsTargeted}\nPush delivered: ${res.result.sentCount}`
+                          );
+                          router.refresh();
+                        } catch (e: any) {
+                          setError(e.message);
+                        } finally {
+                          setBusyReminder(null);
+                        }
+                      }}
+                    >
+                      <Bell size={14} />
+                      {busyReminder === f.id ? t("saving") : t("send30MinReminder")}
+                    </button>
+                  )}
                   {f.status !== "finalized" && (
                     <button
                       className="button secondary small"

@@ -101,6 +101,21 @@ export async function POST(request: NextRequest) {
         { headers: { "Cache-Control": "private, no-store" } },
       );
     }
+    if (kind === "sendReminder") {
+      if (user.role !== "admin") return NextResponse.json({ error: "forbidden" }, { status: 403 });
+      await limited("reminder:" + user.id, 10, 60);
+      const fixtureId = z.string().uuid().parse(data.fixture_id);
+      const { sendFixtureReminderToUnpredictedMembers } = await import("@/lib/push");
+      const result = await sendFixtureReminderToUnpredictedMembers(fixtureId, user.id);
+      return NextResponse.json({ ok: true, result });
+    }
+    if (kind === "reminderStats") {
+      if (user.role !== "admin") return NextResponse.json({ error: "forbidden" }, { status: 403 });
+      const fixtureId = z.string().uuid().parse(data.fixture_id);
+      const { getFixtureUnpredictedStats } = await import("@/lib/push");
+      const result = await getFixtureUnpredictedStats(fixtureId);
+      return NextResponse.json({ ok: true, result });
+    }
     if (!Object.hasOwn(schemas, kind)) throw new Error("invalid");
     const result = await mutate(user.id, kind, data);
     return NextResponse.json(
