@@ -83,7 +83,9 @@ export function StandingsShareCard({
       await document.fonts.ready;
       try {
         await document.fonts.load('700 32px "DM Sans"');
-        await document.fonts.load('900 48px "Barlow Condensed"');
+        await document.fonts.load('800 32px "DM Sans"');
+        await document.fonts.load('900 48px "DM Sans"');
+        await document.fonts.load('700 28px "Noto Sans Malayalam"');
       } catch {
         // Fallback font
       }
@@ -122,8 +124,9 @@ export function StandingsShareCard({
         }
       };
 
+      const displayRows = rows.slice(0, 6);
       const teamBadges = await Promise.all(
-        rows.map((r) => loadBadge(r.badge))
+        displayRows.map((r) => loadBadge(r.badge))
       );
 
       if (cancelled || !canvas.current) return;
@@ -160,7 +163,6 @@ export function StandingsShareCard({
       ctx.fillRect(0, 0, 1080, 14);
 
       // 2. Header Area
-      // SLK Logo Icon Badge
       const logoBoxX = 55;
       const logoBoxY = 48;
       const logoBoxSize = 90;
@@ -180,7 +182,7 @@ export function StandingsShareCard({
       // SLK Title
       ctx.textAlign = "left";
       ctx.fillStyle = "#ffda28";
-      ctx.font = '900 24px "DM Sans", sans-serif';
+      ctx.font = '900 25px "DM Sans", sans-serif';
       ctx.fillText("SUPER LEAGUE KERALA", 165, 88);
 
       ctx.fillStyle = "#c9d6ff";
@@ -225,199 +227,294 @@ export function StandingsShareCard({
       // Main Big Titles
       ctx.textAlign = "center";
       ctx.fillStyle = "#ffffff";
-      ctx.font = '900 52px "DM Sans", sans-serif';
-      ctx.fillText("POINTS TABLE", 540, 215);
+      ctx.font = '900 54px "DM Sans", sans-serif';
+      ctx.fillText("POINTS TABLE", 540, 212);
 
       ctx.fillStyle = "#ffda28";
-      ctx.font = '800 22px "DM Sans", sans-serif';
-      ctx.fillText("പോയിന്റ് പട്ടിക", 540, 252);
+      ctx.font = '800 24px "Noto Sans Malayalam", "DM Sans", sans-serif';
+      ctx.fillText("പോയിന്റ് പട്ടിക", 540, 250);
 
-      // 3. Standings Table Container
-      const tableX = 50;
-      const tableY = 285;
-      const tableW = 980;
-      const tableH = 750;
+      // 3. Dynamic Snug Table Layout & Off-White Theme
+      const allForms = displayRows.map((r) => form(r.team_id));
+      const maxFormCount = Math.max(1, ...allForms.map((f) => f.length));
 
-      ctx.fillStyle = "rgba(0, 0, 0, 0.42)";
+      // Scale form circles based on how many matches have been played (up to 10)
+      const circleRadius = maxFormCount <= 5 ? 17 : maxFormCount <= 7 ? 14 : 11.5;
+      const circleDiameter = circleRadius * 2;
+      const circleGap = maxFormCount <= 5 ? 6 : maxFormCount <= 7 ? 5 : 3.5;
+
+      const formStripMaxW =
+        maxFormCount * circleDiameter + Math.max(0, maxFormCount - 1) * circleGap;
+      const formColWidth = Math.max(116, formStripMaxW);
+
+      // Relative X positions inside table
+      const colRank = 44;
+      const colClubLogo = 82;
+      const colClubText = 140;
+      const colP = 278;
+      const statStep = 54;
+      const colW = colP + statStep * 1;
+      const colPW = colP + statStep * 2;
+      const colPL = colP + statStep * 3;
+      const colL = colP + statStep * 4;
+      const colGF = colP + statStep * 5;
+      const colGA = colP + statStep * 6;
+      const colGD = colP + statStep * 7;
+      const colPts = colGD + 62;
+      const colFormLeft = colPts + 44;
+      const colFormRight = colFormLeft + formColWidth;
+
+      const tableW = Math.min(1040, colFormRight + 28);
+      const tableX = Math.round((1080 - tableW) / 2);
+      const tableY = 278;
+      const headH = 72;
+      const rowH = 115;
+      const tableH = headH + rowH * displayRows.length;
+
+      // Draw Table Drop Shadow & Clipped Off-White Container
+      ctx.save();
+      ctx.shadowColor = "rgba(0, 0, 0, 0.45)";
+      ctx.shadowBlur = 32;
+      ctx.shadowOffsetY = 12;
+      ctx.fillStyle = "#f8fafc";
       ctx.beginPath();
-      ctx.roundRect(tableX, tableY, tableW, tableH, 26);
+      ctx.roundRect(tableX, tableY, tableW, tableH, 24);
       ctx.fill();
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.14)";
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
+      ctx.restore();
 
-      // Table Header
-      const headY = tableY + 54;
-      ctx.fillStyle = "rgba(255, 255, 255, 0.08)";
-      ctx.fillRect(tableX, tableY, tableW, 64);
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.12)";
+      ctx.save();
       ctx.beginPath();
-      ctx.moveTo(tableX, tableY + 64);
-      ctx.lineTo(tableX + tableW, tableY + 64);
+      ctx.roundRect(tableX, tableY, tableW, tableH, 24);
+      ctx.clip();
+
+      // Table Header Background (Cool Slate Off-White)
+      ctx.fillStyle = "#e2e8f0";
+      ctx.fillRect(tableX, tableY, tableW, headH);
+
+      ctx.strokeStyle = "#cbd5e1";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(tableX, tableY + headH);
+      ctx.lineTo(tableX + tableW, tableY + headH);
       ctx.stroke();
 
-      ctx.font = '900 18px "DM Sans", sans-serif';
-      ctx.fillStyle = "#a8c0f0";
+      // Header Labels (Larger 22px Bold Font)
+      const headTextY = tableY + 44;
+      ctx.font = '900 22px "DM Sans", sans-serif';
+      ctx.fillStyle = "#334155";
 
-      // Column headers
       ctx.textAlign = "center";
-      ctx.fillText("#", 88, headY);
+      ctx.fillText("#", tableX + colRank, headTextY);
 
       ctx.textAlign = "left";
-      ctx.fillText("CLUB", 135, headY);
+      ctx.fillText("CLUB", tableX + colClubLogo, headTextY);
 
       ctx.textAlign = "center";
-      ctx.fillText("P", 305, headY);
-      ctx.fillText("W", 355, headY);
-      ctx.fillText("PW", 410, headY);
-      ctx.fillText("PL", 465, headY);
-      ctx.fillText("L", 520, headY);
-      ctx.fillText("GF", 575, headY);
-      ctx.fillText("GA", 630, headY);
-      ctx.fillText("GD", 685, headY);
+      ctx.fillText("P", tableX + colP, headTextY);
+      ctx.fillText("W", tableX + colW, headTextY);
+      ctx.fillText("PW", tableX + colPW, headTextY);
+      ctx.fillText("PL", tableX + colPL, headTextY);
+      ctx.fillText("L", tableX + colL, headTextY);
+      ctx.fillText("GF", tableX + colGF, headTextY);
+      ctx.fillText("GA", tableX + colGA, headTextY);
+      ctx.fillText("GD", tableX + colGD, headTextY);
 
-      ctx.fillStyle = "#ffda28";
-      ctx.fillText("PTS", 745, headY);
+      ctx.fillStyle = "#0c49cb";
+      ctx.font = '900 23px "DM Sans", sans-serif';
+      ctx.fillText("PTS", tableX + colPts, headTextY);
 
-      ctx.fillStyle = "#a8c0f0";
-      ctx.textAlign = "right";
-      ctx.fillText("LAST 10", 995, headY);
+      ctx.fillStyle = "#334155";
+      ctx.font = '900 21px "DM Sans", sans-serif';
+      ctx.textAlign = "center";
+      ctx.fillText("LAST 10", tableX + colFormLeft + formColWidth / 2, headTextY);
 
-      // Render Rows
-      const rowStartY = tableY + 64;
-      const rowHeight = (tableH - 64) / 6;
+      // Render Each Team Row
+      const rowStartY = tableY + headH;
 
-      rows.slice(0, 6).forEach((r, idx) => {
-        const y = rowStartY + idx * rowHeight;
-        const centerY = y + rowHeight / 2;
+      displayRows.forEach((r, idx) => {
+        const y = rowStartY + idx * rowH;
+        const centerY = y + rowH / 2;
         const pos = idx + 1;
 
-        // Row background
+        // Off-White Row Background & Left Accent Strip
         if (pos === 1) {
-          ctx.fillStyle = "rgba(255, 218, 40, 0.14)";
-          ctx.fillRect(tableX, y, tableW, rowHeight);
+          ctx.fillStyle = "#fff7cf";
+          ctx.fillRect(tableX, y, tableW, rowH);
+          ctx.fillStyle = "#e6b900";
+          ctx.fillRect(tableX, y, 8, rowH);
         } else if (pos <= 4) {
-          ctx.fillStyle = "rgba(20, 80, 223, 0.1)";
-          ctx.fillRect(tableX, y, tableW, rowHeight);
+          ctx.fillStyle = "#edf7ff";
+          ctx.fillRect(tableX, y, tableW, rowH);
+          ctx.fillStyle = "#2563eb";
+          ctx.fillRect(tableX, y, 8, rowH);
+        } else {
+          ctx.fillStyle = idx % 2 === 0 ? "#f8fafc" : "#f1f5f9";
+          ctx.fillRect(tableX, y, tableW, rowH);
         }
 
         // Row bottom divider
-        if (idx < 5) {
-          ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
+        if (idx < displayRows.length - 1) {
+          ctx.strokeStyle = "#dbe3ef";
+          ctx.lineWidth = 1.5;
           ctx.beginPath();
-          ctx.moveTo(tableX, y + rowHeight);
-          ctx.lineTo(tableX + tableW, y + rowHeight);
+          ctx.moveTo(tableX, y + rowH);
+          ctx.lineTo(tableX + tableW, y + rowH);
           ctx.stroke();
         }
 
-        // Pos Badge
+        // Position Badge (Larger 40x40, 24px font)
         ctx.textAlign = "center";
-        const badgeSize = 34;
-        const badgeX = 88;
-        const badgeY = centerY - badgeSize / 2;
+        const badgeSize = 40;
+        const badgeCenterX = tableX + colRank;
+        const badgeTopY = centerY - badgeSize / 2;
 
-        ctx.fillStyle = pos === 1 ? "#ffda28" : pos <= 4 ? "#3b82f6" : "rgba(255,255,255,0.2)";
+        ctx.fillStyle =
+          pos === 1 ? "#ffda28" : pos <= 4 ? "#2563eb" : "#e2e8f0";
         ctx.beginPath();
-        ctx.roundRect(badgeX - badgeSize / 2, badgeY, badgeSize, badgeSize, 8);
+        ctx.roundRect(
+          badgeCenterX - badgeSize / 2,
+          badgeTopY,
+          badgeSize,
+          badgeSize,
+          10
+        );
         ctx.fill();
 
-        ctx.fillStyle = pos <= 4 ? "#071432" : "#ffffff";
-        ctx.font = '900 19px "DM Sans", sans-serif';
-        ctx.fillText(String(pos), badgeX, centerY + 7);
+        if (pos === 1) {
+          ctx.strokeStyle = "#e5b900";
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+        }
 
-        // Club Badge & Short Name
+        ctx.fillStyle = pos === 1 ? "#071432" : pos <= 4 ? "#ffffff" : "#1e293b";
+        ctx.font = '900 24px "DM Sans", sans-serif';
+        ctx.fillText(String(pos), badgeCenterX, centerY + 8);
+
+        // Club Logo Circle (Larger 48x48 on crisp white circle)
         const badgeImg = teamBadges[idx];
-        const iconSize = 38;
-        const iconX = 135;
+        const iconSize = 48;
+        const iconX = tableX + colClubLogo;
         const iconY = centerY - iconSize / 2;
 
-        ctx.fillStyle = "rgba(255, 255, 255, 0.12)";
+        ctx.fillStyle = "#ffffff";
         ctx.beginPath();
         ctx.arc(iconX + iconSize / 2, centerY, iconSize / 2, 0, Math.PI * 2);
         ctx.fill();
-        ctx.strokeStyle = "rgba(255, 255, 255, 0.22)";
-        ctx.lineWidth = 1;
+        ctx.strokeStyle = "#cbd5e1";
+        ctx.lineWidth = 1.5;
         ctx.stroke();
 
         if (badgeImg && badgeImg.complete && badgeImg.naturalWidth > 0) {
           ctx.save();
           ctx.beginPath();
-          ctx.arc(iconX + iconSize / 2, centerY, iconSize / 2 - 2, 0, Math.PI * 2);
+          ctx.arc(iconX + iconSize / 2, centerY, iconSize / 2 - 3, 0, Math.PI * 2);
           ctx.clip();
-          ctx.drawImage(badgeImg, iconX + 2, iconY + 2, iconSize - 4, iconSize - 4);
+          ctx.drawImage(badgeImg, iconX + 4, iconY + 4, iconSize - 8, iconSize - 8);
           ctx.restore();
         }
 
-        // Short Code (CFC, KWFC, etc.)
+        // Short Code (CFC, KWFC, etc. - Larger 29px Deep Navy)
         ctx.textAlign = "left";
-        ctx.fillStyle = "#ffffff";
-        ctx.font = '900 24px "DM Sans", sans-serif';
-        ctx.fillText(getTeamShort(r), iconX + iconSize + 12, centerY + 8);
+        ctx.fillStyle = "#071a3d";
+        ctx.font = '900 29px "DM Sans", sans-serif';
+        ctx.fillText(getTeamShort(r), tableX + colClubText, centerY + 10);
 
-        // Stat numbers
+        // Stat Numbers (Larger 27px Dark Slate-Navy)
         ctx.textAlign = "center";
-        ctx.font = '700 21px "DM Sans", sans-serif';
-        ctx.fillStyle = "#e2e8f0";
+        ctx.font = '800 27px "DM Sans", sans-serif';
+        ctx.fillStyle = "#1e293b";
 
-        ctx.fillText(String(r.played), 305, centerY + 7);
-        ctx.fillText(String(r.regulation_wins), 355, centerY + 7);
-        ctx.fillText(String(r.shootout_wins), 410, centerY + 7);
-        ctx.fillText(String(r.shootout_losses), 465, centerY + 7);
-        ctx.fillText(String(r.regulation_losses), 520, centerY + 7);
-        ctx.fillText(String(r.goals_for), 575, centerY + 7);
-        ctx.fillText(String(r.goals_against), 630, centerY + 7);
+        ctx.fillText(String(r.played), tableX + colP, centerY + 9);
+        ctx.fillText(String(r.regulation_wins), tableX + colW, centerY + 9);
+        ctx.fillText(String(r.shootout_wins), tableX + colPW, centerY + 9);
+        ctx.fillText(String(r.shootout_losses), tableX + colPL, centerY + 9);
+        ctx.fillText(String(r.regulation_losses), tableX + colL, centerY + 9);
+        ctx.fillText(String(r.goals_for), tableX + colGF, centerY + 9);
+        ctx.fillText(String(r.goals_against), tableX + colGA, centerY + 9);
 
+        // Goal Difference with semantic color
         const gd = Number(r.goal_difference);
-        ctx.fillText(gd > 0 ? `+${gd}` : String(gd), 685, centerY + 7);
+        ctx.font = '900 27px "DM Sans", sans-serif';
+        ctx.fillStyle = gd > 0 ? "#077a3e" : gd < 0 ? "#c81e2b" : "#475569";
+        ctx.fillText(gd > 0 ? `+${gd}` : String(gd), tableX + colGD, centerY + 9);
 
-        // Points (Highlighted)
-        ctx.font = '900 28px "DM Sans", sans-serif';
-        ctx.fillStyle = "#ffda28";
-        ctx.fillText(String(r.points), 745, centerY + 9);
+        // Points (Highlighted Larger 34px Royal Blue)
+        ctx.font = '900 34px "DM Sans", sans-serif';
+        ctx.fillStyle = "#0c49cb";
+        ctx.fillText(String(r.points), tableX + colPts, centerY + 11);
 
         // Form Circles (Last 10)
-        const recentCodes = form(r.team_id);
-        const circleRadius = 14;
-        const circleDiameter = circleRadius * 2;
-        const circleGap = 7;
-        const totalFormWidth = recentCodes.length * circleDiameter + (recentCodes.length - 1) * circleGap;
-        let startCircleX = 995 - totalFormWidth + circleRadius;
+        const recentCodes = allForms[idx];
+        if (recentCodes.length > 0) {
+          const rowFormW =
+            recentCodes.length * circleDiameter +
+            Math.max(0, recentCodes.length - 1) * circleGap;
+          let startCircleX =
+            tableX +
+            colFormLeft +
+            (formColWidth - rowFormW) / 2 +
+            circleRadius;
 
-        recentCodes.forEach((code) => {
-          ctx.beginPath();
-          ctx.arc(startCircleX, centerY, circleRadius, 0, Math.PI * 2);
+          recentCodes.forEach((code) => {
+            ctx.beginPath();
+            ctx.arc(startCircleX, centerY, circleRadius, 0, Math.PI * 2);
 
-          let circleBg = "#079447";
-          let circleText = "#ffffff";
-          if (code === "PW") {
-            circleBg = "#73ce98";
-            circleText = "#075d32";
-          } else if (code === "PL") {
-            circleBg = "#ffd7dc";
-            circleText = "#962638";
-          } else if (code === "L") {
-            circleBg = "#d3202f";
-            circleText = "#ffffff";
-          }
+            let circleBg = "#079447";
+            let circleText = "#ffffff";
+            let circleBorder = "";
+            if (code === "PW") {
+              circleBg = "#bcefd0";
+              circleText = "#075d32";
+              circleBorder = "#52b77a";
+            } else if (code === "PL") {
+              circleBg = "#ffd7dc";
+              circleText = "#962638";
+              circleBorder = "#e58895";
+            } else if (code === "L") {
+              circleBg = "#d3202f";
+              circleText = "#ffffff";
+            }
 
-          ctx.fillStyle = circleBg;
-          ctx.fill();
+            ctx.fillStyle = circleBg;
+            ctx.fill();
 
+            if (circleBorder) {
+              ctx.strokeStyle = circleBorder;
+              ctx.lineWidth = 1.5;
+              ctx.stroke();
+            }
+
+            ctx.textAlign = "center";
+            ctx.fillStyle = circleText;
+            const fontSize =
+              circleRadius >= 16
+                ? code.length === 2
+                  ? 13
+                  : 15
+                : code.length === 2
+                ? 10.5
+                : 12.5;
+            ctx.font = `900 ${fontSize}px "DM Sans", sans-serif`;
+            ctx.fillText(code, startCircleX, centerY + fontSize * 0.35);
+
+            startCircleX += circleDiameter + circleGap;
+          });
+        } else {
           ctx.textAlign = "center";
-          ctx.fillStyle = circleText;
-          ctx.font = `900 ${code.length === 2 ? 11 : 13}px "DM Sans", sans-serif`;
-          ctx.fillText(code, startCircleX, centerY + 4.5);
-
-          startCircleX += circleDiameter + circleGap;
-        });
-
-        if (recentCodes.length === 0) {
-          ctx.textAlign = "right";
-          ctx.font = '700 18px "DM Sans", sans-serif';
-          ctx.fillStyle = "rgba(255,255,255,0.4)";
-          ctx.fillText("—", 995, centerY + 7);
+          ctx.font = '700 22px "DM Sans", sans-serif';
+          ctx.fillStyle = "#94a3b8";
+          ctx.fillText("—", tableX + colFormLeft + formColWidth / 2, centerY + 8);
         }
       });
+
+      ctx.restore();
+
+      // Crisp border around the off-white table
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.85)";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.roundRect(tableX, tableY, tableW, tableH, 24);
+      ctx.stroke();
 
       // 4. Legend Info Below Table
       const legendY = tableY + tableH + 42;
@@ -426,25 +523,29 @@ export function StandingsShareCard({
       // 1st Shield
       ctx.fillStyle = "#ffda28";
       ctx.beginPath();
-      ctx.roundRect(58, legendY - 14, 16, 16, 4);
+      ctx.roundRect(tableX + 6, legendY - 15, 18, 18, 4);
       ctx.fill();
-      ctx.fillStyle = "#c9d6ff";
-      ctx.font = '700 17px "DM Sans", sans-serif';
-      ctx.fillText("1st: Shield Winner", 84, legendY);
+      ctx.fillStyle = "#e2e8f0";
+      ctx.font = '700 18px "DM Sans", sans-serif';
+      ctx.fillText("1st: Shield Winner", tableX + 32, legendY);
 
       // Semi-finalists
       ctx.fillStyle = "#3b82f6";
       ctx.beginPath();
-      ctx.roundRect(260, legendY - 14, 16, 16, 4);
+      ctx.roundRect(tableX + 225, legendY - 15, 18, 18, 4);
       ctx.fill();
-      ctx.fillStyle = "#c9d6ff";
-      ctx.fillText("1–4: Semi-finals", 286, legendY);
+      ctx.fillStyle = "#e2e8f0";
+      ctx.fillText("1–4: Semi-finals", tableX + 251, legendY);
 
       // Rules text
       ctx.textAlign = "right";
-      ctx.fillStyle = "#94a3b8";
-      ctx.font = '600 16px "DM Sans", sans-serif';
-      ctx.fillText("3 Pts: Win · 2 Pts: PW · 1 Pt: PL · 0 Pts: Loss", 1022, legendY);
+      ctx.fillStyle = "#cbd5e1";
+      ctx.font = '600 17px "DM Sans", sans-serif';
+      ctx.fillText(
+        "3 Pts: Win · 2 Pts: PW · 1 Pt: PL · 0 Pts: Loss",
+        tableX + tableW - 6,
+        legendY
+      );
 
       // 5. Footer Branding
       const footerY = 1205;
@@ -504,7 +605,7 @@ export function StandingsShareCard({
           await navigator.share({
             files: [file],
             title: "Super League Kerala - Points Table",
-            text: "Super League Kerala official standings via Soccer Blues of Keralam",
+            text: "Super League Kerala standings via Soccer Blues of Keralam",
           });
           setMessage("Shared successfully!");
           return;
