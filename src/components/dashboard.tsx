@@ -495,9 +495,33 @@ function Prediction({ f, others, profile, demo }: { f: Row; others: Row[]; profi
     return () => clearInterval(timer);
   }, [f]);
   useEffect(() => {
-    if (home === 0 && away === 0) setFirstGoal("nobody");
-    else if (firstGoal === "nobody") setFirstGoal("");
+    if (home === 0 && away === 0) {
+      setFirstGoal("nobody");
+    } else if (home > 0 && away === 0) {
+      setWinner("home");
+      setFirstGoal("home");
+    } else if (away > 0 && home === 0) {
+      setWinner("away");
+      setFirstGoal("away");
+    } else {
+      if (home > away) setWinner("home");
+      else if (away > home) setWinner("away");
+      else setWinner("draw");
+      if (firstGoal === "nobody") setFirstGoal("");
+    }
   }, [home, away, firstGoal]);
+  const updateScore = (nextHome: number, nextAway: number) => {
+    setHome(nextHome);
+    setAway(nextAway);
+    setError("");
+    if (nextHome > nextAway) setWinner("home");
+    else if (nextAway > nextHome) setWinner("away");
+    else setWinner("draw");
+    if (nextHome === 0 && nextAway === 0) setFirstGoal("nobody");
+    else if (nextHome > 0 && nextAway === 0) setFirstGoal("home");
+    else if (nextAway > 0 && nextHome === 0) setFirstGoal("away");
+    else if (firstGoal === "nobody") setFirstGoal("");
+  };
   return (
     <>
       <PageTitle
@@ -541,6 +565,22 @@ function Prediction({ f, others, profile, demo }: { f: Row; others: Row[]; profi
                 setBusy(false);
                 return;
               }
+              const expectedWinner = home > away ? "home" : away > home ? "away" : "draw";
+              if (winner !== expectedWinner) {
+                setError("winner_score_mismatch");
+                setBusy(false);
+                return;
+              }
+              if (
+                (home === 0 && away === 0 && firstGoal !== "nobody") ||
+                ((home > 0 || away > 0) && firstGoal === "nobody") ||
+                (firstGoal === "home" && home === 0) ||
+                (firstGoal === "away" && away === 0)
+              ) {
+                setError("first_goal_mismatch");
+                setBusy(false);
+                return;
+              }
               try {
                 const r = await action("prediction", {
                   fixture_id: f.id,
@@ -562,9 +602,9 @@ function Prediction({ f, others, profile, demo }: { f: Row; others: Row[]; profi
             <fieldset className="prediction-question" disabled={!open || busy || saved !== null}>
               <legend>1. {t("winnerQuestion")}</legend>
               <div className="choice-grid three">
-                <label><input type="radio" name="winner" value="home" checked={winner === "home"} onChange={(e) => setWinner(e.target.value)} required />{localized(f, "home", lang)}</label>
-                <label><input type="radio" name="winner" value="draw" checked={winner === "draw"} onChange={(e) => setWinner(e.target.value)} required />{t("draw")}</label>
-                <label><input type="radio" name="winner" value="away" checked={winner === "away"} onChange={(e) => setWinner(e.target.value)} required />{localized(f, "away", lang)}</label>
+                <label><input type="radio" name="winner" value="home" checked={winner === "home"} onChange={(e) => setWinner(e.target.value)} disabled={(home > 0 || away > 0) && home <= away} required />{localized(f, "home", lang)}</label>
+                <label><input type="radio" name="winner" value="draw" checked={winner === "draw"} onChange={(e) => setWinner(e.target.value)} disabled={(home > 0 || away > 0) && home !== away} required />{t("draw")}</label>
+                <label><input type="radio" name="winner" value="away" checked={winner === "away"} onChange={(e) => setWinner(e.target.value)} disabled={(home > 0 || away > 0) && away <= home} required />{localized(f, "away", lang)}</label>
               </div>
             </fieldset>
             <fieldset className="prediction-question" disabled={!open || busy || saved !== null}>
@@ -573,14 +613,14 @@ function Prediction({ f, others, profile, demo }: { f: Row; others: Row[]; profi
               <ScoreControl
                 label={t("homeGoals") + " · " + localized(f, "home", lang)}
                 value={home}
-                set={setHome}
+                set={(nextHome) => updateScore(nextHome, away)}
                 disabled={!open || busy || saved !== null}
               />
               <span>:</span>
               <ScoreControl
                 label={t("awayGoals") + " · " + localized(f, "away", lang)}
                 value={away}
-                set={setAway}
+                set={(nextAway) => updateScore(home, nextAway)}
                 disabled={!open || busy || saved !== null}
               />
             </div>
@@ -588,8 +628,8 @@ function Prediction({ f, others, profile, demo }: { f: Row; others: Row[]; profi
             <fieldset className="prediction-question" disabled={!open || busy || saved !== null}>
               <legend>3. {t("firstGoalQuestion")}</legend>
               <div className="choice-grid three">
-                <label><input type="radio" name="first_goal" value="home" checked={firstGoal === "home"} onChange={(e) => setFirstGoal(e.target.value)} disabled={home === 0 && away === 0} required />{localized(f, "home", lang)}</label>
-                <label><input type="radio" name="first_goal" value="away" checked={firstGoal === "away"} onChange={(e) => setFirstGoal(e.target.value)} disabled={home === 0 && away === 0} required />{localized(f, "away", lang)}</label>
+                <label><input type="radio" name="first_goal" value="home" checked={firstGoal === "home"} onChange={(e) => setFirstGoal(e.target.value)} disabled={home === 0} required />{localized(f, "home", lang)}</label>
+                <label><input type="radio" name="first_goal" value="away" checked={firstGoal === "away"} onChange={(e) => setFirstGoal(e.target.value)} disabled={away === 0} required />{localized(f, "away", lang)}</label>
                 <label><input type="radio" name="first_goal" value="nobody" checked={firstGoal === "nobody"} onChange={(e) => setFirstGoal(e.target.value)} disabled={home !== 0 || away !== 0} required />{t("nobody")}</label>
               </div>
             </fieldset>

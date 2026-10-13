@@ -463,6 +463,30 @@ export async function loadData(
     return data;
   });
 }
+function assertScoreOutcomeConsistency(
+  homeGoals: number,
+  awayGoals: number,
+  winner: string,
+  firstGoal: string,
+) {
+  if (winner === "draw" && homeGoals !== awayGoals) {
+    throw new Error("drawScoreMismatch");
+  }
+  const expectedWinner =
+    homeGoals > awayGoals ? "home" : awayGoals > homeGoals ? "away" : "draw";
+  if (winner !== expectedWinner) {
+    throw new Error("winner_score_mismatch");
+  }
+  if (
+    (homeGoals === 0 && awayGoals === 0 && firstGoal !== "nobody") ||
+    ((homeGoals > 0 || awayGoals > 0) && firstGoal === "nobody") ||
+    (firstGoal === "home" && homeGoals === 0) ||
+    (firstGoal === "away" && awayGoals === 0)
+  ) {
+    throw new Error("first_goal_mismatch");
+  }
+}
+
 export async function mutate(
   id: string,
   kind: keyof typeof schemas,
@@ -471,13 +495,20 @@ export async function mutate(
   const value = schemas[kind].parse(input) as Row;
   return transaction(id, async (db) => {
     await memberGuard(db, id, !["prediction", "profile"].includes(kind));
-    if (kind === "prediction")
+    if (kind === "prediction") {
+      assertScoreOutcomeConsistency(
+        value.home_goals,
+        value.away_goals,
+        value.predicted_winner,
+        value.first_goal,
+      );
       return (
         await db.query(
           "INSERT INTO sbk.predictions(fixture_id,member_id,home_goals,away_goals,predicted_winner,first_goal) VALUES($1,$2,$3,$4,$5,$6) ON CONFLICT(fixture_id,member_id) DO UPDATE SET home_goals=EXCLUDED.home_goals,away_goals=EXCLUDED.away_goals,predicted_winner=EXCLUDED.predicted_winner,first_goal=EXCLUDED.first_goal RETURNING *",
           [value.fixture_id, id, value.home_goals, value.away_goals, value.predicted_winner, value.first_goal],
         )
       ).rows[0];
+    }
     if (kind === "profile")
       return (
         await db.query(
@@ -512,6 +543,12 @@ export async function mutate(
       return {};
     }
     if (kind === "adminPrediction") {
+      assertScoreOutcomeConsistency(
+        value.home_goals,
+        value.away_goals,
+        value.predicted_winner,
+        value.first_goal,
+      );
       return (
         await db.query("SELECT sbk.admin_upsert_prediction($1,$2,$3,$4,$5,$6) id", [
           value.member_id, value.fixture_id, value.home_goals, value.away_goals,
@@ -520,6 +557,12 @@ export async function mutate(
       ).rows[0];
     }
     if (kind === "results") {
+      assertScoreOutcomeConsistency(
+        value.home_goals,
+        value.away_goals,
+        value.winner,
+        value.first_goal,
+      );
       const dataFixture = (
         await db.query("SELECT id,home_id,away_id FROM sbk.fixtures WHERE id=$1 FOR UPDATE", [
           value.fixture_id,
@@ -603,6 +646,7 @@ export async function mutate(
 }
 export async function previewResult(id: string, input: unknown) {
   const v = schemas.results.parse(input);
+  assertScoreOutcomeConsistency(v.home_goals, v.away_goals, v.winner, v.first_goal);
   return transaction(id, async (db) => {
     await memberGuard(db, id, true);
     return (

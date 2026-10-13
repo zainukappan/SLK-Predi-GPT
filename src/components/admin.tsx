@@ -373,18 +373,18 @@ function Results({ data }: { data: Row }) {
                 {t("winnerQuestion")}
                 <select required value={winner} onChange={(e) => { setWinner(e.target.value); setPreview(null); }}>
                   <option value="">—</option>
-                  <option value="home">{localized(fixture, "home", lang)}</option>
-                  <option value="draw">{t("draw")}</option>
-                  <option value="away">{localized(fixture, "away", lang)}</option>
+                  <option value="home" disabled={(home > 0 || away > 0) && home <= away}>{localized(fixture, "home", lang)}</option>
+                  <option value="draw" disabled={(home > 0 || away > 0) && home !== away}>{t("draw")}</option>
+                  <option value="away" disabled={(home > 0 || away > 0) && away <= home}>{localized(fixture, "away", lang)}</option>
                 </select>
               </label>
               <label>
                 {t("firstGoalQuestion")}
                 <select required value={firstGoal} onChange={(e) => { setFirstGoal(e.target.value); setPreview(null); }}>
                   <option value="">—</option>
-                  <option value="home">{localized(fixture, "home", lang)}</option>
-                  <option value="away">{localized(fixture, "away", lang)}</option>
-                  <option value="nobody">{t("nobody")}</option>
+                  <option value="home" disabled={home === 0}>{localized(fixture, "home", lang)}</option>
+                  <option value="away" disabled={away === 0}>{localized(fixture, "away", lang)}</option>
+                  <option value="nobody" disabled={home !== 0 || away !== 0}>{t("nobody")}</option>
                 </select>
               </label>
               <label>
@@ -398,6 +398,11 @@ function Results({ data }: { data: Row }) {
                   value={home}
                   onChange={(e) => {
                     const value=Number(e.target.value);setHome(value);fitEvents(value,away,fixture,goalEvents);
+                    setWinner(value > away ? "home" : away > value ? "away" : "draw");
+                    if (value === 0 && away === 0) setFirstGoal("nobody");
+                    else if (value > 0 && away === 0) setFirstGoal("home");
+                    else if (away > 0 && value === 0) setFirstGoal("away");
+                    else if (firstGoal === "nobody") setFirstGoal("");
                     if(value!==away) { setShootoutWinner(""); setShootoutKicks([]); }
                     setPreview(null);
                   }}
@@ -414,6 +419,11 @@ function Results({ data }: { data: Row }) {
                   value={away}
                   onChange={(e) => {
                     const value=Number(e.target.value);setAway(value);fitEvents(home,value,fixture,goalEvents);
+                    setWinner(home > value ? "home" : value > home ? "away" : "draw");
+                    if (home === 0 && value === 0) setFirstGoal("nobody");
+                    else if (home > 0 && value === 0) setFirstGoal("home");
+                    else if (value > 0 && home === 0) setFirstGoal("away");
+                    else if (firstGoal === "nobody") setFirstGoal("");
                     if(home!==value) { setShootoutWinner(""); setShootoutKicks([]); }
                     setPreview(null);
                   }}
@@ -582,6 +592,16 @@ function PredictionImport({ data }: { data: Row }) {
     setDone(false);
     setError("");
   };
+  const updateScore = (nextHome: number, nextAway: number) => {
+    setHome(nextHome);
+    setAway(nextAway);
+    setError("");
+    setWinner(nextHome > nextAway ? "home" : nextAway > nextHome ? "away" : "draw");
+    if (nextHome === 0 && nextAway === 0) setFirstGoal("nobody");
+    else if (nextHome > 0 && nextAway === 0) setFirstGoal("home");
+    else if (nextAway > 0 && nextHome === 0) setFirstGoal("away");
+    else if (firstGoal === "nobody") setFirstGoal("");
+  };
   return (
     <section className="panel">
       <h2>{t("importPrediction")}</h2>
@@ -589,8 +609,26 @@ function PredictionImport({ data }: { data: Row }) {
       <form onSubmit={async (e) => {
         e.preventDefault(); setBusy(true); setError(""); setDone(false);
         const form = new FormData(e.currentTarget);
-        if (form.get("predicted_winner") === "draw" && home !== away) {
+        const selectedWinner = String(form.get("predicted_winner") || "");
+        const selectedFirstGoal = String(form.get("first_goal") || "");
+        if (selectedWinner === "draw" && home !== away) {
           setError("drawScoreMismatch");
+          setBusy(false);
+          return;
+        }
+        const expectedWinner = home > away ? "home" : away > home ? "away" : "draw";
+        if (selectedWinner !== expectedWinner) {
+          setError("winner_score_mismatch");
+          setBusy(false);
+          return;
+        }
+        if (
+          (home === 0 && away === 0 && selectedFirstGoal !== "nobody") ||
+          ((home > 0 || away > 0) && selectedFirstGoal === "nobody") ||
+          (selectedFirstGoal === "home" && home === 0) ||
+          (selectedFirstGoal === "away" && away === 0)
+        ) {
+          setError("first_goal_mismatch");
           setBusy(false);
           return;
         }
@@ -598,7 +636,7 @@ function PredictionImport({ data }: { data: Row }) {
           await action("adminPrediction", {
             member_id: form.get("member_id"), fixture_id: form.get("fixture_id"),
             home_goals: home, away_goals: away,
-            predicted_winner: form.get("predicted_winner"), first_goal: form.get("first_goal"),
+            predicted_winner: selectedWinner, first_goal: selectedFirstGoal,
           });
           setDone(true); router.refresh();
         } catch (e) { setError((e as Error).message); } finally { setBusy(false); }
@@ -606,10 +644,10 @@ function PredictionImport({ data }: { data: Row }) {
         <div className="form-grid">
           <label>{t("member")}<select name="member_id" required value={memberId} onChange={(e)=>{setMemberId(e.target.value);loadPrediction(e.target.value,fixtureId);}}><option value="">—</option>{data.members.map((m: Row) => <option value={m.id} key={m.id}>{m.display_name} · {m.email}</option>)}</select></label>
           <label>{t("selectFixture")}<select name="fixture_id" required value={fixtureId} onChange={(e)=>{setFixtureId(e.target.value);loadPrediction(memberId,e.target.value);}}><option value="">—</option>{data.fixtures.map((f: Row) => <option value={f.id} key={f.id}>{!f.demo && f.match_number ? `${t("matchNumber")} ${f.match_number} · ` : ""}{localized(f,"home",lang)} – {localized(f,"away",lang)} · {ist(f.kickoff,lang)}</option>)}</select></label>
-          <label>{t("winnerQuestion")}<select name="predicted_winner" required disabled={!fixture} value={winner} onChange={(e)=>setWinner(e.target.value)}><option value="">—</option><option value="home">{fixture ? localized(fixture,"home",lang) : t("homeWin")}</option><option value="draw">{t("draw")}</option><option value="away">{fixture ? localized(fixture,"away",lang) : t("awayWin")}</option></select></label>
-          <label>{t("firstGoalQuestion")}<select name="first_goal" required disabled={!fixture} value={firstGoal} onChange={(e)=>setFirstGoal(e.target.value)}><option value="">—</option><option value="home">{fixture ? localized(fixture,"home",lang) : t("homeWin")}</option><option value="away">{fixture ? localized(fixture,"away",lang) : t("awayWin")}</option><option value="nobody">{t("nobody")}</option></select></label>
-          <label>{t("homeGoals")}<input type="number" min="0" max="20" value={home} onChange={(e)=>setHome(Number(e.target.value))} required /></label>
-          <label>{t("awayGoals")}<input type="number" min="0" max="20" value={away} onChange={(e)=>setAway(Number(e.target.value))} required /></label>
+          <label>{t("winnerQuestion")}<select name="predicted_winner" required disabled={!fixture} value={winner} onChange={(e)=>setWinner(e.target.value)}><option value="">—</option><option value="home" disabled={(home > 0 || away > 0) && home <= away}>{fixture ? localized(fixture,"home",lang) : t("homeWin")}</option><option value="draw" disabled={(home > 0 || away > 0) && home !== away}>{t("draw")}</option><option value="away" disabled={(home > 0 || away > 0) && away <= home}>{fixture ? localized(fixture,"away",lang) : t("awayWin")}</option></select></label>
+          <label>{t("firstGoalQuestion")}<select name="first_goal" required disabled={!fixture} value={firstGoal} onChange={(e)=>setFirstGoal(e.target.value)}><option value="">—</option><option value="home" disabled={home === 0}>{fixture ? localized(fixture,"home",lang) : t("homeWin")}</option><option value="away" disabled={away === 0}>{fixture ? localized(fixture,"away",lang) : t("awayWin")}</option><option value="nobody" disabled={home !== 0 || away !== 0}>{t("nobody")}</option></select></label>
+          <label>{t("homeGoals")}<input type="number" min="0" max="20" value={home} onChange={(e)=>updateScore(Number(e.target.value), away)} required /></label>
+          <label>{t("awayGoals")}<input type="number" min="0" max="20" value={away} onChange={(e)=>updateScore(home, Number(e.target.value))} required /></label>
         </div>
         <ErrorMessage message={error} />
         {done && <p className="message success" role="status">{t("predictionImported")}</p>}
