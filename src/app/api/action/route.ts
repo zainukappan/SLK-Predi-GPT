@@ -116,6 +116,29 @@ export async function POST(request: NextRequest) {
       const result = await getFixtureUnpredictedStats(fixtureId);
       return NextResponse.json({ ok: true, result });
     }
+    if (kind === "testPush") {
+      await limited("test-push:" + user.id, 10, 60);
+      const { sendPushPayload } = await import("@/lib/push");
+      const { transaction } = await import("@/lib/db");
+      const subs = await transaction(null, async (db) => {
+        return (await db.query<{ endpoint: string; p256dh: string; auth: string }>(
+          "SELECT endpoint, p256dh, auth FROM sbk.push_subscriptions WHERE member_id = $1",
+          [user.id],
+        )).rows;
+      });
+      if (!subs.length) throw new Error("no_subscription");
+      let sent = 0;
+      for (const sub of subs) {
+        const ok = await sendPushPayload(sub, {
+          title: "⚽ Super League Kerala · Test Alert",
+          body: "Test notification successful! You will receive match reminders 30 minutes before deadlines.",
+          url: "/",
+          tag: "test-notification",
+        });
+        if (ok) sent++;
+      }
+      return NextResponse.json({ ok: true, sent });
+    }
     if (!Object.hasOwn(schemas, kind)) throw new Error("invalid");
     const result = await mutate(user.id, kind, data);
     return NextResponse.json(

@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Bell, BellOff, Check, AlertCircle } from "lucide-react";
+import { Bell, Check, AlertCircle, X, Send } from "lucide-react";
 import { type Key } from "@/lib/i18n";
+import { action } from "./provider";
 
 function urlBase64ToUint8Array(base64String: string) {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
@@ -30,22 +31,36 @@ export function PushNotificationManager({
   const [permission, setPermission] = useState<NotificationPermission>("default");
   const [subscribed, setSubscribed] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [testBusy, setTestBusy] = useState(false);
   const [message, setMessage] = useState("");
+  const [dismissed, setDismissed] = useState(false);
+  const [isIosBrowser, setIsIosBrowser] = useState(false);
 
   useEffect(() => {
-    if (typeof window !== "undefined" && "serviceWorker" in navigator && "PushManager" in window) {
-      setSupported(true);
-      setPermission(Notification.permission);
+    if (typeof window !== "undefined") {
+      const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      const isStandalone = "standalone" in navigator && (navigator as any).standalone;
+      if (isIos && !isStandalone) {
+        setIsIosBrowser(true);
+      }
 
-      navigator.serviceWorker.register("/sw.js").then((reg) => {
-        reg.pushManager.getSubscription().then((sub) => {
-          if (sub) {
-            setSubscribed(true);
-          }
-        });
-      }).catch((err) => {
-        console.error("Service worker registration failed:", err);
-      });
+      if ("serviceWorker" in navigator && "PushManager" in window) {
+        setSupported(true);
+        setPermission(Notification.permission);
+
+        navigator.serviceWorker
+          .register("/sw.js")
+          .then((reg) => {
+            reg.pushManager.getSubscription().then((sub) => {
+              if (sub) {
+                setSubscribed(true);
+              }
+            });
+          })
+          .catch((err) => {
+            console.error("Service worker registration failed:", err);
+          });
+      }
     }
   }, []);
 
@@ -95,7 +110,54 @@ export function PushNotificationManager({
     }
   };
 
-  if (!supported) return null;
+  const handleTestNotification = async () => {
+    setTestBusy(true);
+    setMessage("");
+    try {
+      await action("testPush");
+      setMessage(t("testSent"));
+    } catch (e: any) {
+      setMessage(e.message || "Failed to send test notification");
+    } finally {
+      setTestBusy(false);
+    }
+  };
+
+  if (!supported) {
+    if (isIosBrowser && !compact && !dismissed) {
+      return (
+        <div
+          style={{
+            background: "rgba(239, 246, 255, 0.95)",
+            border: "1px solid #93c5fd",
+            borderRadius: "10px",
+            padding: "10px 14px",
+            fontSize: "12.5px",
+            color: "#1e3a8a",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            margin: "12px 0",
+            gap: "8px",
+          }}
+        >
+          <span>
+            📱 <b>iPhone/iPad:</b> നോട്ടിഫിക്കേഷനുകൾ ലഭിക്കാൻ Safari-യിൽ താഴെയുള്ള Share ബട്ടൺ അമർത്തി <b>'Add to Home Screen'</b> ചെയ്യുക.
+          </span>
+          <button
+            type="button"
+            onClick={() => setDismissed(true)}
+            style={{ background: "transparent", border: "none", cursor: "pointer", color: "#1e3a8a" }}
+          >
+            <X size={16} />
+          </button>
+        </div>
+      );
+    }
+    return null;
+  }
+
+  if (dismissed && !compact) return null;
 
   if (compact) {
     if (subscribed) {
@@ -135,29 +197,51 @@ export function PushNotificationManager({
     );
   }
 
-  // Banner prompt for un-subscribed users
+  // Already subscribed view (show confirmation and Test Notification button)
   if (permission === "granted" && subscribed) {
     return (
       <div
         style={{
           display: "flex",
           alignItems: "center",
-          gap: "8px",
+          justifyContent: "space-between",
+          gap: "10px",
           padding: "10px 14px",
-          background: "rgba(34, 197, 94, 0.1)",
-          border: "1px solid rgba(34, 197, 94, 0.25)",
-          borderRadius: "8px",
-          fontSize: "13px",
-          color: "#166534",
-          marginTop: "12px",
+          background: "rgba(34, 197, 94, 0.08)",
+          border: "1px solid rgba(34, 197, 94, 0.3)",
+          borderRadius: "10px",
+          margin: "10px 0 16px 0",
+          flexWrap: "wrap",
         }}
       >
-        <Check size={16} />
-        <span>{t("notificationsEnabled")}</span>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <Check size={16} style={{ color: "#16a34a" }} />
+          <span style={{ fontSize: "13px", color: "#166534", fontWeight: 600 }}>
+            {t("notificationsEnabled")}
+          </span>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <button
+            type="button"
+            onClick={handleTestNotification}
+            disabled={testBusy}
+            className="button secondary small"
+            style={{ display: "inline-flex", alignItems: "center", gap: "5px", fontSize: "12px", padding: "4px 10px" }}
+          >
+            <Send size={12} />
+            {testBusy ? "..." : t("testNotification")}
+          </button>
+        </div>
+        {message && (
+          <span style={{ width: "100%", fontSize: "12px", color: "#16a34a", marginTop: "2px" }}>
+            {message}
+          </span>
+        )}
       </div>
     );
   }
 
+  // Unsubscribed prompt banner
   return (
     <div
       style={{
@@ -166,31 +250,67 @@ export function PushNotificationManager({
         justifyContent: "space-between",
         gap: "12px",
         padding: "12px 16px",
-        background: "rgba(59, 130, 246, 0.08)",
-        border: "1px solid rgba(59, 130, 246, 0.25)",
-        borderRadius: "10px",
-        margin: "12px 0",
+        background: "linear-gradient(135deg, rgba(239, 246, 255, 0.95), rgba(219, 234, 254, 0.95))",
+        border: "1.5px solid #3b82f6",
+        borderRadius: "12px",
+        margin: "12px 0 18px 0",
+        boxShadow: "0 2px 10px rgba(59, 130, 246, 0.12)",
         flexWrap: "wrap",
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-        <Bell size={18} style={{ color: "#2563eb", flexShrink: 0 }} />
-        <span style={{ fontSize: "13.5px", color: "#1e3a8a", fontWeight: 500 }}>
-          {t("enableNotifications")} (30 mins before deadline)
-        </span>
+      <div style={{ display: "flex", alignItems: "center", gap: "12px", flex: 1, minWidth: "240px" }}>
+        <div
+          style={{
+            background: "#2563eb",
+            color: "#ffffff",
+            padding: "8px",
+            borderRadius: "50%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexShrink: 0,
+          }}
+        >
+          <Bell size={18} />
+        </div>
+        <div>
+          <strong style={{ fontSize: "14px", color: "#1e3a8a", display: "block" }}>
+            {t("enableNotifications")}
+          </strong>
+          <span style={{ fontSize: "12.5px", color: "#3b82f6", display: "block", marginTop: "2px" }}>
+            Get alerted 30 minutes before match predictions lock so you never miss points!
+          </span>
+        </div>
       </div>
-      <button
-        type="button"
-        onClick={subscribeUser}
-        disabled={busy || permission === "denied"}
-        className="button primary small"
-        style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
-      >
-        <Bell size={14} />
-        {busy ? "..." : t("enableNotifications")}
-      </button>
+      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+        <button
+          type="button"
+          onClick={subscribeUser}
+          disabled={busy || permission === "denied"}
+          className="button primary small"
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "6px",
+            fontSize: "13px",
+            fontWeight: 700,
+            padding: "8px 14px",
+          }}
+        >
+          <Bell size={14} />
+          {busy ? "..." : t("enableNotifications")}
+        </button>
+        <button
+          type="button"
+          onClick={() => setDismissed(true)}
+          style={{ background: "transparent", border: "none", cursor: "pointer", color: "#64748b", padding: "4px" }}
+          aria-label={t("close")}
+        >
+          <X size={17} />
+        </button>
+      </div>
       {message && (
-        <span style={{ width: "100%", fontSize: "12px", color: "#2563eb" }}>
+        <span style={{ width: "100%", fontSize: "12px", color: permission === "denied" ? "#dc2626" : "#2563eb", marginTop: "4px" }}>
           {message}
         </span>
       )}

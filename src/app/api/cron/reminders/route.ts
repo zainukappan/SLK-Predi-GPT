@@ -6,7 +6,9 @@ export const dynamic = "force-dynamic";
 
 async function runAutomatedReminders(request: NextRequest) {
   const secret = process.env.CRON_SECRET;
-  if (secret) {
+  const isVercelCron = request.headers.get("x-vercel-cron") === "1";
+
+  if (secret && !isVercelCron) {
     const authHeader = request.headers.get("authorization") || "";
     const queryKey = request.nextUrl.searchParams.get("key") || "";
     const isAuthorized =

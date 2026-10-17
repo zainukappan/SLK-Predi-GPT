@@ -386,6 +386,9 @@ export const en = {
   urgentReminderBannerTitle: "Only 30 minutes left to predict!",
   urgentReminderBannerText: "Predictions for this match lock in 30 minutes. Submit your call now!",
   predictNow: "Predict Now",
+  testNotification: "Send Test Notification",
+  testSent: "Test notification sent! Check your phone/browser.",
+  noSubscription: "Please enable notifications first.",
 } as const;
 export type Key = keyof typeof en;
 export const ml: Record<Key, string> = {
@@ -771,6 +774,9 @@ export const ml: Record<Key, string> = {
   urgentReminderBannerTitle: "പ്രവചനം ലോക്ക് ആകാൻ 30 മിനിറ്റ് മാത്രം!",
   urgentReminderBannerText: "ഈ മത്സരത്തിന്റെ പ്രവചനം 30 മിനിറ്റിനുള്ളിൽ ലോക്ക് ആകും. ഇപ്പോൾ തന്നെ പ്രവചിക്കൂ!",
   predictNow: "ഇപ്പോൾ പ്രവചിക്കുക",
+  testNotification: "ടെസ്റ്റ് നോട്ടിഫിക്കേഷൻ അയക്കുക",
+  testSent: "ടെസ്റ്റ് നോട്ടിഫിക്കേഷൻ അയച്ചു! സ്ക്രീൻ പരിശോധിക്കുക.",
+  noSubscription: "ദയവായി ആദ്യം നോട്ടിഫിക്കേഷൻ ഓണാക്കുക.",
 };
 export const dict = (lang: Lang) => (lang === "ml" ? ml : en);
 export const baseRules = {

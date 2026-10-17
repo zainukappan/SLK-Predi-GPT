@@ -1254,6 +1254,7 @@ export function Dashboard({
       <div className="home-grid">
         <div className="home-main">
           <InAppReminderBanner fixtures={data.fixtures} lang={lang} t={t} />
+          <PushNotificationManager t={t} />
           <section className="home-hero">
             <div className="hero-copy">
               <div className="eyebrow">{t("community")}</div>
