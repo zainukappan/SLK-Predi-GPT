@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { action, ErrorMessage, useLanguage } from "@/components/provider";
 import { PasswordInput } from "@/components/password-input";
+import { OnlineCounter } from "@/components/online-counter";
 export default function Reset() {
   const { t } = useLanguage(),
     [error, setError] = useState(""),
@@ -42,6 +43,9 @@ export default function Reset() {
           </button>
         </form>
       </section>
+      <div style={{ display: "flex", justifyContent: "center", marginTop: "24px" }}>
+        <OnlineCounter />
+      </div>
     </main>
   );
 }

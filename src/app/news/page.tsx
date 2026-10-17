@@ -3,6 +3,7 @@ import Link from "next/link";
 import { headers } from "next/headers";
 import { ChevronRight, Clock, Flame } from "lucide-react";
 import { PublicHeader } from "@/components/public-sports-hub";
+import { OnlineCounter } from "@/components/online-counter";
 import type { Row } from "@/lib/db";
 
 export default async function NewsIndexPage() {
@@ -148,6 +149,14 @@ export default async function NewsIndexPage() {
         </section>
 
       </main>
+      <footer className="slk-public-footer">
+        <div style={{ display: "flex", alignItems: "center", gap: "14px", flexWrap: "wrap" }}>
+          <img src="/sbk-logo.png" alt="SBK" />
+          <OnlineCounter />
+        </div>
+        <p>Soccer Blues of Keralam • Fans predict. Football unites.</p>
+        <Link href="/">{lang === "ml" ? "മെമ്പർ ലോഗിൻ" : "Member Login"}<ChevronRight size={16} /></Link>
+      </footer>
       <style dangerouslySetInnerHTML={{__html: `
         @media (min-width: 1024px) {
           .slk-news-hero {

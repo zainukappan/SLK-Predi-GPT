@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import { ChevronRight, Clock, User } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { PublicHeader } from "@/components/public-sports-hub";
+import { OnlineCounter } from "@/components/online-counter";
 
 export default async function NewsArticlePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -58,6 +59,14 @@ export default async function NewsArticlePage({ params }: { params: Promise<{ sl
           </div>
         </article>
       </main>
+      <footer className="slk-public-footer">
+        <div style={{ display: "flex", alignItems: "center", gap: "14px", flexWrap: "wrap" }}>
+          <img src="/sbk-logo.png" alt="SBK" />
+          <OnlineCounter />
+        </div>
+        <p>Soccer Blues of Keralam • Fans predict. Football unites.</p>
+        <Link href="/">{lang === "ml" ? "മെമ്പർ ലോഗിൻ" : "Member Login"}<ChevronRight size={16} /></Link>
+      </footer>
     </div>
   );
 }

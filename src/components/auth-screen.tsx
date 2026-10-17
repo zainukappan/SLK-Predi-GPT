@@ -5,6 +5,7 @@ import { action, ErrorMessage, LanguageSwitch, useLanguage } from "./provider";
 import type { Row } from "@/lib/db";
 import { countryCodes } from "@/lib/countries";
 import { PasswordInput } from "./password-input";
+import { OnlineCounter } from "./online-counter";
 export function AuthScreen({
   user,
   demo,
@@ -210,7 +211,12 @@ export function AuthScreen({
           )}
         </section>
       </main>
-      <footer>{t("freeNote")}</footer>
+      <footer>
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: "12px" }}>
+          <OnlineCounter />
+        </div>
+        {t("freeNote")}
+      </footer>
     </div>
   );
 }
