@@ -389,6 +389,7 @@ export const en = {
   testNotification: "Send Test Notification",
   testSent: "Test notification sent! Check your phone/browser.",
   noSubscription: "Please enable notifications first.",
+  onlineNow: "Online Now",
 } as const;
 export type Key = keyof typeof en;
 export const ml: Record<Key, string> = {
@@ -777,6 +778,7 @@ export const ml: Record<Key, string> = {
   testNotification: "ടെസ്റ്റ് നോട്ടിഫിക്കേഷൻ അയക്കുക",
   testSent: "ടെസ്റ്റ് നോട്ടിഫിക്കേഷൻ അയച്ചു! സ്ക്രീൻ പരിശോധിക്കുക.",
   noSubscription: "ദയവായി ആദ്യം നോട്ടിഫിക്കേഷൻ ഓണാക്കുക.",
+  onlineNow: "പേർ ഇപ്പോൾ ഓൺലൈനിൽ",
 };
 export const dict = (lang: Lang) => (lang === "ml" ? ml : en);
 export const baseRules = {

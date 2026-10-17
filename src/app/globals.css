@@ -3115,3 +3115,62 @@ html[lang="ml"] .sidebar nav a {
 .prose-content li { margin-bottom: 0.5em; }
 .prose-content blockquote { border-left: 4px solid var(--primary); padding-left: 1em; font-style: italic; color: var(--muted); margin: 1.5em 0; }
 .prose-content a { color: var(--primary); font-weight: 600; text-decoration: underline; }
+
+/* Live Online Presence Badge */
+.online-presence-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.28);
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #059669;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+  user-select: none;
+  transition: all 0.2s ease;
+}
+
+.online-presence-badge:hover {
+  background: rgba(16, 185, 129, 0.14);
+  border-color: rgba(16, 185, 129, 0.45);
+}
+
+.online-presence-dot {
+  width: 7.5px;
+  height: 7.5px;
+  background-color: #10b981;
+  border-radius: 50%;
+  position: relative;
+  display: inline-block;
+  box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  animation: pulse-green-dot 2s infinite ease-in-out;
+}
+
+@keyframes pulse-green-dot {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  }
+  70% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 6px rgba(16, 185, 129, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+  }
+}
+
+.online-presence-count {
+  font-weight: 700;
+  color: #047857;
+}
+
+.online-presence-label {
+  font-weight: 500;
+  color: #059669;
+}

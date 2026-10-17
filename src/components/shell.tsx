@@ -13,6 +13,7 @@ import {
   ArrowUpRight,
 } from "lucide-react";
 import { LanguageSwitch, useLanguage, action } from "./provider";
+import { OnlineCounter } from "./online-counter";
 import type { ReactNode } from "react";
 import type { Row } from "@/lib/db";
 export function Shell({
@@ -125,7 +126,10 @@ export function Shell({
         {demo && <div className="demo-bar">{t("demo")}</div>}
         <main id="main">{children}</main>
         <footer className="footer">
-          <span>© {new Date().getFullYear()} Soccer Blues of Keralam</span>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
+            <OnlineCounter />
+            <span>© {new Date().getFullYear()} Soccer Blues of Keralam</span>
+          </div>
           <Link href="/rules">
             {t("rules")} <ArrowUpRight size={14} />
           </Link>
