@@ -59,6 +59,8 @@ export function TopScorersHub({
   );
   const [search, setSearch] = useState("");
   const [selectedClub, setSelectedClub] = useState("all");
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const toggle = (id: string) => setExpanded((prev) => ({ ...prev, [id]: !prev[id] }));
 
   // Get unique clubs for filter dropdown
   const clubs = useMemo(() => {
@@ -114,66 +116,93 @@ export function TopScorersHub({
 
   const renderPlayerList = (rows: Row[], metric: "top" | "assists" | "contrib") => {
     const key = metric === "top" ? "goals" : metric === "assists" ? "assists" : "contributions";
+    const isGoalMetric = metric === "top" || metric === "contrib";
     if (!rows.length) {
       return <p className="slk-empty">{t.noStats}</p>;
     }
     return (
       <div className="slk-player-grid" style={{ gridTemplateColumns: "1fr", gap: 0 }}>
-        {rows.map((r, i) => (
-          <article
-            key={r.player_id}
-            style={{
-              border: 0,
-              borderBottom: "1px solid #edf1f6",
-              borderRadius: 0,
-              padding: "16px 20px",
-              display: "flex",
-              alignItems: "center",
-              gap: "14px",
-            }}
-          >
-            <span
-              className="slk-player-rank"
+        {rows.map((r, i) => {
+          const isExp = !!expanded[r.player_id];
+          const regGoals = Number(r.regulation_goals ?? r.goals ?? 0);
+          const shootGoals = Number(r.shootout_goals ?? 0);
+          return (
+            <article
+              key={r.player_id}
+              onClick={() => isGoalMetric && toggle(r.player_id)}
               style={{
-                width: "28px",
-                height: "28px",
-                fontSize: "12px",
-                background: i === 0 ? "#ffda28" : i === 1 ? "#dfe6ef" : i === 2 ? "#ffc27c" : "#edf2f7",
-                color: i < 3 ? "#071a3d" : "#4a5568",
+                border: 0,
+                borderBottom: "1px solid #edf1f6",
+                borderRadius: 0,
+                padding: "16px 20px",
+                display: "flex",
+                alignItems: "center",
+                gap: "14px",
+                cursor: isGoalMetric ? "pointer" : "default",
+                background: isExp ? "#f8fbff" : undefined,
+                transition: "background 0.15s ease",
               }}
+              title={isGoalMetric ? (lang === "ml" ? "പേരിൽ ക്ലിക്ക് ചെയ്താൽ G, PG കാണാം" : "Click to view G & PG breakdown") : undefined}
             >
-              {i + 1}
-            </span>
-            <Badge src={r.badge} label={name(r, "team", lang)} />
-            <div style={{ minWidth: 0, flex: 1 }}>
-              <strong style={{ fontSize: "15px", color: "#071a3d" }}>
-                {name(r, "player", lang)}
-              </strong>
-              <small style={{ color: "#64748b", marginTop: "2px", display: "block" }}>
-                {name(r, "team", lang)}
-                {r.shirt_number ? ` · #${r.shirt_number}` : ""}
-              </small>
-            </div>
-            <div style={{ textAlign: "right", flexShrink: 0 }}>
-              <b style={{ fontSize: "22px", color: "var(--blue, #1450df)", fontWeight: 900 }}>
-                {r[key]}
-              </b>
-              {metric === "contrib" && (
-                <div
-                  style={{
-                    fontSize: "11px",
-                    color: "var(--muted, #64748b)",
-                    whiteSpace: "nowrap",
-                    fontWeight: 700,
-                    marginTop: "2px",
-                  }}
-                >
-                  {r.goals} {lang === "ml" ? "ഗോൾ" : "G"} + {r.assists} {lang === "ml" ? "അസിസ്റ്റ്" : "A"}
-                </div>
-              )}
-            </div>
-          </article>
-        ))}
+              <span
+                className="slk-player-rank"
+                style={{
+                  width: "28px",
+                  height: "28px",
+                  fontSize: "12px",
+                  background: i === 0 ? "#ffda28" : i === 1 ? "#dfe6ef" : i === 2 ? "#ffc27c" : "#edf2f7",
+                  color: i < 3 ? "#071a3d" : "#4a5568",
+                }}
+              >
+                {i + 1}
+              </span>
+              <Badge src={r.badge} label={name(r, "team", lang)} />
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <strong style={{ fontSize: "15px", color: "#071a3d", display: "inline-flex", alignItems: "center", gap: "6px" }}>
+                  <span style={{ borderBottom: isGoalMetric ? "1px dashed rgba(20,80,223,0.35)" : "none" }}>{name(r, "player", lang)}</span>
+                </strong>
+                <small style={{ color: "#64748b", marginTop: "2px", display: "block" }}>
+                  {name(r, "team", lang)}
+                  {r.shirt_number ? ` · #${r.shirt_number}` : ""}
+                </small>
+                {isGoalMetric && isExp && (
+                  <div style={{ display: "flex", gap: "6px", alignItems: "center", marginTop: "6px", flexWrap: "wrap" }}>
+                    <span
+                      className="slk-pill-g"
+                      title={lang === "ml" ? "90 മിനിറ്റിൽ നേടിയ ഗോൾ" : "90-minute regulation goals"}
+                    >
+                      <span>G</span> <b>{regGoals}</b>
+                    </span>
+                    <span
+                      className="slk-pill-pg"
+                      title={lang === "ml" ? "സമനില-പെനാൽറ്റിയിൽ നേടിയ ഗോൾ" : "Penalty shootout goals"}
+                    >
+                      <span>PG</span> <b>{shootGoals}</b>
+                    </span>
+                  </div>
+                )}
+              </div>
+              <div style={{ textAlign: "right", flexShrink: 0 }}>
+                <b style={{ fontSize: "22px", color: "var(--blue, #1450df)", fontWeight: 900 }}>
+                  {r[key]}
+                </b>
+                {metric === "contrib" && (
+                  <div
+                    style={{
+                      fontSize: "11px",
+                      color: "var(--muted, #64748b)",
+                      whiteSpace: "nowrap",
+                      fontWeight: 700,
+                      marginTop: "2px",
+                    }}
+                  >
+                    {r.goals} {lang === "ml" ? "ഗോൾ" : "G"} + {r.assists} {lang === "ml" ? "അസിസ്റ്റ്" : "A"}
+                  </div>
+                )}
+              </div>
+            </article>
+          );
+        })}
       </div>
     );
   };
