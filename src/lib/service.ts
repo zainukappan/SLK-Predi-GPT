@@ -162,6 +162,12 @@ export async function loadPublicSportsData() {
       generatedAt: new Date().toISOString(),
   }));
 }
+export async function loadPublicPlayerStats() {
+  return transaction(null, async (db) => ({
+    players: (await db.query("SELECT * FROM sbk.public_player_stats()")).rows,
+    generatedAt: new Date().toISOString(),
+  }));
+}
 async function lockedMemberPredictions(db: DB, memberIds: string[]) {
   if (!memberIds.length) return [];
   return (

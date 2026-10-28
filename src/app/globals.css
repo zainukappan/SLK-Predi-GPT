@@ -3174,3 +3174,31 @@ html[lang="ml"] .sidebar nav a {
   font-weight: 500;
   color: #059669;
 }
+
+.slk-stat-card-footer {
+  padding: 12px 16px;
+  background: #fcfdff;
+  border-top: 1px solid #edf1f6;
+  text-align: center;
+}
+
+.slk-view-full-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--blue, #0c49cb);
+  text-decoration: none;
+  padding: 7px 16px;
+  border-radius: 8px;
+  background: #eef4ff;
+  transition: all 0.2s ease;
+}
+
+.slk-view-full-link:hover {
+  background: var(--blue, #0c49cb);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(12, 73, 203, 0.2);
+}
