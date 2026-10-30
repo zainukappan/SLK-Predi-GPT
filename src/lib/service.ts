@@ -287,7 +287,13 @@ export async function loadData(
       data.fixtures = data.fixtures.slice(0, 30);
     }
     if (section === "match") {
-      const fixtureId = uuid.parse(params.id);
+      const parsed = uuid.safeParse(params.id);
+      if (!parsed.success) {
+        data.fixture = null;
+        data.others = [];
+        return data;
+      }
+      const fixtureId = parsed.data;
       data.fixture = (
         await db.query(fixtureSelect + " WHERE f.id=$1", [fixtureId])
       ).rows[0];
@@ -299,7 +305,8 @@ export async function loadData(
       ).rows;
     }
     if (section === "leaderboard") {
-      const round = params.round ? uuid.parse(params.round) : null;
+      const parsedRound = params.round ? uuid.safeParse(params.round) : null;
+      const round = parsedRound?.success ? parsedRound.data : null;
       data.self = (
         await db.query("SELECT * FROM sbk.standings($1) WHERE member_id=$2", [
           round,

@@ -81,6 +81,12 @@ export async function transaction<T>(
   if (!process.env.DATABASE_URL)
     throw new Error("Database configuration missing");
   const databaseUrl = new URL(process.env.DATABASE_URL);
+  if (
+    databaseUrl.hostname.includes("pooler.supabase.com") &&
+    databaseUrl.port === "5432"
+  ) {
+    databaseUrl.port = "6543";
+  }
   const certificate = process.env.DATABASE_SSL_CA;
   if (certificate) {
     // pg connection-string SSL parameters override Pool.ssl; use the supplied
@@ -91,12 +97,18 @@ export async function transaction<T>(
   state.pool ??= new Pool({
     connectionString: databaseUrl.toString(),
     ...(certificate ? { ssl: { ca: certificate, rejectUnauthorized: true } } : {}),
-    max: 10,
+    max: 3,
     connectionTimeoutMillis: 10000,
-    idleTimeoutMillis: 30000,
+    idleTimeoutMillis: 10000,
     statement_timeout: 15000,
   });
-  const client = await state.pool.connect();
+  let client;
+  try {
+    client = await state.pool.connect();
+  } catch (connectError) {
+    await new Promise((r) => setTimeout(r, 250));
+    client = await state.pool.connect();
+  }
   try {
     await client.query("BEGIN");
     const role = await client.query("SELECT current_user");
