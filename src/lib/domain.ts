@@ -27,10 +27,17 @@ export function points(
   );
 }
 export function canPredict(status: Status, kickoff: string, now = new Date()) {
-  return (
-    status === "scheduled" &&
-    now.getTime() < new Date(kickoff).getTime() - 5_400_000
-  );
+  try {
+    const k =
+      typeof kickoff === "string" && kickoff.includes(" ") && !kickoff.includes("T")
+        ? kickoff.replace(" ", "T")
+        : kickoff;
+    const kickoffTime = new Date(k).getTime();
+    if (isNaN(kickoffTime)) return false;
+    return status === "scheduled" && now.getTime() < kickoffTime - 5_400_000;
+  } catch {
+    return false;
+  }
 }
 export function ranks<T extends { points: number }>(rows: T[]) {
   const sorted = [...rows].sort((a, b) => b.points - a.points);
@@ -45,14 +52,37 @@ export function ranks<T extends { points: number }>(rows: T[]) {
   });
 }
 export function ist(value: string | Date, lang: Lang = "en") {
-  return (
-    new Intl.DateTimeFormat(lang === "ml" ? "ml-IN" : "en-IN", {
-      timeZone: "Asia/Kolkata",
-      day: "numeric",
-      month: "short",
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: true,
-    }).format(new Date(value)) + " IST"
-  );
+  try {
+    let d: Date;
+    if (value instanceof Date) {
+      d = value;
+    } else if (typeof value === "string") {
+      const normalized =
+        value.includes(" ") && !value.includes("T")
+          ? value.replace(" ", "T")
+          : value;
+      d = new Date(normalized);
+    } else {
+      d = new Date(value);
+    }
+    if (isNaN(d.getTime())) return "—";
+    return (
+      new Intl.DateTimeFormat(lang === "ml" ? "ml-IN" : "en-IN", {
+        timeZone: "Asia/Kolkata",
+        day: "numeric",
+        month: "short",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      }).format(d) + " IST"
+    );
+  } catch {
+    try {
+      const d = new Date(value);
+      if (isNaN(d.getTime())) return "—";
+      return d.toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }) + " IST";
+    } catch {
+      return String(value ?? "—");
+    }
+  }
 }

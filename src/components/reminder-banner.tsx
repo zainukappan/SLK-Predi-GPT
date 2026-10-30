@@ -31,7 +31,12 @@ export function InAppReminderBanner({
   // and the deadline is in the future
   const urgentFixture = fixtures.find((f: Row) => {
     if (f.status !== "scheduled" || f.predicted_home !== null) return false;
-    const deadlineTime = new Date(f.deadline).getTime();
+    const deadlineStr =
+      typeof f.deadline === "string" && f.deadline.includes(" ") && !f.deadline.includes("T")
+        ? f.deadline.replace(" ", "T")
+        : f.deadline;
+    const deadlineTime = new Date(deadlineStr).getTime();
+    if (isNaN(deadlineTime)) return false;
     const remaining = deadlineTime - now;
     // Show banner when deadline is within 30 minutes (remaining <= 30 * 60 * 1000 and > 0)
     // and hasn't been dismissed by user in this session
@@ -40,7 +45,13 @@ export function InAppReminderBanner({
 
   if (!urgentFixture) return null;
 
-  const deadlineTime = new Date(urgentFixture.deadline).getTime();
+  const urgentDeadlineStr =
+    typeof urgentFixture.deadline === "string" &&
+    urgentFixture.deadline.includes(" ") &&
+    !urgentFixture.deadline.includes("T")
+      ? urgentFixture.deadline.replace(" ", "T")
+      : urgentFixture.deadline;
+  const deadlineTime = new Date(urgentDeadlineStr).getTime();
   const remainingSecs = Math.max(0, Math.floor((deadlineTime - now) / 1000));
   const mins = Math.floor(remainingSecs / 60);
   const secs = remainingSecs % 60;

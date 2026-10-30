@@ -27,9 +27,17 @@ export function LanguageProvider({
 }) {
   const [lang, setLanguage] = useState<Lang>(initial);
   useEffect(() => {
-    document.documentElement.lang = lang;
-    localStorage.setItem("sbk-language", lang);
-    document.cookie = `sbk_language=${lang};path=/;max-age=31536000;SameSite=Lax`;
+    try {
+      document.documentElement.lang = lang;
+      try {
+        localStorage.setItem("sbk-language", lang);
+      } catch {
+        // Safari Private Browsing mode throws SecurityError on localStorage
+      }
+      document.cookie = `sbk_language=${lang};path=/;max-age=31536000;SameSite=Lax`;
+    } catch {
+      // Safeguard for restricted browser environments
+    }
   }, [lang]);
   return (
     <Language.Provider

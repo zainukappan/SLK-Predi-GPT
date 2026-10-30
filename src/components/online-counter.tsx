@@ -12,10 +12,19 @@ export function OnlineCounter({ className = "" }: { className?: string }) {
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    let id = sessionStorage.getItem("sbk_presence_id");
-    if (!id) {
+    let id = "";
+    try {
+      id = sessionStorage.getItem("sbk_presence_id") || "";
+      if (!id) {
+        id = "u_" + Math.random().toString(36).substring(2, 11);
+        try {
+          sessionStorage.setItem("sbk_presence_id", id);
+        } catch {
+          // Safari Private Browsing mode throws SecurityError
+        }
+      }
+    } catch {
       id = "u_" + Math.random().toString(36).substring(2, 11);
-      sessionStorage.setItem("sbk_presence_id", id);
     }
     clientId.current = id;
 
@@ -23,34 +32,56 @@ export function OnlineCounter({ className = "" }: { className?: string }) {
     const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
     if (!url || !key) return;
 
-    const supabase = createClient(url, key);
-    const channel = supabase.channel("sbk-online-presence", {
-      config: {
-        presence: {
-          key: clientId.current,
-        },
-      },
-    });
+    let supabase: any = null;
+    let channel: any = null;
 
-    channel
-      .on("presence", { event: "sync" }, () => {
-        const state = channel.presenceState();
-        const activeCount = Object.keys(state).length;
-        if (activeCount > 0) {
-          setOnlineCount(activeCount);
-        }
-      })
-      .subscribe(async (status) => {
-        if (status === "SUBSCRIBED") {
-          await channel.track({
-            online_at: new Date().toISOString(),
-          });
-        }
+    try {
+      supabase = createClient(url, key, {
+        auth: {
+          persistSession: false,
+          autoRefreshToken: false,
+          detectSessionInUrl: false,
+        },
       });
 
+      channel = supabase.channel("sbk-online-presence", {
+        config: {
+          presence: {
+            key: clientId.current,
+          },
+        },
+      });
+
+      channel
+        .on("presence", { event: "sync" }, () => {
+          try {
+            const state = channel.presenceState();
+            const activeCount = Object.keys(state).length;
+            if (activeCount > 0) {
+              setOnlineCount(activeCount);
+            }
+          } catch {}
+        })
+        .subscribe(async (status: string) => {
+          if (status === "SUBSCRIBED") {
+            try {
+              await channel.track({
+                online_at: new Date().toISOString(),
+              });
+            } catch {}
+          }
+        });
+    } catch (err) {
+      console.warn("Online presence initialization skipped:", err);
+    }
+
     return () => {
-      channel.unsubscribe();
-      supabase.removeChannel(channel);
+      try {
+        if (channel && supabase) {
+          channel.unsubscribe?.().catch?.(() => {});
+          supabase.removeChannel?.(channel)?.catch?.(() => {});
+        }
+      } catch {}
     };
   }, []);
 

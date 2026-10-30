@@ -38,28 +38,40 @@ export function PushNotificationManager({
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent);
-      const isStandalone = "standalone" in navigator && (navigator as any).standalone;
-      if (isIos && !isStandalone) {
-        setIsIosBrowser(true);
-      }
+      try {
+        const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent);
+        const isStandalone = "standalone" in navigator && (navigator as any).standalone;
+        if (isIos && !isStandalone) {
+          setIsIosBrowser(true);
+        }
 
-      if ("serviceWorker" in navigator && "PushManager" in window) {
-        setSupported(true);
-        setPermission(Notification.permission);
+        if (
+          "serviceWorker" in navigator &&
+          "PushManager" in window &&
+          typeof Notification !== "undefined"
+        ) {
+          setSupported(true);
+          try {
+            setPermission(Notification.permission);
+          } catch {}
 
-        navigator.serviceWorker
-          .register("/sw.js")
-          .then((reg) => {
-            reg.pushManager.getSubscription().then((sub) => {
-              if (sub) {
-                setSubscribed(true);
+          navigator.serviceWorker
+            .register("/sw.js")
+            .then((reg) => {
+              if (reg && reg.pushManager) {
+                reg.pushManager.getSubscription().then((sub) => {
+                  if (sub) {
+                    setSubscribed(true);
+                  }
+                }).catch(() => {});
               }
+            })
+            .catch((err) => {
+              console.warn("Service worker registration failed:", err);
             });
-          })
-          .catch((err) => {
-            console.error("Service worker registration failed:", err);
-          });
+        }
+      } catch (err) {
+        console.warn("Push notification setup error:", err);
       }
     }
   }, []);

@@ -29,7 +29,9 @@ export async function proxy(request: NextRequest) {
       },
     },
   );
-  await client.auth.getUser();
+  try {
+    await client.auth.getUser();
+  } catch {}
   response.headers.set("Cache-Control", "private, no-store");
   return response;
 }
