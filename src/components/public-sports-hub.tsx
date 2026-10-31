@@ -52,12 +52,51 @@ const toDate = (v: any) => {
   return new Date(v || 0);
 };
 
+export function sortPlayerStats(list: Row[], metric: "top" | "assists" | "contrib"): Row[] {
+  const key = metric === "top" ? "goals" : metric === "assists" ? "assists" : "contributions";
+  return [...list]
+    .filter((player: Row) => Number(player[key]) > 0)
+    .sort((a: Row, b: Row) => {
+      const diff = Number(b[key]) - Number(a[key]);
+      if (diff !== 0) return diff;
+
+      if (metric === "top") {
+        // Priority to normal time (regulation) goals when total goals are equal
+        const regDiff = Number(b.regulation_goals ?? b.goals ?? 0) - Number(a.regulation_goals ?? a.goals ?? 0);
+        if (regDiff !== 0) return regDiff;
+        const shootDiff = Number(b.shootout_goals ?? 0) - Number(a.shootout_goals ?? 0);
+        if (shootDiff !== 0) return shootDiff;
+        const assistDiff = Number(b.assists ?? 0) - Number(a.assists ?? 0);
+        if (assistDiff !== 0) return assistDiff;
+        return (a.player_en || "").localeCompare(b.player_en || "");
+      }
+
+      if (metric === "contrib") {
+        // When total contributions are equal: total goals first, then regulation goals, then assists
+        const goalsDiff = Number(b.goals ?? 0) - Number(a.goals ?? 0);
+        if (goalsDiff !== 0) return goalsDiff;
+        const regDiff = Number(b.regulation_goals ?? b.goals ?? 0) - Number(a.regulation_goals ?? a.goals ?? 0);
+        if (regDiff !== 0) return regDiff;
+        const assistDiff = Number(b.assists ?? 0) - Number(a.assists ?? 0);
+        if (assistDiff !== 0) return assistDiff;
+        return (a.player_en || "").localeCompare(b.player_en || "");
+      }
+
+      // For assists: regulation goals first, then total goals, then name
+      const regDiff = Number(b.regulation_goals ?? b.goals ?? 0) - Number(a.regulation_goals ?? a.goals ?? 0);
+      if (regDiff !== 0) return regDiff;
+      const goalsDiff = Number(b.goals ?? 0) - Number(a.goals ?? 0);
+      if (goalsDiff !== 0) return goalsDiff;
+      return (a.player_en || "").localeCompare(b.player_en || "");
+    });
+}
+
 export function PublicSportsHub({data}:{data:Row}) {
     const {lang} = useLanguage(), t=copy[lang], [menu,setMenu]=useState(false), [showShareModal, setShowShareModal] = useState(false);
     const upcoming=[...data.fixtures].filter((f:Row)=>f.status==="scheduled"&&toDate(f.kickoff)>new Date()).sort((a:Row,b:Row)=>+toDate(a.kickoff)-+toDate(b.kickoff))[0];
     const finals=[...data.fixtures].filter((f:Row)=>f.status==="finalized").sort((a:Row,b:Row)=>+toDate(b.kickoff)-+toDate(a.kickoff));
     const latest=finals[0];
-    const playerRows=(metric:"top"|"assists"|"contrib")=>{const key=metric==="top"?"goals":metric==="assists"?"assists":"contributions";return [...data.players].filter((player:Row)=>Number(player[key])>0).sort((a:Row,b:Row)=>Number(b[key])-Number(a[key])).slice(0,5);};
+    const playerRows=(metric:"top"|"assists"|"contrib")=>sortPlayerStats(data.players, metric).slice(0,5);
     return <div className="slk-public">
       <PublicHeader />
       <main>

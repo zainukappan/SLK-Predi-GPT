@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState, useMemo, type ReactNode } from "react";
 import { ChevronLeft, Search, Shield, Trophy, Users, Filter, X } from "lucide-react";
 import type { Row } from "@/lib/db";
-import { PublicHeader, Badge, CardTitle, name } from "./public-sports-hub";
+import { PublicHeader, Badge, CardTitle, name, sortPlayerStats } from "./public-sports-hub";
 import { useLanguage } from "./provider";
 import { OnlineCounter } from "./online-counter";
 
@@ -96,19 +96,8 @@ export function TopScorersHub({
     return list;
   }, [players, selectedClub, search]);
 
-  const getMetricList = (metric: "top" | "assists" | "contrib") => {
-    const key = metric === "top" ? "goals" : metric === "assists" ? "assists" : "contributions";
-    return [...filteredPlayers]
-      .filter((p) => Number(p[key]) > 0)
-      .sort((a, b) => {
-        const diff = Number(b[key]) - Number(a[key]);
-        if (diff !== 0) return diff;
-        // Secondary sort: contributions or goals, then name
-        if (metric === "top") return Number(b.contributions) - Number(a.contributions);
-        if (metric === "assists") return Number(b.goals) - Number(a.goals);
-        return Number(b.goals) - Number(a.goals);
-      });
-  };
+  const getMetricList = (metric: "top" | "assists" | "contrib") =>
+    sortPlayerStats(filteredPlayers, metric);
 
   const topScorers = useMemo(() => getMetricList("top"), [filteredPlayers]);
   const topAssists = useMemo(() => getMetricList("assists"), [filteredPlayers]);
