@@ -151,41 +151,43 @@ export function computeQualificationStatus(
       needMl = "സെമി ഫൈനൽ യോഗ്യതാ സാധ്യതകൾ അവസാനിച്ചു.";
     } else {
       // In contention (positions 2 to 6)
-      if (team.pos === 2) {
-        statusBadgeEn = "Virtually Qualified";
-        statusBadgeMl = "99.5% സാധ്യത";
-        statusClass = "contender-high";
-        chancePct = 99.5;
-        needEn = `Almost secured qualification. Needs just 2–3 points (1 win) from remaining ${team.remCount} matches to officially seal a semi-final berth without depending on other matches.`;
-        needMl = `സെമി ഫൈനൽ ബെർത്ത് ഏതാണ്ട് ഉറപ്പിച്ചു. ശേഷിക്കുന്ന ${team.remCount} മത്സരങ്ങളിൽ നിന്ന് വെറും 2–3 പോയിന്റ് (ഒരു ജയം) നേടിയാൽ മറ്റാരുടെയും ഫലങ്ങളെ ആശ്രയിക്കാതെ സെമി ഔദ്യോഗികമായി ഉറപ്പിക്കാം.`;
-      } else if (team.pos === 3) {
-        statusBadgeEn = "Strong Contender";
-        statusBadgeMl = "93% സാധ്യത";
-        statusClass = "contender-high";
-        chancePct = 93.2;
-        needEn = `Strong semi-final position. Needs 4 points from remaining ${team.remCount} matches to guarantee qualification. Plays direct rivals Thrissur, Kombans, and Kannur.`;
-        needMl = `സെമി സാധ്യത വളരെ ശക്തമാണ്. ശേഷിക്കുന്ന ${team.remCount} മത്സരങ്ങളിൽ നിന്ന് 4 പോയിന്റ് നേടിയാൽ സെമി ഉറപ്പിക്കാം. നേരിട്ടുള്ള എതിരാളികളായ തൃശ്ശൂർ, കൊമ്പൻസ്, കണ്ണൂർ എന്നിവരുമായാണ് ബാക്കി കളികൾ.`;
-      } else if (team.pos === 4) {
-        statusBadgeEn = "In Contention";
-        statusBadgeMl = "കടുത്ത പോരാട്ടം (50%)";
-        statusClass = "contender-mid";
-        chancePct = 50.1;
-        needEn = `Defending 4th position. Needs at least 6 points (2 wins) from remaining ${team.remCount} matches to retain semi-final spot. Final round clash against Thrissur Magic will be decisive.`;
-        needMl = `നാലാം സ്ഥാനം നിലനിർത്താൻ ശേഷിക്കുന്ന കളികളിൽ നിന്ന് കുറഞ്ഞത് 6 പോയിന്റ് (2 ജയം) ആവശ്യമാണ്. റൗണ്ട് 10-ൽ തൃശ്ശൂർ മാജിക്കുമായുള്ള മത്സരം അതിനിർണ്ണായകം.`;
-      } else if (team.pos === 5) {
-        statusBadgeEn = "Chasing 4th";
-        statusBadgeMl = "പ്രതീക്ഷ സജീവം (36%)";
-        statusClass = "contender-mid";
-        chancePct = 36.3;
-        needEn = `Just 1 point behind 4th place. Needs at least 6 points from remaining ${team.remCount} matches and a victory over Kombans in the final round to leap into top 4.`;
-        needMl = `കൊമ്പൻസിനേക്കാൾ 1 പോയിന്റ് മാത്രം പിന്നിൽ. സെമിയിലെത്താൻ കുറഞ്ഞത് 6 പോയിന്റ് നേടുകയും അവസാന റൗണ്ടിൽ കൊമ്പൻസിനെ തോൽപ്പിക്കുകയും വേണം.`;
+      // Find 4th place and 5th place teams
+      const fourthPlaceTeam = teamsData[3] || teamsData[teamsData.length - 1];
+      const fifthPlaceTeam = teamsData[4] || teamsData[teamsData.length - 1];
+      
+      // Points needed to mathematically guarantee top 4 without depending on other results:
+      // Must beat the team with the 2nd lowest max points among all other teams
+      const otherMaxes = others.map((o) => o.maxPts).sort((a, b) => a - b);
+      const thresholdPts = (otherMaxes[1] ?? fifthPlaceTeam.maxPts) + 1;
+      const ptsToGuarantee = Math.max(0, thresholdPts - team.pts);
+
+      if (team.pos <= 4) {
+        // Currently inside top 4 qualification zone
+        const isVeryClose = ptsToGuarantee <= 3;
+        statusBadgeEn = isVeryClose ? "Virtually Qualified" : "In Top 4";
+        statusBadgeMl = isVeryClose ? "യോഗ്യത ഏതാണ്ട് ഉറപ്പിച്ചു" : "സെമി സോണിൽ (Top 4)";
+        statusClass = isVeryClose ? "contender-high" : "contender-mid";
+        chancePct = isVeryClose ? 95 : 65;
+
+        const winWordMl = ptsToGuarantee <= 3 ? "ഒരു ജയം" : `${Math.ceil(ptsToGuarantee / 3)} ജയം`;
+        needEn = `Currently in position #${team.pos}. Needs ${ptsToGuarantee > 0 ? `${ptsToGuarantee} more point${ptsToGuarantee > 1 ? "s" : ""} from remaining ${team.remCount} matches` : "to maintain position"} to officially guarantee a semi-final spot.`;
+        needMl = `നിലവിൽ #${team.pos}-ാം സ്ഥാനത്ത്. ശേഷിക്കുന്ന ${team.remCount} മത്സരങ്ങളിൽ നിന്ന് ${ptsToGuarantee > 0 ? `${ptsToGuarantee} പോയിന്റ് (${winWordMl})` : "പോയിന്റുകൾ"} നേടിയാൽ മറ്റാരുടെയും ഫലങ്ങളെ ആശ്രയിക്കാതെ സെമി ഫൈനൽ ഔദ്യോഗികമായി ഉറപ്പിക്കാം.`;
       } else {
-        statusBadgeEn = "Uphill Battle";
-        statusBadgeMl = "കഠിനമായ വഴി (21%)";
-        statusClass = "contender-low";
-        chancePct = 20.9;
-        needEn = `Needs at least 6–7 points to stay alive. Faces the toughest remaining schedule against top-3 teams Calicut, Kochi, and Malappuram.`;
-        needMl = `സെമി സാധ്യത നിലനിർത്താൻ ശേഷിക്കുന്ന കളികളിൽ നിന്ന് കുറഞ്ഞത് 6–7 പോയിന്റ് നേടണം. ആദ്യ മൂന്ന് സ്ഥാനക്കാരായ കാലിക്കറ്റ്, കൊച്ചി, മലപ്പുറം എന്നിവരുമായാണ് മത്സരങ്ങൾ.`;
+        // Outside top 4 (chasing positions 5 & 6)
+        const ptsBehind = fourthPlaceTeam.pts - team.pts;
+        const isClose = ptsBehind <= 3;
+        statusBadgeEn = isClose ? "Chasing 4th" : "Uphill Battle";
+        statusBadgeMl = isClose ? "പ്രതീക്ഷ സജീവം" : "കഠിനമായ വഴി";
+        statusClass = isClose ? "contender-mid" : "contender-low";
+        chancePct = isClose ? 35 : 15;
+
+        if (ptsBehind <= 0) {
+          needEn = `Level on points with 4th place (behind on tiebreaker). Needs strong results in the remaining ${team.remCount} matches to break into the semi-final spots.`;
+          needMl = `നാലാം സ്ഥാനക്കാർക്കൊപ്പമാണ് (ടൈബ്രേക്കറിൽ മാത്രം പിന്നിൽ). ശേഷിക്കുന്ന ${team.remCount} മത്സരങ്ങളിലെ വിജയങ്ങൾ വഴി ആദ്യ 4-ലേക്ക് കയറാം.`;
+        } else {
+          needEn = `Just ${ptsBehind} point${ptsBehind > 1 ? "s" : ""} behind 4th place. Needs at least ${Math.min(team.maxPts - team.pts, ptsBehind + 3)} points from remaining ${team.remCount} matches to challenge for top 4.`;
+          needMl = `നാലാം സ്ഥാനക്കാരുമായി ${ptsBehind} പോയിന്റ് വ്യത്യാസം മാത്രം. ശേഷിക്കുന്ന ${team.remCount} മത്സരങ്ങളിൽ മികച്ച വിജയങ്ങൾ നേടിയാൽ ആദ്യ 4-ലേക്ക് മുന്നേറാം.`;
+        }
       }
     }
 
