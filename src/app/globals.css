@@ -3248,3 +3248,242 @@ html[lang="ml"] .sidebar nav a {
 .slk-pill-pg b {
   font-size: 12px;
 }
+
+/* Semi-Final & Shield Qualification Status Badges */
+.slk-status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1;
+  padding: 2.5px 7px;
+  border-radius: 5px;
+  vertical-align: middle;
+  letter-spacing: 0.3px;
+  user-select: none;
+}
+.slk-badge-q {
+  background: #059669;
+  color: #ffffff;
+  box-shadow: 0 1px 4px rgba(5, 150, 105, 0.3);
+}
+.slk-badge-shield {
+  background: linear-gradient(135deg, #ffd700, #f59e0b);
+  color: #0f172a;
+  border: 1px solid #d97706;
+  box-shadow: 0 2px 6px rgba(245, 158, 11, 0.35);
+  font-size: 11px;
+}
+.slk-badge-e {
+  background: #ef4444;
+  color: #ffffff;
+}
+
+/* Semi-Final Scenarios Panel */
+.slk-scenarios-action-bar {
+  margin-top: 16px;
+  display: flex;
+  justify-content: center;
+}
+.slk-scenarios-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 10px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1d4ed8;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 5px rgba(29, 78, 216, 0.08);
+}
+.slk-scenarios-btn:hover {
+  background: #dbeafe;
+}
+.slk-scenarios-btn.active {
+  background: #1d4ed8;
+  color: #ffffff;
+  border-color: #1d4ed8;
+}
+.slk-scenarios-panel {
+  margin-top: 18px;
+  border-top: 1px dashed #cbd5e1;
+  padding-top: 18px;
+}
+.slk-scenarios-header {
+  margin-bottom: 14px;
+}
+.slk-scenarios-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 900;
+  color: #0f172a;
+}
+.slk-scenarios-header p {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: #64748b;
+}
+.slk-scenarios-header .sparkle-icon {
+  color: #f59e0b;
+}
+.slk-scenarios-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+  gap: 14px;
+}
+.slk-scenario-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 14px 16px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: relative;
+  overflow: hidden;
+  border-left-width: 5px;
+}
+.slk-scenario-card.shield {
+  border-left-color: #f59e0b;
+  background: linear-gradient(180deg, #fffbeb 0%, #ffffff 50%);
+}
+.slk-scenario-card.qualified {
+  border-left-color: #059669;
+  background: linear-gradient(180deg, #f0fdf4 0%, #ffffff 50%);
+}
+.slk-scenario-card.contender-high {
+  border-left-color: #2563eb;
+  background: linear-gradient(180deg, #eff6ff 0%, #ffffff 50%);
+}
+.slk-scenario-card.contender-mid {
+  border-left-color: #d97706;
+}
+.slk-scenario-card.contender-low {
+  border-left-color: #dc2626;
+}
+.slk-scenario-card.eliminated {
+  border-left-color: #94a3b8;
+  opacity: 0.75;
+}
+.slk-scenario-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.slk-scenario-team {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.slk-scenario-pos {
+  font-size: 13px;
+  font-weight: 900;
+  color: #64748b;
+  min-width: 22px;
+}
+.slk-scenario-team strong {
+  display: block;
+  font-size: 14px;
+  color: #0f172a;
+  line-height: 1.2;
+}
+.slk-scenario-team small {
+  font-size: 11.5px;
+  color: #64748b;
+}
+.slk-scenario-tag {
+  font-size: 11px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.slk-scenario-tag.shield {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
+}
+.slk-scenario-tag.qualified {
+  background: #d1fae5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+.slk-scenario-tag.contender-high {
+  background: #dbeafe;
+  color: #1e40af;
+  border: 1px solid #bfdbfe;
+}
+.slk-scenario-tag.contender-mid {
+  background: #fef3c7;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+.slk-scenario-tag.contender-low {
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+.slk-scenario-tag.eliminated {
+  background: #f1f5f9;
+  color: #475569;
+}
+.slk-scenario-need small {
+  display: block;
+  font-size: 11px;
+  font-weight: 800;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 3px;
+}
+.slk-scenario-need p {
+  margin: 0;
+  font-size: 12.5px;
+  color: #334155;
+  line-height: 1.45;
+}
+.slk-scenario-fixtures {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed #e2e8f0;
+}
+.slk-scenario-fixtures small {
+  display: block;
+  font-size: 11px;
+  font-weight: 800;
+  color: #64748b;
+  margin-bottom: 5px;
+}
+.slk-scenario-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.slk-fixture-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2.5px 7px;
+  border-radius: 6px;
+  background: #f1f5f9;
+  color: #1e293b;
+  font-size: 11px;
+  border: 1px solid #e2e8f0;
+}
+.slk-fixture-chip b {
+  color: #2563eb;
+}
+.slk-fixture-chip small {
+  color: #64748b;
+  font-weight: 700;
+  margin-bottom: 0;
+}

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Download, Share2, X } from "lucide-react";
 import type { Row } from "@/lib/db";
 import { ErrorMessage, useLanguage } from "./provider";
+import { computeQualificationStatus } from "@/lib/qualification";
 
 const teamShortCodes: Record<string, string> = {
   calicut: "CFC",
@@ -125,6 +126,7 @@ export function StandingsShareCard({
       };
 
       const displayRows = rows.slice(0, 6);
+      const qualMap = computeQualificationStatus(rows, fixtures);
       const teamBadges = await Promise.all(
         displayRows.map((r) => loadBadge(r.badge))
       );
@@ -417,7 +419,14 @@ export function StandingsShareCard({
         ctx.textAlign = "left";
         ctx.fillStyle = "#071a3d";
         ctx.font = '900 29px "DM Sans", sans-serif';
-        ctx.fillText(getTeamShort(r), tableX + colClubText, centerY + 10);
+        const qStatus = qualMap[r.team_id];
+        let shortText = getTeamShort(r);
+        if (qStatus?.isShieldWinner) {
+          shortText += " (W)";
+        } else if (qStatus?.isQualified) {
+          shortText += " (Q)";
+        }
+        ctx.fillText(shortText, tableX + colClubText, centerY + 10);
 
         // Stat Numbers (Larger 27px Dark Slate-Navy)
         ctx.textAlign = "center";
@@ -536,6 +545,14 @@ export function StandingsShareCard({
       ctx.fill();
       ctx.fillStyle = "#e2e8f0";
       ctx.fillText("1–4: Semi-finals", tableX + 251, legendY);
+
+      // Qualified Q
+      ctx.fillStyle = "#059669";
+      ctx.beginPath();
+      ctx.roundRect(tableX + 415, legendY - 15, 18, 18, 4);
+      ctx.fill();
+      ctx.fillStyle = "#e2e8f0";
+      ctx.fillText("Q: Qualified", tableX + 441, legendY);
 
       // Rules text
       ctx.textAlign = "right";

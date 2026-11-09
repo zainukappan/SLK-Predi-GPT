@@ -1,17 +1,18 @@
 "use client";
 import Link from "next/link";
-import { Fragment, useState, type ReactNode } from "react";
-import { CalendarDays, ChevronDown, ChevronRight, Goal, Handshake, MapPin, Menu, Shield, Trophy, Users, Share2 } from "lucide-react";
+import { Fragment, useState, useMemo, type ReactNode } from "react";
+import { CalendarDays, ChevronDown, ChevronRight, Goal, Handshake, MapPin, Menu, Shield, Trophy, Users, Share2, Sparkles } from "lucide-react";
 import { StandingsShareCard } from "./standings-share-card";
 import type { Row } from "@/lib/db";
 import { ist } from "@/lib/domain";
 import { LanguageSwitch, useLanguage } from "./provider";
 import { MemberPredictions } from "./member-predictions";
 import { OnlineCounter } from "./online-counter";
+import { computeQualificationStatus, type TeamQualificationInfo } from "@/lib/qualification";
 
 const copy = {
-  en: { overview:"Overview",matches:"Matches",table:"Points Table",players:"Players",prediction:"Prediction Leaderboard",login:"Member Login",public:"PUBLIC VIEW",title:"SUPER LEAGUE KERALA",sub:"Fixtures, results, standings and player statistics",next:"Next Match",latest:"Latest Result",noNext:"No upcoming fixture has been published.",fullTime:"Full Time",top:"Top Scorers",assists:"Assists",contrib:"Goal Contributions",played:"P",regWins:"W",shootWins:"PW",shootLosses:"PL",regLosses:"L",gf:"GF",ga:"GA",gd:"GD",pts:"Pts",rank:"Rank",member:"Member",predicted:"Matches Predicted",total:"Total Points",updated:"Updated",matchCentre:"Match Centre",match:"Match",events:"Goal events",shootoutKicks:"Penalty shootout",scored:"Scored",missed:"Missed",recentForm:"Last 10 performances",noForm:"No completed matches yet.",noStats:"Player statistics will appear after goal events are entered.",noResults:"No finalized results yet.",home:"Home",pointsRule:"SLK table: 3 points for a 90-minute win · 2 for a shootout win · 1 for a shootout loss · 0 for a 90-minute loss.",tiebreakRule:"Tiebreakers: points, goal difference, goals scored, then away goals scored in all league matches.",predictionRule:"SBK predictions continue to use only the score and result after 90 minutes plus stoppage time. Shootouts never affect prediction points.",shootoutWon:"Won on penalties",shieldWinner:"Super League Shield Winner",semiFinalist:"Semi-finalist (Positions 1–4)",viewFull:"View full leaderboard",collapse:"Show Top 10",predictScore:"Predict your score",viewFullList:"View full list" },
-  ml: { overview:"അവലോകനം",matches:"മത്സരങ്ങൾ",table:"പോയിന്റ് പട്ടിക",players:"കളിക്കാർ",prediction:"പ്രവചന ലീഡർബോർഡ്",login:"മെമ്പർ ലോഗിൻ",public:"പബ്ലിക് വ്യൂ",title:"സൂപ്പർ ലീഗ് കേരള",sub:"മത്സരങ്ങൾ, ഫലങ്ങൾ, പോയിന്റ് പട്ടിക, കളിക്കാരുടെ കണക്കുകൾ",next:"അടുത്ത മത്സരം",latest:"അവസാന ഫലം",noNext:"വരാനിരിക്കുന്ന മത്സരം പ്രസിദ്ധീകരിച്ചിട്ടില്ല.",fullTime:"ഫുൾ ടൈം",top:"ടോപ് സ്കോറേഴ്സ്",assists:"അസിസ്റ്റുകൾ",contrib:"ഗോൾ കോൺട്രിബ്യൂഷൻസ്",played:"മ",regWins:"W",shootWins:"PW",shootLosses:"PL",regLosses:"L",gf:"GF",ga:"GA",gd:"GD",pts:"പോ",rank:"റാങ്ക്",member:"അംഗം",predicted:"പ്രവചിച്ച മത്സരങ്ങൾ",total:"ആകെ പോയിന്റ്",updated:"പുതുക്കിയത്",matchCentre:"മാച്ച് സെന്റർ",match:"മത്സരം",events:"ഗോൾ വിവരങ്ങൾ",shootoutKicks:"പെനാൽറ്റി ഷൂട്ടൗട്ട്",scored:"ഗോൾ ആയി",missed:"ഗോൾ ആയില്ല",recentForm:"Last 10 performances",noForm:"പൂർത്തിയായ മത്സരങ്ങളില്ല.",noStats:"ഗോൾ വിവരങ്ങൾ ചേർത്ത ശേഷം കളിക്കാരുടെ കണക്കുകൾ ഇവിടെ വരും.",noResults:"ഫലം സ്ഥിരീകരിച്ച മത്സരങ്ങളില്ല.",home:"ഹോം",pointsRule:"SLK പട്ടിക: 90 മിനിറ്റ് ജയം 3 · ഷൂട്ടൗട്ട് ജയം 2 · ഷൂട്ടൗട്ട് തോൽവി 1 · 90 മിനിറ്റ് തോൽവി 0 പോയിന്റ്.",tiebreakRule:"ടൈബ്രേക്കർ: പോയിന്റ്, ഗോൾ വ്യത്യാസം, നേടിയ ഗോളുകൾ, എവേ മത്സരങ്ങളിൽ നേടിയ ഗോളുകൾ.",predictionRule:"SBK പ്രവചനത്തിന് 90 മിനിറ്റും സ്റ്റോപ്പേജ് സമയവും കഴിഞ്ഞുള്ള സ്കോറും ഫലവും മാത്രം. ഷൂട്ടൗട്ട് പ്രവചന പോയിന്റിനെ ബാധിക്കില്ല.",shootoutWon:"പെനാൽറ്റിയിൽ വിജയിച്ചത്",shieldWinner:"സൂപ്പർ ലീഗ് ഷീൽഡ് ജേതാവ്",semiFinalist:"സെമി ഫൈനലിസ്റ്റ് (1–4 സ്ഥാനങ്ങൾ)",viewFull:"മുഴുവൻ ലീഡർബോർഡ് കാണുക",collapse:"Top 10 മാത്രം കാണിക്കുക",predictScore:"നിങ്ങളുടെ സ്കോർ പ്രവചിക്കുക",viewFullList:"മുഴുവൻ ലിസ്റ്റ് കാണുക" }
+  en: { overview:"Overview",matches:"Matches",table:"Points Table",players:"Players",prediction:"Prediction Leaderboard",login:"Member Login",public:"PUBLIC VIEW",title:"SUPER LEAGUE KERALA",sub:"Fixtures, results, standings and player statistics",next:"Next Match",latest:"Latest Result",noNext:"No upcoming fixture has been published.",fullTime:"Full Time",top:"Top Scorers",assists:"Assists",contrib:"Goal Contributions",played:"P",regWins:"W",shootWins:"PW",shootLosses:"PL",regLosses:"L",gf:"GF",ga:"GA",gd:"GD",pts:"Pts",rank:"Rank",member:"Member",predicted:"Matches Predicted",total:"Total Points",updated:"Updated",matchCentre:"Match Centre",match:"Match",events:"Goal events",shootoutKicks:"Penalty shootout",scored:"Scored",missed:"Missed",recentForm:"Last 10 performances",noForm:"No completed matches yet.",noStats:"Player statistics will appear after goal events are entered.",noResults:"No finalized results yet.",home:"Home",pointsRule:"SLK table: 3 points for a 90-minute win · 2 for a shootout win · 1 for a shootout loss · 0 for a 90-minute loss.",tiebreakRule:"Tiebreakers: points, goal difference, goals scored, then away goals scored in all league matches.",predictionRule:"SBK predictions continue to use only the score and result after 90 minutes plus stoppage time. Shootouts never affect prediction points.",shootoutWon:"Won on penalties",shieldWinner:"Super League Shield Winner",semiFinalist:"Semi-finalist (Positions 1–4)",viewFull:"View full leaderboard",collapse:"Show Top 10",predictScore:"Predict your score",viewFullList:"View full list",qualifiedLegend:"Q: Qualified for Semi-Finals",shieldLegend:"W: Shield Winner",scenariosToggle:"View Semi-Final Race & Scenarios",scenariosHide:"Hide Qualification Scenarios",scenariosTitle:"Semi-Final Qualification Scenarios",scenariosSub:"What each club needs to reach the semi-finals or win the Shield",whatIsNeeded:"Qualification Requirement",remainingMatches:"Remaining Matches",maxPossible:"Max Pts" },
+  ml: { overview:"അവലോകനം",matches:"മത്സരങ്ങൾ",table:"പോയിന്റ് പട്ടിക",players:"കളിക്കാർ",prediction:"പ്രവചന ലീഡർബോർഡ്",login:"മെമ്പർ ലോഗിൻ",public:"പബ്ലിക് വ്യൂ",title:"സൂപ്പർ ലീഗ് കേരള",sub:"മത്സരങ്ങൾ, ഫലങ്ങൾ, പോയിന്റ് പട്ടിക, കളിക്കാരുടെ കണക്കുകൾ",next:"അടുത്ത മത്സരം",latest:"അവസാന ഫലം",noNext:"വരാനിരിക്കുന്ന മത്സരം പ്രസിദ്ധീകരിച്ചിട്ടില്ല.",fullTime:"ഫുൾ ടൈം",top:"ടോപ് സ്കോറേഴ്സ്",assists:"അസിസ്റ്റുകൾ",contrib:"ഗോൾ കോൺട്രിബ്യൂഷൻസ്",played:"മ",regWins:"W",shootWins:"PW",shootLosses:"PL",regLosses:"L",gf:"GF",ga:"GA",gd:"GD",pts:"പോ",rank:"റാങ്ക്",member:"അംഗം",predicted:"പ്രവചിച്ച മത്സരങ്ങൾ",total:"ആകെ പോയിന്റ്",updated:"പുതുക്കിയത്",matchCentre:"മാച്ച് സെന്റർ",match:"മത്സരം",events:"ഗോൾ വിവരങ്ങൾ",shootoutKicks:"പെനാൽറ്റി ഷൂട്ടൗട്ട്",scored:"ഗോൾ ആയി",missed:"ഗോൾ ആയില്ല",recentForm:"Last 10 performances",noForm:"പൂർത്തിയായ മത്സരങ്ങളില്ല.",noStats:"ഗോൾ വിവരങ്ങൾ ചേർത്ത ശേഷം കളിക്കാരുടെ കണക്കുകൾ ഇവിടെ വരും.",noResults:"ഫലം സ്ഥിരീകരിച്ച മത്സരങ്ങളില്ല.",home:"ഹോം",pointsRule:"SLK പട്ടിക: 90 മിനിറ്റ് ജയം 3 · ഷൂട്ടൗട്ട് ജയം 2 · ഷൂട്ടൗട്ട് തോൽവി 1 · 90 മിനിറ്റ് തോൽവി 0 പോയിന്റ്.",tiebreakRule:"ടൈബ്രേക്കർ: പോയിന്റ്, ഗോൾ വ്യത്യാസം, നേടിയ ഗോളുകൾ, എവേ മത്സരങ്ങളിൽ നേടിയ ഗോളുകൾ.",predictionRule:"SBK പ്രവചനത്തിന് 90 മിനിറ്റും സ്റ്റോപ്പേജ് സമയവും കഴിഞ്ഞുള്ള സ്കോറും ഫലവും മാത്രം. ഷൂട്ടൗട്ട് പ്രവചന പോയിന്റിനെ ബാധിക്കില്ല.",shootoutWon:"പെനാൽറ്റിയിൽ വിജയിച്ചത്",shieldWinner:"സൂപ്പർ ലീഗ് ഷീൽഡ് ജേതാവ്",semiFinalist:"സെമി ഫൈനലിസ്റ്റ് (1–4 സ്ഥാനങ്ങൾ)",viewFull:"മുഴുവൻ ലീഡർബോർഡ് കാണുക",collapse:"Top 10 മാത്രം കാണിക്കുക",predictScore:"നിങ്ങളുടെ സ്കോർ പ്രവചിക്കുക",viewFullList:"മുഴുവൻ ലിസ്റ്റ് കാണുക",qualifiedLegend:"Q: സെമി ഉറപ്പിച്ചു",shieldLegend:"W: ഷീൽഡ് ജേതാവ്",scenariosToggle:"സെമി ഫൈനൽ യോഗ്യതാ സാധ്യതകൾ കാണുക",scenariosHide:"സാധ്യതകൾ മറയ്ക്കുക",scenariosTitle:"സെമി ഫൈനൽ യോഗ്യതാ സാധ്യതകൾ",scenariosSub:"ഓരോ ക്ലബ്ബിനും സെമി ഫൈനലിലെത്താനും ഷീൽഡ് നേടാനും എന്താണ് വേണ്ടത്?",whatIsNeeded:"സെമിയിലെത്താൻ എന്ത് വേണം?",remainingMatches:"ബാക്കിയുള്ള മത്സരങ്ങൾ",maxPossible:"പരമാവധി" }
 } as const;
 const leaderboardCopy = {
   en: { serial:"S.No.",winner:"Who will win the match?",score:"What will the score be?",first:"Who will score first?",round:"Round" },
@@ -106,7 +107,7 @@ export function PublicSportsHub({data}:{data:Row}) {
         <MatchFeature title={t.latest} fixture={latest} empty={t.noResults} lang={lang} result action={t.fullTime}/>
       </section>
       <section className="slk-data-section" id="table">
-        <article className="slk-data-card slk-table-card"><CardTitle icon={<Trophy/>} title={t.table}/><div className="slk-points-note"><strong>{t.pointsRule}</strong><span>{t.tiebreakRule}</span><span>{t.predictionRule}</span></div><div className="slk-table-legend" aria-label="Standings highlights" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "10px" }}><div style={{ display: "flex", flexWrap: "wrap", gap: "10px 22px", alignItems: "center" }}><span><i className="shield"/>{t.shieldWinner}</span><span><i className="semifinal"/>{t.semiFinalist}</span></div><button type="button" className="button primary small" style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "12px", fontWeight: 800, padding: "6px 14px", borderRadius: "8px", background: "var(--yellow)", color: "var(--navy)", cursor: "pointer", border: "none", boxShadow: "0 2px 6px rgba(0,0,0,0.1)", marginLeft: "auto" }} onClick={()=>setShowShareModal(true)}><Share2 size={14} /><span>Share Table</span></button></div><Standings rows={data.table} fixtures={data.fixtures} t={t} lang={lang}/>{showShareModal && <StandingsShareCard rows={data.table} fixtures={data.fixtures} onClose={()=>setShowShareModal(false)} />}</article>
+        <article className="slk-data-card slk-table-card"><CardTitle icon={<Trophy/>} title={t.table}/><div className="slk-points-note"><strong>{t.pointsRule}</strong><span>{t.tiebreakRule}</span><span>{t.predictionRule}</span></div><div className="slk-table-legend" aria-label="Standings highlights" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "10px" }}><div style={{ display: "flex", flexWrap: "wrap", gap: "10px 18px", alignItems: "center" }}><span><i className="shield"/>{t.shieldWinner}</span><span><i className="semifinal"/>{t.semiFinalist}</span><span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}><b className="slk-status-badge slk-badge-q" style={{ margin: 0, padding: "2px 6px" }}>Q</b><span>{t.qualifiedLegend}</span></span></div><button type="button" className="button primary small" style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "12px", fontWeight: 800, padding: "6px 14px", borderRadius: "8px", background: "var(--yellow)", color: "var(--navy)", cursor: "pointer", border: "none", boxShadow: "0 2px 6px rgba(0,0,0,0.1)", marginLeft: "auto" }} onClick={()=>setShowShareModal(true)}><Share2 size={14} /><span>Share Table</span></button></div><Standings rows={data.table} fixtures={data.fixtures} t={t} lang={lang}/>{showShareModal && <StandingsShareCard rows={data.table} fixtures={data.fixtures} onClose={()=>setShowShareModal(false)} />}</article>
         <div className="slk-stat-cards" id="players">
           <article className="slk-data-card slk-stat-card">
             <CardTitle icon={<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="12 6 16.5 9 14.5 14 9.5 14 7.5 9"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="16.5" y1="9" x2="21.5" y2="8"/><line x1="14.5" y1="14" x2="18" y2="19"/><line x1="9.5" y1="14" x2="6" y2="19"/><line x1="7.5" y1="9" x2="2.5" y2="8"/></svg>} title={t.top}/>
@@ -148,7 +149,177 @@ export function PublicSportsHub({data}:{data:Row}) {
 }
 export function CardTitle({icon,title}:{icon:ReactNode;title:string}) { return <div className="slk-data-card-title"><span>{icon}</span><h2>{title}</h2></div>; }
 function MatchFeature({title,fixture,empty,lang,result,action}:{title:string;fixture?:Row;empty:string;lang:"en"|"ml";result?:boolean;action:string}) { const t=copy[lang]; return <article className={`slk-match-feature ${result?"result":"upcoming"}`}><div className="slk-card-head"><strong>{title}</strong><span className={result?"result":"upcoming"}>{result?"FULL TIME":"UPCOMING"}</span></div>{fixture?<><strong className="match-number-label">{t.match} {fixture.match_number}</strong><div className="slk-versus"><div><Badge src={fixture.home_badge} label={name(fixture,"home",lang)}/><b>{name(fixture,"home",lang)}</b></div><strong>{result?`${fixture.home_goals} – ${fixture.away_goals}`:"VS"}</strong><div><Badge src={fixture.away_badge} label={name(fixture,"away",lang)}/><b>{name(fixture,"away",lang)}</b></div></div><div className="slk-match-footer"><div className="slk-match-meta"><span><CalendarDays/>{ist(fixture.kickoff,lang)}</span>{name(fixture,"venue",lang)!=="—"&&<span><MapPin/>{name(fixture,"venue",lang)}</span>}</div>{!result&&<Link href="/" className="slk-predict-cta">{t.predictScore}<ChevronRight/></Link>}</div></>:<p className="slk-empty">{empty}</p>}</article>; }
-  function Standings({rows,fixtures,t,lang}:{rows:Row[];fixtures:Row[];t:any;lang:"en"|"ml"}) { const form=(teamId:string)=>fixtures.filter(f=>f.status==="finalized"&&(f.home_id===teamId||f.away_id===teamId)).sort((a,b)=>+toDate(b.kickoff)-+toDate(a.kickoff)).slice(0,10).map(f=>{const home=f.home_id===teamId,forGoals=Number(home?f.home_goals:f.away_goals),against=Number(home?f.away_goals:f.home_goals),code=forGoals>against?"W":forGoals<against?"L":f.shootout_winner===(home?"home":"away")?"PW":"PL";const opponent=home?name(f,"away",lang):name(f,"home",lang);return {id:String(f.id),home_goals:f.home_goals,away_goals:f.away_goals,code,opponent};}); return <div className="slk-public-table"><table><thead><tr><th>Pos</th><th>Club</th><th>{t.played}</th><th title="90-minute wins">{t.regWins}</th><th title="Penalty shootout wins">{t.shootWins}</th><th title="Penalty shootout losses">{t.shootLosses}</th><th title="90-minute losses">{t.regLosses}</th><th>{t.gf}</th><th>{t.ga}</th><th>{t.gd}</th><th>{t.pts}</th><th style={{ minWidth: "160px", whiteSpace: "nowrap" }}>{t.recentForm}</th></tr></thead><tbody>{rows.map(r=>{const position=Number(r.table_position),prev=r.previous_position?Number(r.previous_position):position,movement=prev-position,recent=form(r.team_id);return <tr key={r.team_id} className={`${position===1?"slk-shield-row":position<=4?"slk-semifinal-row":""}`}><td><div className="slk-pos-wrap"><b>{r.table_position}</b>{movement>0?<span className="pos-up">↑ {movement}</span>:movement<0?<span className="pos-down">↓ {-movement}</span>:<span className="pos-same">-</span>}</div></td><td><span className="slk-club"><Badge src={r.badge} label={name(r,"name",lang)}/><strong>{name(r,"name",lang)}</strong></span></td><td>{r.played}</td><td>{r.regulation_wins}</td><td>{r.shootout_wins}</td><td>{r.shootout_losses}</td><td>{r.regulation_losses}</td><td>{r.goals_for}</td><td>{r.goals_against}</td><td>{r.goal_difference}</td><td><b>{r.points}</b></td><td>{recent.length?<div className="slk-form-strip" style={{ display: "flex", gap: "5px", alignItems: "center", flexWrap: "nowrap" }}>{recent.map(match=><span key={match.id} className={`form-${match.code.toLowerCase()}`} title={`${match.opponent} · ${match.home_goals}–${match.away_goals}`} style={{ width: "26px", height: "26px", fontSize: "10px", fontWeight: 800, borderRadius: "50%", display: "grid", placeItems: "center", flexShrink: 0 }}>{match.code}</span>)}</div>:<small style={{ color: "var(--muted)" }}>—</small>}</td></tr>;})}</tbody></table></div>; }
+  function Standings({rows,fixtures,t,lang}:{rows:Row[];fixtures:Row[];t:any;lang:"en"|"ml"}) {
+    const [showScenarios, setShowScenarios] = useState(false);
+    const qualMap = useMemo(() => computeQualificationStatus(rows, fixtures), [rows, fixtures]);
+    const form=(teamId:string)=>fixtures.filter(f=>f.status==="finalized"&&(f.home_id===teamId||f.away_id===teamId)).sort((a,b)=>+toDate(b.kickoff)-+toDate(a.kickoff)).slice(0,10).map(f=>{const home=f.home_id===teamId,forGoals=Number(home?f.home_goals:f.away_goals),against=Number(home?f.away_goals:f.home_goals),code=forGoals>against?"W":forGoals<against?"L":f.shootout_winner===(home?"home":"away")?"PW":"PL";const opponent=home?name(f,"away",lang):name(f,"home",lang);return {id:String(f.id),home_goals:f.home_goals,away_goals:f.away_goals,code,opponent};});
+    return (
+      <div className="slk-standings-container">
+        <div className="slk-public-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Pos</th>
+                <th>Club</th>
+                <th>{t.played}</th>
+                <th title="90-minute wins">{t.regWins}</th>
+                <th title="Penalty shootout wins">{t.shootWins}</th>
+                <th title="Penalty shootout losses">{t.shootLosses}</th>
+                <th title="90-minute losses">{t.regLosses}</th>
+                <th>{t.gf}</th>
+                <th>{t.ga}</th>
+                <th>{t.gd}</th>
+                <th>{t.pts}</th>
+                <th style={{ minWidth: "160px", whiteSpace: "nowrap" }}>{t.recentForm}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map(r=>{
+                const position=Number(r.table_position),prev=r.previous_position?Number(r.previous_position):position,movement=prev-position,recent=form(r.team_id),status=qualMap[r.team_id];
+                return (
+                  <tr key={r.team_id} className={`${position===1?"slk-shield-row":position<=4?"slk-semifinal-row":""}`}>
+                    <td>
+                      <div className="slk-pos-wrap">
+                        <b>{r.table_position}</b>
+                        {movement>0?<span className="pos-up">↑ {movement}</span>:movement<0?<span className="pos-down">↓ {-movement}</span>:<span className="pos-same">-</span>}
+                      </div>
+                    </td>
+                    <td>
+                      <span className="slk-club">
+                        <Badge src={r.badge} label={name(r,"name",lang)}/>
+                        <strong style={{ display: "inline-flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
+                          <span>{name(r,"name",lang)}</span>
+                          {status?.isShieldWinner && (
+                            <span className="slk-status-badge slk-badge-shield" title={lang === "ml" ? "സൂപ്പർ ലീഗ് ഷീൽഡ് ജേതാവ്" : "Super League Shield Winner"}>
+                              🏆 {lang === "ml" ? "ഷീൽഡ് ജേതാവ്" : "Shield Winner"}
+                            </span>
+                          )}
+                          {!status?.isShieldWinner && status?.isQualified && (
+                            <span className="slk-status-badge slk-badge-q" title={lang === "ml" ? "സെമി ഫൈനൽ ഉറപ്പിച്ചു" : "Qualified for Semi-Finals"}>
+                              Q
+                            </span>
+                          )}
+                          {status?.isEliminated && (
+                            <span className="slk-status-badge slk-badge-e" title={lang === "ml" ? "പുറത്തായി" : "Eliminated"}>
+                              E
+                            </span>
+                          )}
+                        </strong>
+                      </span>
+                    </td>
+                    <td>{r.played}</td>
+                    <td>{r.regulation_wins}</td>
+                    <td>{r.shootout_wins}</td>
+                    <td>{r.shootout_losses}</td>
+                    <td>{r.regulation_losses}</td>
+                    <td>{r.goals_for}</td>
+                    <td>{r.goals_against}</td>
+                    <td>{r.goal_difference}</td>
+                    <td><b>{r.points}</b></td>
+                    <td>{recent.length?<div className="slk-form-strip" style={{ display: "flex", gap: "5px", alignItems: "center", flexWrap: "nowrap" }}>{recent.map(match=><span key={match.id} className={`form-${match.code.toLowerCase()}`} title={`${match.opponent} · ${match.home_goals}–${match.away_goals}`} style={{ width: "26px", height: "26px", fontSize: "10px", fontWeight: 800, borderRadius: "50%", display: "grid", placeItems: "center", flexShrink: 0 }}>{match.code}</span>)}</div>:<small style={{ color: "var(--muted)" }}>—</small>}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="slk-scenarios-action-bar">
+          <button
+            type="button"
+            className={`slk-scenarios-btn ${showScenarios ? "active" : ""}`}
+            onClick={() => setShowScenarios(!showScenarios)}
+            aria-expanded={showScenarios}
+          >
+            <Sparkles size={16} />
+            <span>{showScenarios ? t.scenariosHide : t.scenariosToggle}</span>
+            <ChevronDown size={15} style={{ transform: showScenarios ? "rotate(180deg)" : "none", transition: "transform 0.2s" }} />
+          </button>
+        </div>
+
+        {showScenarios && (
+          <QualificationScenarios qualMap={qualMap} rows={rows} lang={lang} t={t} />
+        )}
+      </div>
+    );
+  }
+
+  function QualificationScenarios({
+    qualMap,
+    rows,
+    lang,
+    t,
+  }: {
+    qualMap: Record<string, TeamQualificationInfo>;
+    rows: Row[];
+    lang: "en" | "ml";
+    t: any;
+  }) {
+    return (
+      <div className="slk-scenarios-panel">
+        <div className="slk-scenarios-header">
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <Sparkles className="sparkle-icon" size={18} />
+            <h3>{t.scenariosTitle}</h3>
+          </div>
+          <p>{t.scenariosSub}</p>
+        </div>
+        <div className="slk-scenarios-grid">
+          {rows.map((r) => {
+            const q = qualMap[r.team_id];
+            if (!q) return null;
+            const statusBadge = lang === "ml" ? q.statusBadgeMl : q.statusBadgeEn;
+            const needText = lang === "ml" ? q.needMl : q.needEn;
+
+            return (
+              <div key={q.teamId} className={`slk-scenario-card ${q.statusClass}`}>
+                <div className="slk-scenario-card-head">
+                  <div className="slk-scenario-team">
+                    <span className="slk-scenario-pos">#{q.pos}</span>
+                    <Badge src={q.badge} label={name(r, "name", lang)} />
+                    <div>
+                      <strong>{name(r, "name", lang)}</strong>
+                      <small>
+                        {t.pts}: <b>{q.pts}</b> · {t.played}: {q.played} · {t.maxPossible}: <b>{q.maxPts}</b>
+                      </small>
+                    </div>
+                  </div>
+                  <span className={`slk-scenario-tag ${q.statusClass}`}>{statusBadge}</span>
+                </div>
+
+                <div className="slk-scenario-body">
+                  <div className="slk-scenario-need">
+                    <small>{t.whatIsNeeded}</small>
+                    <p>{needText}</p>
+                  </div>
+
+                  {q.remainingFixtures.length > 0 && (
+                    <div className="slk-scenario-fixtures">
+                      <small>
+                        {t.remainingMatches} ({q.remCount}):
+                      </small>
+                      <div className="slk-scenario-chips">
+                        {q.remainingFixtures.map((f) => (
+                          <span
+                            key={f.matchNumber}
+                            className="slk-fixture-chip"
+                            title={`${f.roundEn} · ${new Date(f.kickoff).toLocaleDateString()}`}
+                          >
+                            <b>M{f.matchNumber}</b> vs {lang === "ml" ? f.opponentMl : f.opponentEn}
+                            <small>({f.isHome ? (lang === "ml" ? "ഹോം" : "H") : (lang === "ml" ? "എവേ" : "A")})</small>
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
   function PredictionLeaderboard({rows,rounds,memberPredictions,t,lang}:{rows:Row[];rounds:Row[];memberPredictions:Row[];t:any;lang:"en"|"ml"}) { const labels=leaderboardCopy[lang],[expanded,setExpanded]=useState<string|null>(null),[showAll,setShowAll]=useState(false),visibleRows=showAll?rows:rows.slice(0,10); return <div className="slk-public-table slk-prediction-table"><table><thead><tr><th rowSpan={2}>{labels.serial}</th><th rowSpan={2}>{t.rank}</th><th rowSpan={2}>{t.member}</th><th rowSpan={2}>{labels.winner}</th><th rowSpan={2}>{labels.score}</th><th rowSpan={2}>{labels.first}</th><th rowSpan={2}>{t.predicted}</th>{rounds.length>0&&<th colSpan={rounds.length} className="round-group">{labels.round}</th>}<th rowSpan={2}>{t.total}</th></tr>{rounds.length>0&&<tr>{rounds.map(round=><th key={round.id} title={name(round,"name",lang)}>{round.sort_order}</th>)}</tr>}</thead><tbody>{visibleRows.map((r:Row,index:number)=>{const position=Number(r.rank),prev=r.previous_rank?Number(r.previous_rank):position,movement=prev-position;return <Fragment key={r.public_key}><tr><td>{index+1}</td><td><div className="slk-pos-wrap"><span className={`slk-rank-badge rank-${r.rank}`}>{r.rank}</span>{movement>0?<span className="pos-up">↑ {movement}</span>:movement<0?<span className="pos-down">↓ {-movement}</span>:<span className="pos-same">-</span>}</div></td><td><button className="member-prediction-toggle" aria-expanded={expanded===r.public_key} aria-controls={`public-predictions-${r.public_key}`} onClick={()=>setExpanded(expanded===r.public_key?null:r.public_key)}><strong>{r.display_name}</strong><ChevronDown size={14}/></button></td><td>{r.correct}</td><td>{r.exact}</td><td>{r.first_goal_correct}</td><td>{r.participation}</td>{rounds.map(round=><td key={round.id} className="round-score">{r.round_points?.[round.id]??0}</td>)}<td><strong>{r.points}</strong></td></tr>{expanded===r.public_key&&<tr className="member-prediction-row" id={`public-predictions-${r.public_key}`}><td colSpan={8+rounds.length}><div className="member-prediction-heading"><strong>{r.display_name}</strong><button className="text-button" onClick={()=>setExpanded(null)}>{lang==="ml"?"പ്രവചനങ്ങൾ മറയ്ക്കുക":"Hide predictions"}</button></div><MemberPredictions rows={memberPredictions.filter((item:Row)=>item.public_key===r.public_key)}/></td></tr>}</Fragment>})}</tbody></table>{rows.length>10&&<div className="slk-leaderboard-more"><button onClick={()=>{setShowAll(!showAll);setExpanded(null);}}>{showAll?t.collapse:t.viewFull}<ChevronDown className={showAll?"open":""}/></button></div>}</div>; }
 function PlayerStats({rows,metric,t,lang}:{rows:Row[];metric:string;t:any;lang:"en"|"ml"}) {
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
