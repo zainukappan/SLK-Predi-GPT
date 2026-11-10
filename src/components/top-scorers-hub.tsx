@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState, useMemo, type ReactNode } from "react";
 import { ChevronLeft, Search, Shield, Trophy, Users, Filter, X } from "lucide-react";
 import type { Row } from "@/lib/db";
-import { PublicHeader, Badge, CardTitle, name, sortPlayerStats } from "./public-sports-hub";
+import { PublicHeader, Badge, CardTitle, ShootoutToggle, name, sortPlayerStats } from "./public-sports-hub";
 import { useLanguage } from "./provider";
 import { OnlineCounter } from "./online-counter";
 
@@ -24,9 +24,10 @@ const copy = {
     goals: "Goals",
     login: "Member Login",
     footerText: "Soccer Blues of Keralam · Fans predict. Football unites.",
-    shootoutFilterLabel: "Penalty Shootout (PG):",
-    withoutPg: "90 Min Only (Default)",
-    withPg: "+ Shootout (PG)",
+    toggleWithoutPg: "90 Min",
+    toggleWithPg: "+ PG",
+    toggleWithoutPgHint: "90-minute regulation goals only",
+    toggleWithPgHint: "Include penalty shootout goals (+PG)",
   },
   ml: {
     back: "മാച്ച് സെന്ററിലേക്ക് മടങ്ങുക",
@@ -43,9 +44,10 @@ const copy = {
     goals: "ഗോളുകൾ",
     login: "മെമ്പർ ലോഗിൻ",
     footerText: "Soccer Blues of Keralam · Fans predict. Football unites.",
-    shootoutFilterLabel: "പെനാൽറ്റി ഷൂട്ടൗട്ട് (PG):",
-    withoutPg: "90 മിനിറ്റ് മാത്രം (Default)",
-    withPg: "+ ഷൂട്ടൗട്ട് (PG)",
+    toggleWithoutPg: "90 മി.",
+    toggleWithPg: "+ PG",
+    toggleWithoutPgHint: "90 മിനിറ്റ് റെഗുലേഷൻ ഗോളുകൾ മാത്രം",
+    toggleWithPgHint: "പെനാൽറ്റി ഷൂട്ടൗട്ട് ഗോളുകൾ കൂടി ഉൾപ്പെടുത്തുക",
   },
 } as const;
 
@@ -65,7 +67,8 @@ export function TopScorersHub({
       ? initialTab
       : "all"
   );
-  const [includeShootout, setIncludeShootout] = useState(initialIncludeShootout);
+  const [shootoutTop, setShootoutTop] = useState(initialIncludeShootout);
+  const [shootoutContrib, setShootoutContrib] = useState(initialIncludeShootout);
   const [search, setSearch] = useState("");
   const [selectedClub, setSelectedClub] = useState("all");
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
@@ -105,25 +108,31 @@ export function TopScorersHub({
     return list;
   }, [players, selectedClub, search]);
 
-  const getMetricList = (metric: "top" | "assists" | "contrib") =>
-    sortPlayerStats(filteredPlayers, metric, includeShootout);
+  const topScorers = useMemo(() => sortPlayerStats(filteredPlayers, "top", shootoutTop), [filteredPlayers, shootoutTop]);
+  const topAssists = useMemo(() => sortPlayerStats(filteredPlayers, "assists", false), [filteredPlayers]);
+  const topContrib = useMemo(() => sortPlayerStats(filteredPlayers, "contrib", shootoutContrib), [filteredPlayers, shootoutContrib]);
 
-  const topScorers = useMemo(() => getMetricList("top"), [filteredPlayers, includeShootout]);
-  const topAssists = useMemo(() => getMetricList("assists"), [filteredPlayers, includeShootout]);
-  const topContrib = useMemo(() => getMetricList("contrib"), [filteredPlayers, includeShootout]);
-
-  const renderPlayerList = (rows: Row[], metric: "top" | "assists" | "contrib") => {
+  const renderPlayerList = (
+    rows: Row[],
+    metric: "top" | "assists" | "contrib",
+    includeShootout: boolean = false
+  ) => {
     const key = metric === "top" ? "goals" : metric === "assists" ? "assists" : "contributions";
     const isGoalMetric = metric === "top" || metric === "contrib";
     if (!rows.length) {
       return <p className="slk-empty">{t.noStats}</p>;
     }
     return (
-      <div className="slk-player-grid" style={{ gridTemplateColumns: "1fr", gap: 0 }}>
+      <div
+        key={`${metric}-${includeShootout}`}
+        className="slk-player-grid slk-animated-list"
+        style={{ gridTemplateColumns: "1fr", gap: 0 }}
+      >
         {rows.map((r, i) => {
           const isExp = !!expanded[r.player_id];
           const regGoals = Number(r.regulation_goals ?? r.goals ?? 0);
           const shootGoals = Number(r.shootout_goals ?? 0);
+          const effectiveGoals = Number(r._effectiveGoals ?? (includeShootout ? r.goals : regGoals));
           return (
             <article
               key={r.player_id}
@@ -181,7 +190,7 @@ export function TopScorersHub({
                 )}
               </div>
               <div style={{ textAlign: "right", flexShrink: 0 }}>
-                <b style={{ fontSize: "22px", color: "var(--blue, #1450df)", fontWeight: 900 }}>
+                <b className="slk-stat-value" style={{ fontSize: "22px", color: "var(--blue, #1450df)", fontWeight: 900 }}>
                   {r._displayValue ?? r[key]}
                 </b>
                 {metric === "contrib" && (
@@ -194,7 +203,7 @@ export function TopScorersHub({
                       marginTop: "2px",
                     }}
                   >
-                    {r._effectiveGoals ?? (includeShootout ? r.goals : (r.regulation_goals ?? r.goals))} {lang === "ml" ? "ഗോൾ" : "G"} + {r.assists} {lang === "ml" ? "അസിസ്റ്റ്" : "A"}
+                    {effectiveGoals} {lang === "ml" ? "ഗോൾ" : "G"} + {r.assists} {lang === "ml" ? "അസിസ്റ്റ്" : "A"}
                   </div>
                 )}
               </div>
@@ -414,127 +423,101 @@ export function TopScorersHub({
             </button>
           </div>
 
-          {/* Search, Club Filter & Shootout Toggle Toolbar */}
+          {/* Search & Club Filter Toolbar */}
           <div
             style={{
               display: "flex",
               flexWrap: "wrap",
               gap: "12px",
               alignItems: "center",
-              justifyContent: "space-between",
             }}
           >
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "12px", flex: "1 1 480px" }}>
-              {/* Search Input */}
-              <div
+            {/* Search Input */}
+            <div
+              style={{
+                position: "relative",
+                flex: "1 1 240px",
+                minWidth: "200px",
+              }}
+            >
+              <Search
+                size={16}
                 style={{
-                  position: "relative",
-                  flex: "1 1 240px",
-                  minWidth: "200px",
+                  position: "absolute",
+                  left: "14px",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  color: "#94a3b8",
                 }}
-              >
-                <Search
-                  size={16}
+              />
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder={t.searchPlaceholder}
+                style={{
+                  width: "100%",
+                  padding: "10px 36px 10px 38px",
+                  borderRadius: "10px",
+                  border: "1px solid #dfe5ef",
+                  background: "#fff",
+                  fontSize: "13px",
+                  color: "#071a3d",
+                  outline: "none",
+                }}
+              />
+              {search && (
+                <button
+                  type="button"
+                  onClick={() => setSearch("")}
                   style={{
                     position: "absolute",
-                    left: "14px",
+                    right: "10px",
                     top: "50%",
                     transform: "translateY(-50%)",
+                    border: "none",
+                    background: "none",
                     color: "#94a3b8",
-                  }}
-                />
-                <input
-                  type="text"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder={t.searchPlaceholder}
-                  style={{
-                    width: "100%",
-                    padding: "10px 36px 10px 38px",
-                    borderRadius: "10px",
-                    border: "1px solid #dfe5ef",
-                    background: "#fff",
-                    fontSize: "13px",
-                    color: "#071a3d",
-                    outline: "none",
-                  }}
-                />
-                {search && (
-                  <button
-                    type="button"
-                    onClick={() => setSearch("")}
-                    style={{
-                      position: "absolute",
-                      right: "10px",
-                      top: "50%",
-                      transform: "translateY(-50%)",
-                      border: "none",
-                      background: "none",
-                      color: "#94a3b8",
-                      cursor: "pointer",
-                      padding: "4px",
-                    }}
-                  >
-                    <X size={14} />
-                  </button>
-                )}
-              </div>
-
-              {/* Club Filter */}
-              <div
-                style={{
-                  position: "relative",
-                  flex: "0 1 220px",
-                  minWidth: "160px",
-                }}
-              >
-                <select
-                  value={selectedClub}
-                  onChange={(e) => setSelectedClub(e.target.value)}
-                  style={{
-                    width: "100%",
-                    padding: "10px 14px",
-                    borderRadius: "10px",
-                    border: "1px solid #dfe5ef",
-                    background: "#fff",
-                    fontSize: "13px",
-                    fontWeight: 600,
-                    color: "#071a3d",
-                    outline: "none",
                     cursor: "pointer",
+                    padding: "4px",
                   }}
                 >
-                  <option value="all">{t.allClubs}</option>
-                  {clubs.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {lang === "ml" && c.name_ml ? c.name_ml : c.name_en}
-                    </option>
-                  ))}
-                </select>
-              </div>
+                  <X size={14} />
+                </button>
+              )}
             </div>
 
-            {/* Shootout Toggle (PG) */}
+            {/* Club Filter */}
             <div
-              className="slk-segmented-toggle"
-              role="group"
-              aria-label={t.shootoutFilterLabel}
-              title={t.shootoutFilterLabel}
+              style={{
+                position: "relative",
+                flex: "0 1 220px",
+                minWidth: "160px",
+              }}
             >
-              <button
-                type="button"
-                className={`slk-segment-btn ${!includeShootout ? "active" : ""}`}
-                onClick={() => setIncludeShootout(false)}
+              <select
+                value={selectedClub}
+                onChange={(e) => setSelectedClub(e.target.value)}
+                style={{
+                  width: "100%",
+                  padding: "10px 14px",
+                  borderRadius: "10px",
+                  border: "1px solid #dfe5ef",
+                  background: "#fff",
+                  fontSize: "13px",
+                  fontWeight: 600,
+                  color: "#071a3d",
+                  outline: "none",
+                  cursor: "pointer",
+                }}
               >
-                <span>{t.withoutPg}</span>
-              </button>
-              <button
-                type="button"
-                className={`slk-segment-btn ${includeShootout ? "active" : ""}`}
-                onClick={() => setIncludeShootout(true)}
-              >
-                <span>{t.withPg}</span>
-              </button>
+                <option value="all">{t.allClubs}</option>
+                {clubs.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {lang === "ml" && c.name_ml ? c.name_ml : c.name_en}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
         </div>
@@ -552,6 +535,8 @@ export function TopScorersHub({
                   justifyContent: "space-between",
                   padding: "16px 20px",
                   borderBottom: "1px solid #e8edf5",
+                  gap: "10px",
+                  flexWrap: "wrap",
                 }}
               >
                 <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
@@ -580,11 +565,14 @@ export function TopScorersHub({
                     {t.top}
                   </h2>
                 </div>
-                <span style={{ fontSize: "12px", fontWeight: 800, color: "var(--blue, #0c49cb)", background: "#eef4ff", padding: "4px 8px", borderRadius: "6px" }}>
-                  {topScorers.length} {t.playersCount}
-                </span>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <ShootoutToggle value={shootoutTop} onChange={setShootoutTop} t={t} />
+                  <span style={{ fontSize: "12px", fontWeight: 800, color: "var(--blue, #0c49cb)", background: "#eef4ff", padding: "4px 8px", borderRadius: "6px" }}>
+                    {topScorers.length} {t.playersCount}
+                  </span>
+                </div>
               </div>
-              {renderPlayerList(topScorers, "top")}
+              {renderPlayerList(topScorers, "top", shootoutTop)}
             </article>
 
             {/* Assists Card */}
@@ -596,6 +584,8 @@ export function TopScorersHub({
                   justifyContent: "space-between",
                   padding: "16px 20px",
                   borderBottom: "1px solid #e8edf5",
+                  gap: "10px",
+                  flexWrap: "wrap",
                 }}
               >
                 <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
@@ -626,7 +616,7 @@ export function TopScorersHub({
                   {topAssists.length} {t.playersCount}
                 </span>
               </div>
-              {renderPlayerList(topAssists, "assists")}
+              {renderPlayerList(topAssists, "assists", false)}
             </article>
 
             {/* Goal Contributions Card */}
@@ -638,6 +628,8 @@ export function TopScorersHub({
                   justifyContent: "space-between",
                   padding: "16px 20px",
                   borderBottom: "1px solid #e8edf5",
+                  gap: "10px",
+                  flexWrap: "wrap",
                 }}
               >
                 <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
@@ -658,11 +650,14 @@ export function TopScorersHub({
                     {t.contrib}
                   </h2>
                 </div>
-                <span style={{ fontSize: "12px", fontWeight: 800, color: "var(--blue, #0c49cb)", background: "#eef4ff", padding: "4px 8px", borderRadius: "6px" }}>
-                  {topContrib.length} {t.playersCount}
-                </span>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <ShootoutToggle value={shootoutContrib} onChange={setShootoutContrib} t={t} />
+                  <span style={{ fontSize: "12px", fontWeight: 800, color: "var(--blue, #0c49cb)", background: "#eef4ff", padding: "4px 8px", borderRadius: "6px" }}>
+                    {topContrib.length} {t.playersCount}
+                  </span>
+                </div>
               </div>
-              {renderPlayerList(topContrib, "contrib")}
+              {renderPlayerList(topContrib, "contrib", shootoutContrib)}
             </article>
           </div>
         ) : (
@@ -676,6 +671,8 @@ export function TopScorersHub({
                   justifyContent: "space-between",
                   padding: "18px 24px",
                   borderBottom: "1px solid #e8edf5",
+                  gap: "12px",
+                  flexWrap: "wrap",
                 }}
               >
                 <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
@@ -721,27 +718,36 @@ export function TopScorersHub({
                     </small>
                   </div>
                 </div>
-                <span
-                  style={{
-                    fontSize: "13px",
-                    fontWeight: 800,
-                    color: "var(--blue, #0c49cb)",
-                    background: "#eef4ff",
-                    padding: "6px 12px",
-                    borderRadius: "8px",
-                  }}
-                >
-                  {activeTab === "top"
-                    ? topScorers.length
-                    : activeTab === "assists"
-                    ? topAssists.length
-                    : topContrib.length}{" "}
-                  {t.playersCount}
-                </span>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+                  {activeTab === "top" && (
+                    <ShootoutToggle value={shootoutTop} onChange={setShootoutTop} t={t} />
+                  )}
+                  {activeTab === "contrib" && (
+                    <ShootoutToggle value={shootoutContrib} onChange={setShootoutContrib} t={t} />
+                  )}
+                  <span
+                    style={{
+                      fontSize: "13px",
+                      fontWeight: 800,
+                      color: "var(--blue, #0c49cb)",
+                      background: "#eef4ff",
+                      padding: "6px 12px",
+                      borderRadius: "8px",
+                    }}
+                  >
+                    {activeTab === "top"
+                      ? topScorers.length
+                      : activeTab === "assists"
+                      ? topAssists.length
+                      : topContrib.length}{" "}
+                    {t.playersCount}
+                  </span>
+                </div>
               </div>
               {renderPlayerList(
                 activeTab === "top" ? topScorers : activeTab === "assists" ? topAssists : topContrib,
-                activeTab
+                activeTab,
+                activeTab === "top" ? shootoutTop : activeTab === "contrib" ? shootoutContrib : false
               )}
             </article>
           </div>

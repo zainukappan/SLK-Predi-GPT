@@ -11,8 +11,8 @@ import { OnlineCounter } from "./online-counter";
 import { computeQualificationStatus, type TeamQualificationInfo } from "@/lib/qualification";
 
 const copy = {
-  en: { overview:"Overview",matches:"Matches",table:"Points Table",players:"Players",prediction:"Prediction Leaderboard",login:"Member Login",public:"PUBLIC VIEW",title:"SUPER LEAGUE KERALA",sub:"Fixtures, results, standings and player statistics",next:"Next Match",latest:"Latest Result",noNext:"No upcoming fixture has been published.",fullTime:"Full Time",top:"Top Scorers",assists:"Assists",contrib:"Goal Contributions",played:"P",regWins:"W",shootWins:"PW",shootLosses:"PL",regLosses:"L",gf:"GF",ga:"GA",gd:"GD",pts:"Pts",rank:"Rank",member:"Member",predicted:"Matches Predicted",total:"Total Points",updated:"Updated",matchCentre:"Match Centre",match:"Match",events:"Goal events",shootoutKicks:"Penalty shootout",scored:"Scored",missed:"Missed",recentForm:"Last 10 performances",noForm:"No completed matches yet.",noStats:"Player statistics will appear after goal events are entered.",noResults:"No finalized results yet.",home:"Home",pointsRule:"SLK table: 3 points for a 90-minute win · 2 for a shootout win · 1 for a shootout loss · 0 for a 90-minute loss.",tiebreakRule:"Tiebreakers: points, goal difference, goals scored, then away goals scored in all league matches.",predictionRule:"SBK predictions continue to use only the score and result after 90 minutes plus stoppage time. Shootouts never affect prediction points.",shootoutWon:"Won on penalties",shieldWinner:"Super League Shield Winner",semiFinalist:"Semi-finalist (Positions 1–4)",viewFull:"View full leaderboard",collapse:"Show Top 10",predictScore:"Predict your score",viewFullList:"View full list",qualifiedLegend:"Q: Qualified for Semi-Finals",shieldLegend:"W: Shield Winner",scenariosToggle:"View Semi-Final Race & Scenarios",scenariosHide:"Hide Qualification Scenarios",scenariosTitle:"Semi-Final Qualification Scenarios",scenariosSub:"What each club needs to reach the semi-finals or win the Shield",whatIsNeeded:"Qualification Requirement",remainingMatches:"Remaining Matches",maxPossible:"Max Pts",shootoutFilterLabel:"Goals Filter:",shootoutFilterHint:"Toggle whether to count tie-breaking shootout penalties in stats",withoutPg:"90 Min Only (Default)",withPg:"+ Shootout (PG)" },
-  ml: { overview:"അവലോകനം",matches:"മത്സരങ്ങൾ",table:"പോയിന്റ് പട്ടിക",players:"കളിക്കാർ",prediction:"പ്രവചന ലീഡർബോർഡ്",login:"മെമ്പർ ലോഗിൻ",public:"പബ്ലിക് വ്യൂ",title:"സൂപ്പർ ലീഗ് കേരള",sub:"മത്സരങ്ങൾ, ഫലങ്ങൾ, പോയിന്റ് പട്ടിക, കളിക്കാരുടെ കണക്കുകൾ",next:"അടുത്ത മത്സരം",latest:"അവസാന ഫലം",noNext:"വരാനിരിക്കുന്ന മത്സരം പ്രസിദ്ധീകരിച്ചിട്ടില്ല.",fullTime:"ഫുൾ ടൈം",top:"ടോപ് സ്കോറേഴ്സ്",assists:"അസിസ്റ്റുകൾ",contrib:"ഗോൾ കോൺട്രിബ്യൂഷൻസ്",played:"മ",regWins:"W",shootWins:"PW",shootLosses:"PL",regLosses:"L",gf:"GF",ga:"GA",gd:"GD",pts:"പോ",rank:"റാങ്ക്",member:"അംഗം",predicted:"പ്രവചിച്ച മത്സരങ്ങൾ",total:"ആകെ പോയിന്റ്",updated:"പുതുക്കിയത്",matchCentre:"മാച്ച് സെന്റർ",match:"മത്സരം",events:"ഗോൾ വിവരങ്ങൾ",shootoutKicks:"പെനാൽറ്റി ഷൂട്ടൗട്ട്",scored:"ഗോൾ ആയി",missed:"ഗോൾ ആയില്ല",recentForm:"Last 10 performances",noForm:"പൂർത്തിയായ മത്സരങ്ങളില്ല.",noStats:"ഗോൾ വിവരങ്ങൾ ചേർത്ത ശേഷം കളിക്കാരുടെ കണക്കുകൾ ഇവിടെ വരും.",noResults:"ഫലം സ്ഥിരീകരിച്ച മത്സരങ്ങളില്ല.",home:"ഹോം",pointsRule:"SLK പട്ടിക: 90 മിനിറ്റ് ജയം 3 · ഷൂട്ടൗട്ട് ജയം 2 · ഷൂട്ടൗട്ട് തോൽവി 1 · 90 മിനിറ്റ് തോൽവി 0 പോയിന്റ്.",tiebreakRule:"ടൈബ്രേക്കർ: പോയിന്റ്, ഗോൾ വ്യത്യാസം, നേടിയ ഗോളുകൾ, എവേ മത്സരങ്ങളിൽ നേടിയ ഗോളുകൾ.",predictionRule:"SBK പ്രവചനത്തിന് 90 മിനിറ്റും സ്റ്റോപ്പേജ് സമയവും കഴിഞ്ഞുള്ള സ്കോറും ഫലവും മാത്രം. ഷൂട്ടൗട്ട് പ്രവചന പോയിന്റിനെ ബാധിക്കില്ല.",shootoutWon:"പെനാൽറ്റിയിൽ വിജയിച്ചത്",shieldWinner:"സൂപ്പർ ലീഗ് ഷീൽഡ് ജേതാവ്",semiFinalist:"സെമി ഫൈനലിസ്റ്റ് (1–4 സ്ഥാനങ്ങൾ)",viewFull:"മുഴുവൻ ലീഡർബോർഡ് കാണുക",collapse:"Top 10 മാത്രം കാണിക്കുക",predictScore:"നിങ്ങളുടെ സ്കോർ പ്രവചിക്കുക",viewFullList:"മുഴുവൻ ലിസ്റ്റ് കാണുക",qualifiedLegend:"Q: സെമി ഉറപ്പിച്ചു",shieldLegend:"W: ഷീൽഡ് ജേതാവ്",scenariosToggle:"സെമി ഫൈനൽ യോഗ്യതാ സാധ്യതകൾ കാണുക",scenariosHide:"സാധ്യതകൾ മറയ്ക്കുക",scenariosTitle:"സെമി ഫൈനൽ യോഗ്യതാ സാധ്യതകൾ",scenariosSub:"ഓരോ ക്ലബ്ബിനും സെമി ഫൈനലിലെത്താനും ഷീൽഡ് നേടാനും എന്താണ് വേണ്ടത്?",whatIsNeeded:"സെമിയിലെത്താൻ എന്ത് വേണം?",remainingMatches:"ബാക്കിയുള്ള മത്സരങ്ങൾ",maxPossible:"പരമാവധി",shootoutFilterLabel:"ഗോളുകൾ:",shootoutFilterHint:"ഷൂട്ടൗട്ട് ഗോളുകൾ സ്റ്റാറ്റ്സിൽ ഉൾപ്പെടുത്തണോ എന്ന് മാറ്റുക",withoutPg:"90 മിനിറ്റ് മാത്രം (Default)",withPg:"+ ഷൂട്ടൗട്ട് (PG)" }
+  en: { overview:"Overview",matches:"Matches",table:"Points Table",players:"Players",prediction:"Prediction Leaderboard",login:"Member Login",public:"PUBLIC VIEW",title:"SUPER LEAGUE KERALA",sub:"Fixtures, results, standings and player statistics",next:"Next Match",latest:"Latest Result",noNext:"No upcoming fixture has been published.",fullTime:"Full Time",top:"Top Scorers",assists:"Assists",contrib:"Goal Contributions",played:"P",regWins:"W",shootWins:"PW",shootLosses:"PL",regLosses:"L",gf:"GF",ga:"GA",gd:"GD",pts:"Pts",rank:"Rank",member:"Member",predicted:"Matches Predicted",total:"Total Points",updated:"Updated",matchCentre:"Match Centre",match:"Match",events:"Goal events",shootoutKicks:"Penalty shootout",scored:"Scored",missed:"Missed",recentForm:"Last 10 performances",noForm:"No completed matches yet.",noStats:"Player statistics will appear after goal events are entered.",noResults:"No finalized results yet.",home:"Home",pointsRule:"SLK table: 3 points for a 90-minute win · 2 for a shootout win · 1 for a shootout loss · 0 for a 90-minute loss.",tiebreakRule:"Tiebreakers: points, goal difference, goals scored, then away goals scored in all league matches.",predictionRule:"SBK predictions continue to use only the score and result after 90 minutes plus stoppage time. Shootouts never affect prediction points.",shootoutWon:"Won on penalties",shieldWinner:"Super League Shield Winner",semiFinalist:"Semi-finalist (Positions 1–4)",viewFull:"View full leaderboard",collapse:"Show Top 10",predictScore:"Predict your score",viewFullList:"View full list",qualifiedLegend:"Q: Qualified for Semi-Finals",shieldLegend:"W: Shield Winner",scenariosToggle:"View Semi-Final Race & Scenarios",scenariosHide:"Hide Qualification Scenarios",scenariosTitle:"Semi-Final Qualification Scenarios",scenariosSub:"What each club needs to reach the semi-finals or win the Shield",whatIsNeeded:"Qualification Requirement",remainingMatches:"Remaining Matches",maxPossible:"Max Pts",toggleWithoutPg:"90 Min",toggleWithPg:"+ PG",toggleWithoutPgHint:"90-minute regulation goals only",toggleWithPgHint:"Include penalty shootout goals (+PG)" },
+  ml: { overview:"അവലോകനം",matches:"മത്സരങ്ങൾ",table:"പോയിന്റ് പട്ടിക",players:"കളിക്കാർ",prediction:"പ്രവചന ലീഡർബോർഡ്",login:"മെമ്പർ ലോഗിൻ",public:"പബ്ലിക് വ്യൂ",title:"സൂപ്പർ ലീഗ് കേരള",sub:"മത്സരങ്ങൾ, ഫലങ്ങൾ, പോയിന്റ് പട്ടിക, കളിക്കാരുടെ കണക്കുകൾ",next:"അടുത്ത മത്സരം",latest:"അവസാന ഫലം",noNext:"വരാനിരിക്കുന്ന മത്സരം പ്രസിദ്ധീകരിച്ചിട്ടില്ല.",fullTime:"ഫുൾ ടൈം",top:"ടോപ് സ്കോറേഴ്സ്",assists:"അസിസ്റ്റുകൾ",contrib:"ഗോൾ കോൺട്രിബ്യൂഷൻസ്",played:"മ",regWins:"W",shootWins:"PW",shootLosses:"PL",regLosses:"L",gf:"GF",ga:"GA",gd:"GD",pts:"പോ",rank:"റാങ്ക്",member:"അംഗം",predicted:"പ്രവചിച്ച മത്സരങ്ങൾ",total:"ആകെ പോയിന്റ്",updated:"പുതുക്കിയത്",matchCentre:"മാച്ച് സെന്റർ",match:"മത്സരം",events:"ഗോൾ വിവരങ്ങൾ",shootoutKicks:"പെനാൽറ്റി ഷൂട്ടൗട്ട്",scored:"ഗോൾ ആയി",missed:"ഗോൾ ആയില്ല",recentForm:"Last 10 performances",noForm:"പൂർത്തിയായ മത്സരങ്ങളില്ല.",noStats:"ഗോൾ വിവരങ്ങൾ ചേർത്ത ശേഷം കളിക്കാരുടെ കണക്കുകൾ ഇവിടെ വരും.",noResults:"ഫലം സ്ഥിരീകരിച്ച മത്സരങ്ങളില്ല.",home:"ഹോം",pointsRule:"SLK പട്ടിക: 90 മിനിറ്റ് ജയം 3 · ഷൂട്ടൗട്ട് ജയം 2 · ഷൂട്ടൗട്ട് തോൽവി 1 · 90 മിനിറ്റ് തോൽവി 0 പോയിന്റ്.",tiebreakRule:"ടൈബ്രേക്കർ: പോയിന്റ്, ഗോൾ വ്യത്യാസം, നേടിയ ഗോളുകൾ, എവേ മത്സരങ്ങളിൽ നേടിയ ഗോളുകൾ.",predictionRule:"SBK പ്രവചനത്തിന് 90 മിനിറ്റും സ്റ്റോപ്പേജ് സമയവും കഴിഞ്ഞുള്ള സ്കോറും ഫലവും മാത്രം. ഷൂട്ടൗട്ട് പ്രവചന പോയിന്റിനെ ബാധിക്കില്ല.",shootoutWon:"പെനാൽറ്റിയിൽ വിജയിച്ചത്",shieldWinner:"സൂപ്പർ ലീഗ് ഷീൽഡ് ജേതാവ്",semiFinalist:"സെമി ഫൈനലിസ്റ്റ് (1–4 സ്ഥാനങ്ങൾ)",viewFull:"മുഴുവൻ ലീഡർബോർഡ് കാണുക",collapse:"Top 10 മാത്രം കാണിക്കുക",predictScore:"നിങ്ങളുടെ സ്കോർ പ്രവചിക്കുക",viewFullList:"മുഴുവൻ ലിസ്റ്റ് കാണുക",qualifiedLegend:"Q: സെമി ഉറപ്പിച്ചു",shieldLegend:"W: ഷീൽഡ് ജേതാവ്",scenariosToggle:"സെമി ഫൈനൽ യോഗ്യതാ സാധ്യതകൾ കാണുക",scenariosHide:"സാധ്യതകൾ മറയ്ക്കുക",scenariosTitle:"സെമി ഫൈനൽ യോഗ്യതാ സാധ്യതകൾ",scenariosSub:"ഓരോ ക്ലബ്ബിനും സെമി ഫൈനലിലെത്താനും ഷീൽഡ് നേടാനും എന്താണ് വേണ്ടത്?",whatIsNeeded:"സെമിയിലെത്താൻ എന്ത് വേണം?",remainingMatches:"ബാക്കിയുള്ള മത്സരങ്ങൾ",maxPossible:"പരമാവധി",toggleWithoutPg:"90 മി.",toggleWithPg:"+ PG",toggleWithoutPgHint:"90 മിനിറ്റ് റെഗുലേഷൻ ഗോളുകൾ മാത്രം",toggleWithPgHint:"പെനാൽറ്റി ഷൂട്ടൗട്ട് ഗോളുകൾ കൂടി ഉൾപ്പെടുത്തുക" }
 } as const;
 const leaderboardCopy = {
   en: { serial:"S.No.",winner:"Who will win the match?",score:"What will the score be?",first:"Who will score first?",round:"Round" },
@@ -128,13 +128,70 @@ export function sortPlayerStats(
     });
 }
 
+export function ShootoutToggle({
+  value,
+  onChange,
+  t,
+}: {
+  value: boolean;
+  onChange: (val: boolean) => void;
+  t: any;
+}) {
+  return (
+    <div
+      className="slk-segmented-toggle"
+      role="group"
+      aria-label="Penalty shootout toggle"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <button
+        type="button"
+        className={`slk-segment-btn ${!value ? "active" : ""}`}
+        onClick={() => onChange(false)}
+        title={t.toggleWithoutPgHint}
+      >
+        <span>{t.toggleWithoutPg}</span>
+      </button>
+      <button
+        type="button"
+        className={`slk-segment-btn ${value ? "active" : ""}`}
+        onClick={() => onChange(true)}
+        title={t.toggleWithPgHint}
+      >
+        <span>{t.toggleWithPg}</span>
+      </button>
+    </div>
+  );
+}
+
+export function CardTitle({
+  icon,
+  title,
+  action,
+}: {
+  icon: ReactNode;
+  title: string;
+  action?: ReactNode;
+}) {
+  return (
+    <div className="slk-data-card-title">
+      <div>
+        <span>{icon}</span>
+        <h2>{title}</h2>
+      </div>
+      {action && <div>{action}</div>}
+    </div>
+  );
+}
+
 export function PublicSportsHub({data}:{data:Row}) {
     const {lang} = useLanguage(), t=copy[lang], [menu,setMenu]=useState(false), [showShareModal, setShowShareModal] = useState(false);
-    const [includeShootout, setIncludeShootout] = useState(false);
+    const [shootoutTop, setShootoutTop] = useState(false);
+    const [shootoutContrib, setShootoutContrib] = useState(false);
     const upcoming=[...data.fixtures].filter((f:Row)=>f.status==="scheduled"&&toDate(f.kickoff)>new Date()).sort((a:Row,b:Row)=>+toDate(a.kickoff)-+toDate(b.kickoff))[0];
     const finals=[...data.fixtures].filter((f:Row)=>f.status==="finalized").sort((a:Row,b:Row)=>+toDate(b.kickoff)-+toDate(a.kickoff));
     const latest=finals[0];
-    const playerRows=(metric:"top"|"assists"|"contrib")=>sortPlayerStats(data.players, metric, includeShootout).slice(0,5);
+    const playerRows=(metric:"top"|"assists"|"contrib", includePg: boolean = false)=>sortPlayerStats(data.players, metric, includePg).slice(0,5);
     return <div className="slk-public">
       <PublicHeader />
       <main>
@@ -145,61 +202,45 @@ export function PublicSportsHub({data}:{data:Row}) {
       </section>
       <section className="slk-data-section" id="table">
         <article className="slk-data-card slk-table-card"><CardTitle icon={<Trophy/>} title={t.table}/><div className="slk-points-note"><strong>{t.pointsRule}</strong><span>{t.tiebreakRule}</span><span>{t.predictionRule}</span></div><div className="slk-table-legend" aria-label="Standings highlights" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "10px" }}><div style={{ display: "flex", flexWrap: "wrap", gap: "10px 18px", alignItems: "center" }}><span><i className="shield"/>{t.shieldWinner}</span><span><i className="semifinal"/>{t.semiFinalist}</span><span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}><b className="slk-status-badge slk-badge-q" style={{ margin: 0, padding: "2px 6px" }}>Q</b><span>{t.qualifiedLegend}</span></span></div><button type="button" className="button primary small" style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "12px", fontWeight: 800, padding: "6px 14px", borderRadius: "8px", background: "var(--yellow)", color: "var(--navy)", cursor: "pointer", border: "none", boxShadow: "0 2px 6px rgba(0,0,0,0.1)", marginLeft: "auto" }} onClick={()=>setShowShareModal(true)}><Share2 size={14} /><span>Share Table</span></button></div><Standings rows={data.table} fixtures={data.fixtures} t={t} lang={lang}/>{showShareModal && <StandingsShareCard rows={data.table} fixtures={data.fixtures} onClose={()=>setShowShareModal(false)} />}</article>
-        <div id="players" style={{ scrollMarginTop: "90px" }}>
-          <div className="slk-stat-toolbar" style={{ marginTop: "16px" }}>
-            <div className="slk-stat-toolbar-info">
-              <span className="slk-stat-toolbar-title">{t.shootoutFilterLabel}</span>
-              <span className="slk-stat-toolbar-hint">{t.shootoutFilterHint}</span>
+        <div className="slk-stat-cards" id="players" style={{ scrollMarginTop: "90px" }}>
+          <article className="slk-data-card slk-stat-card">
+            <CardTitle
+              icon={<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="12 6 16.5 9 14.5 14 9.5 14 7.5 9"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="16.5" y1="9" x2="21.5" y2="8"/><line x1="14.5" y1="14" x2="18" y2="19"/><line x1="9.5" y1="14" x2="6" y2="19"/><line x1="7.5" y1="9" x2="2.5" y2="8"/></svg>}
+              title={t.top}
+              action={<ShootoutToggle value={shootoutTop} onChange={setShootoutTop} t={t} />}
+            />
+            <PlayerStats rows={playerRows("top", shootoutTop)} metric="top" includeShootout={shootoutTop} t={t} lang={lang}/>
+            <div className="slk-stat-card-footer">
+              <Link href={`/top-scorers?tab=top${shootoutTop ? '&pg=1' : ''}`} className="slk-view-full-link">
+                <span>{t.viewFullList}</span>
+                <ChevronRight size={14} />
+              </Link>
             </div>
-            <div className="slk-segmented-toggle" role="group" aria-label={t.shootoutFilterLabel}>
-              <button
-                type="button"
-                className={`slk-segment-btn ${!includeShootout ? "active" : ""}`}
-                onClick={() => setIncludeShootout(false)}
-              >
-                <span>{t.withoutPg}</span>
-              </button>
-              <button
-                type="button"
-                className={`slk-segment-btn ${includeShootout ? "active" : ""}`}
-                onClick={() => setIncludeShootout(true)}
-              >
-                <span>{t.withPg}</span>
-              </button>
+          </article>
+          <article className="slk-data-card slk-stat-card">
+            <CardTitle icon={<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 15v3a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-3c0-1.5-1-3-2.5-3.5L15 10l-2-3-6 3c-1.5.5-2.5 2-2.5 3.5V15z"/><line x1="7" y1="18" x2="7" y2="21"/><line x1="11" y1="18" x2="11" y2="21"/><line x1="15" y1="18" x2="15" y2="21"/><line x1="13" y1="10" x2="16" y2="14"/></svg>} title={t.assists}/>
+            <PlayerStats rows={playerRows("assists", false)} metric="assists" t={t} lang={lang}/>
+            <div className="slk-stat-card-footer">
+              <Link href="/top-scorers?tab=assists" className="slk-view-full-link">
+                <span>{t.viewFullList}</span>
+                <ChevronRight size={14} />
+              </Link>
             </div>
-          </div>
-          <div className="slk-stat-cards" style={{ marginTop: "12px" }}>
-            <article className="slk-data-card slk-stat-card">
-              <CardTitle icon={<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="12 6 16.5 9 14.5 14 9.5 14 7.5 9"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="16.5" y1="9" x2="21.5" y2="8"/><line x1="14.5" y1="14" x2="18" y2="19"/><line x1="9.5" y1="14" x2="6" y2="19"/><line x1="7.5" y1="9" x2="2.5" y2="8"/></svg>} title={t.top}/>
-              <PlayerStats rows={playerRows("top")} metric="top" includeShootout={includeShootout} t={t} lang={lang}/>
-              <div className="slk-stat-card-footer">
-                <Link href={`/top-scorers?tab=top${includeShootout ? '&pg=1' : ''}`} className="slk-view-full-link">
-                  <span>{t.viewFullList}</span>
-                  <ChevronRight size={14} />
-                </Link>
-              </div>
-            </article>
-            <article className="slk-data-card slk-stat-card">
-              <CardTitle icon={<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 15v3a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-3c0-1.5-1-3-2.5-3.5L15 10l-2-3-6 3c-1.5.5-2.5 2-2.5 3.5V15z"/><line x1="7" y1="18" x2="7" y2="21"/><line x1="11" y1="18" x2="11" y2="21"/><line x1="15" y1="18" x2="15" y2="21"/><line x1="13" y1="10" x2="16" y2="14"/></svg>} title={t.assists}/>
-              <PlayerStats rows={playerRows("assists")} metric="assists" includeShootout={includeShootout} t={t} lang={lang}/>
-              <div className="slk-stat-card-footer">
-                <Link href={`/top-scorers?tab=assists${includeShootout ? '&pg=1' : ''}`} className="slk-view-full-link">
-                  <span>{t.viewFullList}</span>
-                  <ChevronRight size={14} />
-                </Link>
-              </div>
-            </article>
-            <article className="slk-data-card slk-stat-card">
-              <CardTitle icon={<Users/>} title={t.contrib}/>
-              <PlayerStats rows={playerRows("contrib")} metric="contrib" includeShootout={includeShootout} t={t} lang={lang}/>
-              <div className="slk-stat-card-footer">
-                <Link href={`/top-scorers?tab=contrib${includeShootout ? '&pg=1' : ''}`} className="slk-view-full-link">
-                  <span>{t.viewFullList}</span>
-                  <ChevronRight size={14} />
-                </Link>
-              </div>
-            </article>
-          </div>
+          </article>
+          <article className="slk-data-card slk-stat-card">
+            <CardTitle
+              icon={<Users/>}
+              title={t.contrib}
+              action={<ShootoutToggle value={shootoutContrib} onChange={setShootoutContrib} t={t} />}
+            />
+            <PlayerStats rows={playerRows("contrib", shootoutContrib)} metric="contrib" includeShootout={shootoutContrib} t={t} lang={lang}/>
+            <div className="slk-stat-card-footer">
+              <Link href={`/top-scorers?tab=contrib${shootoutContrib ? '&pg=1' : ''}`} className="slk-view-full-link">
+                <span>{t.viewFullList}</span>
+                <ChevronRight size={14} />
+              </Link>
+            </div>
+          </article>
         </div>
       </section>
       <section className="slk-results-section"><div className="slk-section-title"><div><small>{t.matchCentre}</small><h2>{t.matches}</h2></div></div><div className="slk-results-grid">{finals.slice(0,6).map((f:Row)=><ResultCard key={f.id} fixture={f} events={data.events.filter((e:Row)=>e.fixture_id===f.id)} kicks={data.shootoutKicks.filter((k:Row)=>k.fixture_id===f.id)} lang={lang} t={t}/>)}</div></section>
@@ -208,7 +249,6 @@ export function PublicSportsHub({data}:{data:Row}) {
     <footer className="slk-public-footer"><div style={{ display: "flex", alignItems: "center", gap: "14px", flexWrap: "wrap" }}><img src="/sbk-logo.png" alt="SBK"/><OnlineCounter /></div><p>Soccer Blues of Keralam · Fans predict. Football unites.</p><Link href="/">{t.login}<ChevronRight/></Link></footer>
   </div>;
 }
-export function CardTitle({icon,title}:{icon:ReactNode;title:string}) { return <div className="slk-data-card-title"><span>{icon}</span><h2>{title}</h2></div>; }
 function MatchFeature({title,fixture,empty,lang,result,action}:{title:string;fixture?:Row;empty:string;lang:"en"|"ml";result?:boolean;action:string}) { const t=copy[lang]; return <article className={`slk-match-feature ${result?"result":"upcoming"}`}><div className="slk-card-head"><strong>{title}</strong><span className={result?"result":"upcoming"}>{result?"FULL TIME":"UPCOMING"}</span></div>{fixture?<><strong className="match-number-label">{t.match} {fixture.match_number}</strong><div className="slk-versus"><div><Badge src={fixture.home_badge} label={name(fixture,"home",lang)}/><b>{name(fixture,"home",lang)}</b></div><strong>{result?`${fixture.home_goals} – ${fixture.away_goals}`:"VS"}</strong><div><Badge src={fixture.away_badge} label={name(fixture,"away",lang)}/><b>{name(fixture,"away",lang)}</b></div></div><div className="slk-match-footer"><div className="slk-match-meta"><span><CalendarDays/>{ist(fixture.kickoff,lang)}</span>{name(fixture,"venue",lang)!=="—"&&<span><MapPin/>{name(fixture,"venue",lang)}</span>}</div>{!result&&<Link href="/" className="slk-predict-cta">{t.predictScore}<ChevronRight/></Link>}</div></>:<p className="slk-empty">{empty}</p>}</article>; }
   function Standings({rows,fixtures,t,lang}:{rows:Row[];fixtures:Row[];t:any;lang:"en"|"ml"}) {
     const [showScenarios, setShowScenarios] = useState(false);
@@ -388,7 +428,7 @@ function PlayerStats({rows,metric,includeShootout=false,t,lang}:{rows:Row[];metr
   const key = metric === "top" ? "goals" : metric === "assists" ? "assists" : "contributions";
   const isGoalMetric = metric === "top" || metric === "contrib";
   return rows.length ? (
-    <div className="slk-player-grid">
+    <div key={`${metric}-${includeShootout}`} className="slk-player-grid slk-animated-list">
       {rows.slice(0, 12).map((r, i) => {
         const isExp = !!expanded[r.player_id];
         const regGoals = Number(r.regulation_goals ?? r.goals ?? 0);
@@ -426,7 +466,7 @@ function PlayerStats({rows,metric,includeShootout=false,t,lang}:{rows:Row[];metr
               )}
             </div>
             <div style={{ textAlign: "right" }}>
-              <b style={{ fontSize: "18px" }}>{r._displayValue ?? r[key]}</b>
+              <b className="slk-stat-value" style={{ fontSize: "18px" }}>{r._displayValue ?? r[key]}</b>
               {metric === "contrib" && (
                 <div style={{ fontSize: "11px", color: "var(--muted)", whiteSpace: "nowrap", fontWeight: 700, marginTop: "2px" }}>
                   {effectiveGoals} {lang === 'ml' ? 'ഗോൾ' : 'G'} + {r.assists} {lang === 'ml' ? 'അസിസ്റ്റ്' : 'A'}
