@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 export default async function TopScorersPage({
   searchParams,
 }: {
-  searchParams?: Promise<{ tab?: string }>;
+  searchParams?: Promise<{ tab?: string; pg?: string }>;
 }) {
   const query = searchParams ? await searchParams : {};
   const data = await loadPublicPlayerStats();
@@ -22,5 +22,11 @@ export default async function TopScorersPage({
       typeof value === "bigint" ? Number(value) : value
     )
   );
-  return <TopScorersHub players={safe.players} initialTab={query.tab} />;
+  return (
+    <TopScorersHub
+      players={safe.players}
+      initialTab={query.tab}
+      initialIncludeShootout={query.pg === "1"}
+    />
+  );
 }

@@ -24,6 +24,9 @@ const copy = {
     goals: "Goals",
     login: "Member Login",
     footerText: "Soccer Blues of Keralam · Fans predict. Football unites.",
+    shootoutFilterLabel: "Penalty Shootout (PG):",
+    withoutPg: "90 Min Only (Default)",
+    withPg: "+ Shootout (PG)",
   },
   ml: {
     back: "മാച്ച് സെന്ററിലേക്ക് മടങ്ങുക",
@@ -40,15 +43,20 @@ const copy = {
     goals: "ഗോളുകൾ",
     login: "മെമ്പർ ലോഗിൻ",
     footerText: "Soccer Blues of Keralam · Fans predict. Football unites.",
+    shootoutFilterLabel: "പെനാൽറ്റി ഷൂട്ടൗട്ട് (PG):",
+    withoutPg: "90 മിനിറ്റ് മാത്രം (Default)",
+    withPg: "+ ഷൂട്ടൗട്ട് (PG)",
   },
 } as const;
 
 export function TopScorersHub({
   players,
   initialTab = "all",
+  initialIncludeShootout = false,
 }: {
   players: Row[];
   initialTab?: string;
+  initialIncludeShootout?: boolean;
 }) {
   const { lang } = useLanguage();
   const t = copy[lang];
@@ -57,6 +65,7 @@ export function TopScorersHub({
       ? initialTab
       : "all"
   );
+  const [includeShootout, setIncludeShootout] = useState(initialIncludeShootout);
   const [search, setSearch] = useState("");
   const [selectedClub, setSelectedClub] = useState("all");
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
@@ -97,11 +106,11 @@ export function TopScorersHub({
   }, [players, selectedClub, search]);
 
   const getMetricList = (metric: "top" | "assists" | "contrib") =>
-    sortPlayerStats(filteredPlayers, metric);
+    sortPlayerStats(filteredPlayers, metric, includeShootout);
 
-  const topScorers = useMemo(() => getMetricList("top"), [filteredPlayers]);
-  const topAssists = useMemo(() => getMetricList("assists"), [filteredPlayers]);
-  const topContrib = useMemo(() => getMetricList("contrib"), [filteredPlayers]);
+  const topScorers = useMemo(() => getMetricList("top"), [filteredPlayers, includeShootout]);
+  const topAssists = useMemo(() => getMetricList("assists"), [filteredPlayers, includeShootout]);
+  const topContrib = useMemo(() => getMetricList("contrib"), [filteredPlayers, includeShootout]);
 
   const renderPlayerList = (rows: Row[], metric: "top" | "assists" | "contrib") => {
     const key = metric === "top" ? "goals" : metric === "assists" ? "assists" : "contributions";
@@ -173,7 +182,7 @@ export function TopScorersHub({
               </div>
               <div style={{ textAlign: "right", flexShrink: 0 }}>
                 <b style={{ fontSize: "22px", color: "var(--blue, #1450df)", fontWeight: 900 }}>
-                  {r[key]}
+                  {r._displayValue ?? r[key]}
                 </b>
                 {metric === "contrib" && (
                   <div
@@ -185,7 +194,7 @@ export function TopScorersHub({
                       marginTop: "2px",
                     }}
                   >
-                    {r.goals} {lang === "ml" ? "ഗോൾ" : "G"} + {r.assists} {lang === "ml" ? "അസിസ്റ്റ്" : "A"}
+                    {r._effectiveGoals ?? (includeShootout ? r.goals : (r.regulation_goals ?? r.goals))} {lang === "ml" ? "ഗോൾ" : "G"} + {r.assists} {lang === "ml" ? "അസിസ്റ്റ്" : "A"}
                   </div>
                 )}
               </div>
@@ -405,101 +414,127 @@ export function TopScorersHub({
             </button>
           </div>
 
-          {/* Search & Club Filter Toolbar */}
+          {/* Search, Club Filter & Shootout Toggle Toolbar */}
           <div
             style={{
               display: "flex",
               flexWrap: "wrap",
               gap: "12px",
               alignItems: "center",
+              justifyContent: "space-between",
             }}
           >
-            {/* Search Input */}
-            <div
-              style={{
-                position: "relative",
-                flex: "1 1 240px",
-                minWidth: "200px",
-              }}
-            >
-              <Search
-                size={16}
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "12px", flex: "1 1 480px" }}>
+              {/* Search Input */}
+              <div
                 style={{
-                  position: "absolute",
-                  left: "14px",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  color: "#94a3b8",
-                }}
-              />
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder={t.searchPlaceholder}
-                style={{
-                  width: "100%",
-                  padding: "10px 36px 10px 38px",
-                  borderRadius: "10px",
-                  border: "1px solid #dfe5ef",
-                  background: "#fff",
-                  fontSize: "13px",
-                  color: "#071a3d",
-                  outline: "none",
-                }}
-              />
-              {search && (
-                <button
-                  type="button"
-                  onClick={() => setSearch("")}
-                  style={{
-                    position: "absolute",
-                    right: "10px",
-                    top: "50%",
-                    transform: "translateY(-50%)",
-                    border: "none",
-                    background: "none",
-                    color: "#94a3b8",
-                    cursor: "pointer",
-                    padding: "4px",
-                  }}
-                >
-                  <X size={14} />
-                </button>
-              )}
-            </div>
-
-            {/* Club Filter */}
-            <div
-              style={{
-                position: "relative",
-                flex: "0 1 220px",
-                minWidth: "160px",
-              }}
-            >
-              <select
-                value={selectedClub}
-                onChange={(e) => setSelectedClub(e.target.value)}
-                style={{
-                  width: "100%",
-                  padding: "10px 14px",
-                  borderRadius: "10px",
-                  border: "1px solid #dfe5ef",
-                  background: "#fff",
-                  fontSize: "13px",
-                  fontWeight: 600,
-                  color: "#071a3d",
-                  outline: "none",
-                  cursor: "pointer",
+                  position: "relative",
+                  flex: "1 1 240px",
+                  minWidth: "200px",
                 }}
               >
-                <option value="all">{t.allClubs}</option>
-                {clubs.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {lang === "ml" && c.name_ml ? c.name_ml : c.name_en}
-                  </option>
-                ))}
-              </select>
+                <Search
+                  size={16}
+                  style={{
+                    position: "absolute",
+                    left: "14px",
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    color: "#94a3b8",
+                  }}
+                />
+                <input
+                  type="text"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder={t.searchPlaceholder}
+                  style={{
+                    width: "100%",
+                    padding: "10px 36px 10px 38px",
+                    borderRadius: "10px",
+                    border: "1px solid #dfe5ef",
+                    background: "#fff",
+                    fontSize: "13px",
+                    color: "#071a3d",
+                    outline: "none",
+                  }}
+                />
+                {search && (
+                  <button
+                    type="button"
+                    onClick={() => setSearch("")}
+                    style={{
+                      position: "absolute",
+                      right: "10px",
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      border: "none",
+                      background: "none",
+                      color: "#94a3b8",
+                      cursor: "pointer",
+                      padding: "4px",
+                    }}
+                  >
+                    <X size={14} />
+                  </button>
+                )}
+              </div>
+
+              {/* Club Filter */}
+              <div
+                style={{
+                  position: "relative",
+                  flex: "0 1 220px",
+                  minWidth: "160px",
+                }}
+              >
+                <select
+                  value={selectedClub}
+                  onChange={(e) => setSelectedClub(e.target.value)}
+                  style={{
+                    width: "100%",
+                    padding: "10px 14px",
+                    borderRadius: "10px",
+                    border: "1px solid #dfe5ef",
+                    background: "#fff",
+                    fontSize: "13px",
+                    fontWeight: 600,
+                    color: "#071a3d",
+                    outline: "none",
+                    cursor: "pointer",
+                  }}
+                >
+                  <option value="all">{t.allClubs}</option>
+                  {clubs.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {lang === "ml" && c.name_ml ? c.name_ml : c.name_en}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Shootout Toggle (PG) */}
+            <div
+              className="slk-segmented-toggle"
+              role="group"
+              aria-label={t.shootoutFilterLabel}
+              title={t.shootoutFilterLabel}
+            >
+              <button
+                type="button"
+                className={`slk-segment-btn ${!includeShootout ? "active" : ""}`}
+                onClick={() => setIncludeShootout(false)}
+              >
+                <span>{t.withoutPg}</span>
+              </button>
+              <button
+                type="button"
+                className={`slk-segment-btn ${includeShootout ? "active" : ""}`}
+                onClick={() => setIncludeShootout(true)}
+              >
+                <span>{t.withPg}</span>
+              </button>
             </div>
           </div>
         </div>

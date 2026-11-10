@@ -3487,3 +3487,85 @@ html[lang="ml"] .sidebar nav a {
   font-weight: 700;
   margin-bottom: 0;
 }
+
+/* Player Stats Shootout (PG) Filter & Toolbar */
+.slk-stat-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  background: #ffffff;
+  padding: 12px 18px;
+  border-radius: 14px;
+  border: 1px solid #dfe5ef;
+  box-shadow: 0 4px 16px rgba(13, 43, 92, 0.04);
+}
+.slk-stat-toolbar-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.slk-stat-toolbar-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: #071a3d;
+  letter-spacing: 0.3px;
+}
+.slk-stat-toolbar-hint {
+  font-size: 11px;
+  color: #64748b;
+  font-weight: 500;
+}
+.slk-segmented-toggle {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px;
+  background: #eef3f9;
+  border-radius: 10px;
+  border: 1px solid #dfe5ef;
+  gap: 3px;
+}
+.slk-segment-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #51617d;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+  white-space: nowrap;
+  font-family: inherit;
+}
+.slk-segment-btn:hover:not(.active) {
+  color: #071a3d;
+  background: rgba(255, 255, 255, 0.6);
+}
+.slk-segment-btn.active {
+  background: #ffffff;
+  color: #0c49cb;
+  font-weight: 800;
+  box-shadow: 0 2px 6px rgba(12, 73, 203, 0.12), 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+@media (max-width: 640px) {
+  .slk-stat-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .slk-segmented-toggle {
+    width: 100%;
+    display: flex;
+  }
+  .slk-segment-btn {
+    flex: 1;
+    text-align: center;
+    padding: 8px 10px;
+  }
+}
+
