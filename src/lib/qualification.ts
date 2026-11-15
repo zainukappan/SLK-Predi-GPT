@@ -106,6 +106,11 @@ export function computeQualificationStatus(
     const isQualified =
       teamsThatCannotCatch >= 2 || (team.played === totalMatchesPerTeam && team.pos <= 4);
 
+    // Guaranteed Top 2:
+    // At least 4 other teams cannot mathematically catch this team's current points
+    const isGuaranteedTop2 =
+      teamsThatCannotCatch >= 4 || (team.played === totalMatchesPerTeam && team.pos <= 2);
+
     // Eliminated from Top 4:
     // At least 4 other teams have current points strictly greater than team's max possible points
     const teamsGuaranteedAhead = others.filter((o) => o.pts > team.maxPts).length;
@@ -119,6 +124,9 @@ export function computeQualificationStatus(
     let needEn = "";
     let needMl = "";
 
+    const leader = teamsData[0];
+    const isFirst = team.pos === 1;
+
     if (isShieldWinner) {
       statusBadgeEn = "Shield Winner 🏆";
       statusBadgeMl = "ഷീൽഡ് ജേതാക്കൾ 🏆";
@@ -127,21 +135,64 @@ export function computeQualificationStatus(
       needEn = "Super League Kerala Shield Champions! Officially secured 1st place.";
       needMl = "സൂപ്പർ ലീഗ് കേരള ഷീൽഡ് കിരീടം സ്വന്തമാക്കി! ഒന്നാം സ്ഥാനം ഔദ്യോഗികമായി ഉറപ്പിച്ചു.";
     } else if (isQualified) {
-      const shieldNeed = Math.max(0, highestOtherMaxPts + 1 - team.pts);
       statusBadgeEn = "Qualified (Q)";
       statusBadgeMl = "സെമി ഉറപ്പിച്ചു (Q)";
       statusClass = "qualified";
       chancePct = 100;
-      needEn = `Guaranteed a top-2 finish in the league. ${
-        shieldNeed > 0 && team.remCount > 0
-          ? `Needs ${shieldNeed} more point${shieldNeed > 1 ? "s" : ""} from remaining ${team.remCount} matches to also seal the Super League Shield.`
-          : ""
-      }`;
-      needMl = `ലീഗിൽ ആദ്യ രണ്ട് സ്ഥാനങ്ങളിൽ ഒരെണ്ണം ഉറപ്പിച്ചു. ${
-        shieldNeed > 0 && team.remCount > 0
-          ? `ശേഷിക്കുന്ന ${team.remCount} മത്സരങ്ങളിൽ നിന്ന് ${shieldNeed} പോയിന്റ് (ഒരു ജയം) നേടിയാൽ ഷീൽഡ് കിരീടവും നേടാം.`
-          : ""
-      }`;
+
+      if (isFirst) {
+        const shieldNeed = Math.max(0, highestOtherMaxPts + 1 - team.pts);
+        if (shieldNeed <= team.remCount * 3 && team.remCount > 0) {
+          needEn = `Officially qualified for the semi-finals. Needs ${shieldNeed} more point${shieldNeed > 1 ? "s" : ""} from remaining ${team.remCount} matches to also seal the Super League Shield.`;
+          needMl = `സെമി ഫൈനൽ യോഗ്യത ഉറപ്പിച്ചു. ശേഷിക്കുന്ന ${team.remCount} മത്സരങ്ങളിൽ നിന്ന് ${shieldNeed} പോയിന്റ് കൂടി നേടിയാൽ സൂപ്പർ ലീഗ് ഷീൽഡും സ്വന്തമാക്കാം.`;
+        } else {
+          needEn = "Officially qualified for the semi-finals. In prime position for the Super League Shield.";
+          needMl = "സെമി ഫൈനൽ യോഗ്യത ഉറപ്പിച്ചു. സൂപ്പർ ലീഗ് ഷീൽഡ് നേടാൻ മികച്ച അവസരം.";
+        }
+      } else {
+        const finishEn = isGuaranteedTop2
+          ? "Guaranteed a top-2 finish in the league."
+          : "Officially qualified for the semi-finals (Top 4).";
+        const finishMl = isGuaranteedTop2
+          ? "ലീഗിൽ ആദ്യ രണ്ട് സ്ഥാനങ്ങളിൽ ഒരെണ്ണം ഉറപ്പിച്ചു."
+          : "സെമി ഫൈനൽ യോഗ്യത (Top 4) ഔദ്യോഗികമായി ഉറപ്പിച്ചു.";
+
+        // Calculate points needed to guarantee top 2 (beating 3rd highest max among all teams):
+        const othersSortedDesc = [...others].sort((a, b) => b.maxPts - a.maxPts);
+        const top2Threshold = (othersSortedDesc[1]?.maxPts ?? 0) + 1;
+        const ptsForTop2 = Math.max(0, top2Threshold - team.pts);
+        const canGuaranteeTop2 = !isGuaranteedTop2 && ptsForTop2 <= team.remCount * 3 && ptsForTop2 > 0;
+
+        const canOvertakeFirst = team.maxPts > leader.pts;
+        const canTieFirst = team.maxPts === leader.pts;
+
+        if (canTieFirst) {
+          if (canGuaranteeTop2) {
+            needEn = `${finishEn} Needs ${ptsForTop2} point${ptsForTop2 > 1 ? "s" : ""} from remaining ${team.remCount} matches to guarantee a top-2 finish. Can contend for the Shield on goal difference if ${leader.nameEn} drops all remaining points.`;
+            needMl = `${finishMl} ടോപ്-2 ഉറപ്പിക്കാൻ ശേഷിക്കുന്ന ${team.remCount} മത്സരങ്ങളിൽ നിന്ന് ${ptsForTop2} പോയിന്റ് വേണം. ഒന്നാം സ്ഥാനക്കാർ ശേഷിക്കുന്ന കളികൾ തോറ്റാൽ ഗോൾ വ്യത്യാസത്തിൽ ഷീൽഡിനും സാധ്യതയുണ്ട്.`;
+          } else {
+            needEn = `${finishEn} Can contend for the Shield on goal difference if ${leader.nameEn} drops all remaining points.`;
+            needMl = `${finishMl} ഒന്നാം സ്ഥാനക്കാർ ശേഷിക്കുന്ന കളികൾ തോറ്റാൽ ഗോൾ വ്യത്യാസത്തിൽ ഷീൽഡിനും സാധ്യതയുണ്ട്.`;
+          }
+        } else if (canOvertakeFirst) {
+          if (canGuaranteeTop2) {
+            needEn = `${finishEn} Needs ${ptsForTop2} point${ptsForTop2 > 1 ? "s" : ""} from remaining ${team.remCount} matches to guarantee a top-2 finish. Can challenge for the Shield if leaders drop points.`;
+            needMl = `${finishMl} ടോപ്-2 ഉറപ്പിക്കാൻ ശേഷിക്കുന്ന ${team.remCount} മത്സരങ്ങളിൽ നിന്ന് ${ptsForTop2} പോയിന്റ് വേണം. ഒന്നാം സ്ഥാനക്കാർക്ക് പോയിന്റ് നഷ്ടമായാൽ ഷീൽഡിനായി വെല്ലുവിളിക്കാം.`;
+          } else {
+            needEn = `${finishEn} Can challenge for the Shield if leaders drop points in their remaining matches.`;
+            needMl = `${finishMl} ഒന്നാം സ്ഥാനക്കാർക്ക് പോയിന്റ് നഷ്ടമായാൽ സൂപ്പർ ലീഗ് ഷീൽഡിനായി വെല്ലുവിളിക്കാം.`;
+          }
+        } else {
+          // Leader's current points are strictly higher than this team's max possible points
+          if (canGuaranteeTop2) {
+            needEn = `${finishEn} Needs ${ptsForTop2} point${ptsForTop2 > 1 ? "s" : ""} from remaining ${team.remCount} matches to secure a top-2 finish.`;
+            needMl = `${finishMl} ടോപ്-2 സ്ഥാനം ഉറപ്പിക്കാൻ ശേഷിക്കുന്ന ${team.remCount} മത്സരങ്ങളിൽ നിന്ന് ${ptsForTop2} പോയിന്റ് വേണം.`;
+          } else {
+            needEn = `${finishEn} Playing remaining matches for final playoff seeding.`;
+            needMl = `${finishMl} മികച്ച സീഡിംഗിനായി ശേഷിക്കുന്ന മത്സരങ്ങൾ കളിക്കുന്നു.`;
+          }
+        }
+      }
     } else if (isEliminated) {
       statusBadgeEn = "Eliminated (E)";
       statusBadgeMl = "പുറത്തായി (E)";
@@ -170,8 +221,13 @@ export function computeQualificationStatus(
         chancePct = isVeryClose ? 95 : 65;
 
         const winWordMl = ptsToGuarantee <= 3 ? "ഒരു ജയം" : `${Math.ceil(ptsToGuarantee / 3)} ജയം`;
-        needEn = `Currently in position #${team.pos}. Needs ${ptsToGuarantee > 0 ? `${ptsToGuarantee} more point${ptsToGuarantee > 1 ? "s" : ""} from remaining ${team.remCount} matches` : "to maintain position"} to officially guarantee a semi-final spot.`;
-        needMl = `നിലവിൽ #${team.pos}-ാം സ്ഥാനത്ത്. ശേഷിക്കുന്ന ${team.remCount} മത്സരങ്ങളിൽ നിന്ന് ${ptsToGuarantee > 0 ? `${ptsToGuarantee} പോയിന്റ് (${winWordMl})` : "പോയിന്റുകൾ"} നേടിയാൽ മറ്റാരുടെയും ഫലങ്ങളെ ആശ്രയിക്കാതെ സെമി ഫൈനൽ ഔദ്യോഗികമായി ഉറപ്പിക്കാം.`;
+        if (ptsToGuarantee <= team.remCount * 3) {
+          needEn = `Currently in position #${team.pos}. Needs ${ptsToGuarantee > 0 ? `${ptsToGuarantee} more point${ptsToGuarantee > 1 ? "s" : ""} from remaining ${team.remCount} matches` : "to maintain position"} to officially guarantee a semi-final spot.`;
+          needMl = `നിലവിൽ #${team.pos}-ാം സ്ഥാനത്ത്. ശേഷിക്കുന്ന ${team.remCount} മത്സരങ്ങളിൽ നിന്ന് ${ptsToGuarantee > 0 ? `${ptsToGuarantee} പോയിന്റ് (${winWordMl})` : "പോയിന്റുകൾ"} നേടിയാൽ മറ്റാരുടെയും ഫലങ്ങളെ ആശ്രയിക്കാതെ സെമി ഫൈനൽ ഔദ്യോഗികമായി ഉറപ്പിക്കാം.`;
+        } else {
+          needEn = `Currently in position #${team.pos}. Needs maximum points (${team.remCount * 3}) from remaining ${team.remCount} matches and favorable results to guarantee a semi-final spot.`;
+          needMl = `നിലവിൽ #${team.pos}-ാം സ്ഥാനത്ത്. സെമി ഫൈനൽ ഉറപ്പിക്കാൻ ശേഷിക്കുന്ന ${team.remCount} മത്സരങ്ങളിൽ പരമാവധി പോയിന്റും (${team.remCount * 3}) മറ്റ് മത്സരങ്ങളിലെ അനുകൂല ഫലങ്ങളും വേണം.`;
+        }
       } else {
         // Outside top 4 (chasing positions 5 & 6)
         const ptsBehind = fourthPlaceTeam.pts - team.pts;
