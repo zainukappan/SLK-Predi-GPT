@@ -11,8 +11,88 @@ import { OnlineCounter } from "./online-counter";
 import { computeQualificationStatus, type TeamQualificationInfo } from "@/lib/qualification";
 
 const copy = {
-  en: { overview:"Overview",matches:"Matches",table:"Points Table",players:"Players",prediction:"Prediction Leaderboard",login:"Member Login",public:"PUBLIC VIEW",title:"SUPER LEAGUE KERALA",sub:"Fixtures, results, standings and player statistics",next:"Next Match",latest:"Latest Result",noNext:"No upcoming fixture has been published.",fullTime:"Full Time",top:"Top Scorers",assists:"Assists",contrib:"Goal Contributions",played:"P",regWins:"W",shootWins:"PW",shootLosses:"PL",regLosses:"L",gf:"GF",ga:"GA",gd:"GD",pts:"Pts",rank:"Rank",member:"Member",predicted:"Matches Predicted",total:"Total Points",updated:"Updated",matchCentre:"Match Centre",match:"Match",events:"Goal events",shootoutKicks:"Penalty shootout",scored:"Scored",missed:"Missed",recentForm:"Last 10 performances",noForm:"No completed matches yet.",noStats:"Player statistics will appear after goal events are entered.",noResults:"No finalized results yet.",home:"Home",pointsRule:"SLK table: 3 points for a 90-minute win · 2 for a shootout win · 1 for a shootout loss · 0 for a 90-minute loss.",tiebreakRule:"Tiebreakers: points, goal difference, goals scored, then away goals scored in all league matches.",predictionRule:"SBK predictions continue to use only the score and result after 90 minutes plus stoppage time. Shootouts never affect prediction points.",shootoutWon:"Won on penalties",shieldWinner:"Super League Shield Winner",semiFinalist:"Semi-finalist (Positions 1–4)",viewFull:"View full leaderboard",collapse:"Show Top 10",predictScore:"Predict your score",viewFullList:"View full list",qualifiedLegend:"Q: Qualified for Semi-Finals",shieldLegend:"W: Shield Winner",scenariosToggle:"View Semi-Final Race & Scenarios",scenariosHide:"Hide Qualification Scenarios",scenariosTitle:"Semi-Final Qualification Scenarios",scenariosSub:"What each club needs to reach the semi-finals or win the Shield",whatIsNeeded:"Qualification Requirement",remainingMatches:"Remaining Matches",maxPossible:"Max Pts",toggleWithoutPg:"90 Min",toggleWithPg:"+ PG",toggleWithoutPgHint:"90-minute regulation goals only",toggleWithPgHint:"Include penalty shootout goals (+PG)" },
-  ml: { overview:"അവലോകനം",matches:"മത്സരങ്ങൾ",table:"പോയിന്റ് പട്ടിക",players:"കളിക്കാർ",prediction:"പ്രവചന ലീഡർബോർഡ്",login:"മെമ്പർ ലോഗിൻ",public:"പബ്ലിക് വ്യൂ",title:"സൂപ്പർ ലീഗ് കേരള",sub:"മത്സരങ്ങൾ, ഫലങ്ങൾ, പോയിന്റ് പട്ടിക, കളിക്കാരുടെ കണക്കുകൾ",next:"അടുത്ത മത്സരം",latest:"അവസാന ഫലം",noNext:"വരാനിരിക്കുന്ന മത്സരം പ്രസിദ്ധീകരിച്ചിട്ടില്ല.",fullTime:"ഫുൾ ടൈം",top:"ടോപ് സ്കോറേഴ്സ്",assists:"അസിസ്റ്റുകൾ",contrib:"ഗോൾ കോൺട്രിബ്യൂഷൻസ്",played:"മ",regWins:"W",shootWins:"PW",shootLosses:"PL",regLosses:"L",gf:"GF",ga:"GA",gd:"GD",pts:"പോ",rank:"റാങ്ക്",member:"അംഗം",predicted:"പ്രവചിച്ച മത്സരങ്ങൾ",total:"ആകെ പോയിന്റ്",updated:"പുതുക്കിയത്",matchCentre:"മാച്ച് സെന്റർ",match:"മത്സരം",events:"ഗോൾ വിവരങ്ങൾ",shootoutKicks:"പെനാൽറ്റി ഷൂട്ടൗട്ട്",scored:"ഗോൾ ആയി",missed:"ഗോൾ ആയില്ല",recentForm:"Last 10 performances",noForm:"പൂർത്തിയായ മത്സരങ്ങളില്ല.",noStats:"ഗോൾ വിവരങ്ങൾ ചേർത്ത ശേഷം കളിക്കാരുടെ കണക്കുകൾ ഇവിടെ വരും.",noResults:"ഫലം സ്ഥിരീകരിച്ച മത്സരങ്ങളില്ല.",home:"ഹോം",pointsRule:"SLK പട്ടിക: 90 മിനിറ്റ് ജയം 3 · ഷൂട്ടൗട്ട് ജയം 2 · ഷൂട്ടൗട്ട് തോൽവി 1 · 90 മിനിറ്റ് തോൽവി 0 പോയിന്റ്.",tiebreakRule:"ടൈബ്രേക്കർ: പോയിന്റ്, ഗോൾ വ്യത്യാസം, നേടിയ ഗോളുകൾ, എവേ മത്സരങ്ങളിൽ നേടിയ ഗോളുകൾ.",predictionRule:"SBK പ്രവചനത്തിന് 90 മിനിറ്റും സ്റ്റോപ്പേജ് സമയവും കഴിഞ്ഞുള്ള സ്കോറും ഫലവും മാത്രം. ഷൂട്ടൗട്ട് പ്രവചന പോയിന്റിനെ ബാധിക്കില്ല.",shootoutWon:"പെനാൽറ്റിയിൽ വിജയിച്ചത്",shieldWinner:"സൂപ്പർ ലീഗ് ഷീൽഡ് ജേതാവ്",semiFinalist:"സെമി ഫൈനലിസ്റ്റ് (1–4 സ്ഥാനങ്ങൾ)",viewFull:"മുഴുവൻ ലീഡർബോർഡ് കാണുക",collapse:"Top 10 മാത്രം കാണിക്കുക",predictScore:"നിങ്ങളുടെ സ്കോർ പ്രവചിക്കുക",viewFullList:"മുഴുവൻ ലിസ്റ്റ് കാണുക",qualifiedLegend:"Q: സെമി ഉറപ്പിച്ചു",shieldLegend:"W: ഷീൽഡ് ജേതാവ്",scenariosToggle:"സെമി ഫൈനൽ യോഗ്യതാ സാധ്യതകൾ കാണുക",scenariosHide:"സാധ്യതകൾ മറയ്ക്കുക",scenariosTitle:"സെമി ഫൈനൽ യോഗ്യതാ സാധ്യതകൾ",scenariosSub:"ഓരോ ക്ലബ്ബിനും സെമി ഫൈനലിലെത്താനും ഷീൽഡ് നേടാനും എന്താണ് വേണ്ടത്?",whatIsNeeded:"സെമിയിലെത്താൻ എന്ത് വേണം?",remainingMatches:"ബാക്കിയുള്ള മത്സരങ്ങൾ",maxPossible:"പരമാവധി",toggleWithoutPg:"90 മി.",toggleWithPg:"+ PG",toggleWithoutPgHint:"90 മിനിറ്റ് റെഗുലേഷൻ ഗോളുകൾ മാത്രം",toggleWithPgHint:"പെനാൽറ്റി ഷൂട്ടൗട്ട് ഗോളുകൾ കൂടി ഉൾപ്പെടുത്തുക" }
+  en: { overview:"Overview",matches:"Matches",table:"Points Table",players:"Players",prediction:"Prediction Leaderboard",login:"Member Login",public:"PUBLIC VIEW",title:"SUPER LEAGUE KERALA",sub:"Fixtures, results, standings and player statistics",next:"Next Match",latest:"Latest Result",noNext:"No upcoming fixture has been published.",fullTime:"Full Time",top:"Top Scorers",assists:"Assists",contrib:"Goal Contributions",played:"P",regWins:"W",shootWins:"PW",shootLosses:"PL",regLosses:"L",gf:"GF",ga:"GA",gd:"GD",pts:"Pts",rank:"Rank",member:"Member",predicted:"Matches Predicted",total:"Total Points",updated:"Updated",matchCentre:"Match Centre",match:"Match",events:"Goal events",shootoutKicks:"Penalty shootout",scored:"Scored",missed:"Missed",recentForm:"Last 10 performances",noForm:"No completed matches yet.",noStats:"Player statistics will appear after goal events are entered.",noResults:"No finalized results yet.",home:"Home",pointsRule:"SLK table: 3 points for a 90-minute win · 2 for a shootout win · 1 for a shootout loss · 0 for a 90-minute loss.",tiebreakRule:"Tiebreakers: points, goal difference, goals scored, then away goals scored in all league matches.",predictionRule:"SBK predictions continue to use only the score and result after 90 minutes plus stoppage time. Shootouts never affect prediction points.",shootoutWon:"Won on penalties",shieldWinner:"Super League Shield Winner",semiFinalist:"Semi-finalist (Positions 1–4)",viewFull:"View full leaderboard",collapse:"Show Top 10",predictScore:"Predict your score",viewFullList:"View full list",qualifiedLegend:"Q: Qualified for Semi-Finals",shieldLegend:"W: Shield Winner",scenariosToggle:"View Semi-Final Race & Scenarios",scenariosHide:"Hide Qualification Scenarios",scenariosTitle:"Semi-Final Qualification Scenarios",scenariosSub:"What each club needs to reach the semi-finals or win the Shield",whatIsNeeded:"Qualification Requirement",remainingMatches:"Remaining Matches",maxPossible:"Max Pts",toggleWithoutPg:"90 Min",toggleWithPg:"+ PG",toggleWithoutPgHint:"90-minute regulation goals only",toggleWithPgHint:"Include penalty shootout goals (+PG)",
+    leagueRoundTab: "1. League Round",
+    knockoutRoundTab: "2. Knockout Round",
+    knockoutTitle: "Playoffs & Knockout Bracket",
+    knockoutSub: "Official semi-final fixtures, tournament bracket tree, and tiebreaker rules",
+    knockoutInfoTitle: "Super League Kerala Playoffs Stage",
+    knockoutInfoDesc: "The top 4 teams from the League Table qualify for the Semi-Finals. Semi-Finals are played across two legs (Home & Away). The Grand Final is a single-leg championship match.",
+    semifinalsTitle: "Semifinals (2 Legs)",
+    championshipTitle: "Championship Final",
+    championTitle: "Champions 🏆",
+    semiFinal1: "Semi-Final 1",
+    semiFinal2: "Semi-Final 2",
+    grandFinal: "Grand Final",
+    twoLegsHomeAway: "2 Legs (Home & Away)",
+    singleMatchBadge: "Single Match",
+    leg1Home: "Leg 1 Home",
+    leg2Home: "Leg 2 Home",
+    projected: "Projected",
+    winnerSf1: "Winner Semi-Final 1",
+    winnerSf2: "Winner Semi-Final 2",
+    aggregateWinner: "Aggregate Winner",
+    slkChampionBadge: "SLK 2026 Champions",
+    tbd: "TBD",
+    rulesHeader: "Official Knockout Tournament Rules",
+    rulesHeaderSub: "Official tournament guidelines governing the semi-finals and final",
+    rule1Title: "Semi-Finals Format",
+    rule1Desc: "The top Four (4) Clubs from the League Table on completion of the League Matches stage will qualify for the Semi-finals.",
+    rule1Point1: "Semi-final 1: The 1st-placed team will play against the 4th-placed team in two matches.",
+    rule1Point2: "Semi-final 2: The 2nd-placed team will play against the 3rd-placed team in two matches.",
+    rule1Point3: "Each team will host one match (Home & Away).",
+    rule2Title: "Tiebreaker Procedure",
+    rule2Desc: "If aggregate scores are level after the second match of a Semi-final, or level at the end of normal time in the Final:",
+    rule2Point1: "After a 5-minute interval, two 15-minute periods of extra time will be played with a 1-minute drinks break.",
+    rule2Point2: "If both teams are still level after extra time, kicks from the penalty mark (shootout) determine the winner.",
+    rule2Point3: "Away goals rule does not apply.",
+    rule3Title: "Weather / Abandonment",
+    rule3Desc: "If a match cannot be played or has to be abandoned due to adverse weather conditions:",
+    rule3Point1: "League match: The result will be considered a 0-0 draw.",
+    rule3Point2: "Final match: The team with the highest points on the points table will be awarded the title of League Champion.",
+    scrollHint: "Scroll horizontally to view full bracket tree"
+  },
+  ml: { overview:"അവലോകനം",matches:"മത്സരങ്ങൾ",table:"പോയിന്റ് പട്ടിക",players:"കളിക്കാർ",prediction:"പ്രവചന ലീഡർബോർഡ്",login:"മെമ്പർ ലോഗിൻ",public:"പബ്ലിക് വ്യൂ",title:"സൂപ്പർ ലീഗ് കേരള",sub:"മത്സരങ്ങൾ, ഫലങ്ങൾ, പോയിന്റ് പട്ടിക, കളിക്കാരുടെ കണക്കുകൾ",next:"അടുത്ത മത്സരം",latest:"അവസാന ഫലം",noNext:"വരാനിരിക്കുന്ന മത്സരം പ്രസിദ്ധീകരിച്ചിട്ടില്ല.",fullTime:"ഫുൾ ടൈം",top:"ടോപ് സ്കോറേഴ്സ്",assists:"അസിസ്റ്റുകൾ",contrib:"ഗോൾ കോൺട്രിബ്യൂഷൻസ്",played:"മ",regWins:"W",shootWins:"PW",shootLosses:"PL",regLosses:"L",gf:"GF",ga:"GA",gd:"GD",pts:"പോ",rank:"റാങ്ക്",member:"അംഗം",predicted:"പ്രവചിച്ച മത്സരങ്ങൾ",total:"ആകെ പോയിന്റ്",updated:"പുതുക്കിയത്",matchCentre:"മാച്ച് സെന്റർ",match:"മത്സരം",events:"ഗോൾ വിവരങ്ങൾ",shootoutKicks:"പെനാൽറ്റി ഷൂട്ടൗട്ട്",scored:"ഗോൾ ആയി",missed:"ഗോൾ ആയില്ല",recentForm:"Last 10 performances",noForm:"പൂർത്തിയായ മത്സരങ്ങളില്ല.",noStats:"ഗോൾ വിവരങ്ങൾ ചേർത്ത ശേഷം കളിക്കാരുടെ കണക്കുകൾ ഇവിടെ വരും.",noResults:"ഫലം സ്ഥിരീകരിച്ച മത്സരങ്ങളില്ല.",home:"ഹോം",pointsRule:"SLK പട്ടിക: 90 മിനിറ്റ് ജയം 3 · ഷൂട്ടൗട്ട് ജയം 2 · ഷൂട്ടൗട്ട് തോൽവി 1 · 90 മിനിറ്റ് തോൽവി 0 പോയിന്റ്.",tiebreakRule:"ടൈബ്രേക്കർ: പോയിന്റ്, ഗോൾ വ്യത്യാസം, നേടിയ ഗോളുകൾ, എവേ മത്സരങ്ങളിൽ നേടിയ ഗോളുകൾ.",predictionRule:"SBK പ്രവചനത്തിന് 90 മിനിറ്റും സ്റ്റോപ്പേജ് സമയവും കഴിഞ്ഞുള്ള സ്കോറും ഫലവും മാത്രം. ഷൂട്ടൗട്ട് പ്രവചന പോയിന്റിനെ ബാധിക്കില്ല.",shootoutWon:"പെനാൽറ്റിയിൽ വിജയിച്ചത്",shieldWinner:"സൂപ്പർ ലീഗ് ഷീൽഡ് ജേതാവ്",semiFinalist:"സെമി ഫൈനലിസ്റ്റ് (1–4 സ്ഥാനങ്ങൾ)",viewFull:"മുഴുവൻ ലീഡർബോർഡ് കാണുക",collapse:"Top 10 മാത്രം കാണിക്കുക",predictScore:"നിങ്ങളുടെ സ്കോർ പ്രവചിക്കുക",viewFullList:"മുഴുവൻ ലിസ്റ്റ് കാണുക",qualifiedLegend:"Q: സെമി ഉറപ്പിച്ചു",shieldLegend:"W: ഷീൽഡ് ജേതാവ്",scenariosToggle:"സെമി ഫൈനൽ യോഗ്യതാ സാധ്യതകൾ കാണുക",scenariosHide:"സാധ്യതകൾ മറയ്ക്കുക",scenariosTitle:"സെമി ഫൈനൽ യോഗ്യതാ സാധ്യതകൾ",scenariosSub:"ഓരോ ക്ലബ്ബിനും സെമി ഫൈനലിലെത്താനും ഷീൽഡ് നേടാനും എന്താണ് വേണ്ടത്?",whatIsNeeded:"സെമിയിലെത്താൻ എന്ത് വേണം?",remainingMatches:"ബാക്കിയുള്ള മത്സരങ്ങൾ",maxPossible:"പരമാവധി",toggleWithoutPg:"90 മി.",toggleWithPg:"+ PG",toggleWithoutPgHint:"90 മിനിറ്റ് റെഗുലേഷൻ ഗോളുകൾ മാത്രം",toggleWithPgHint:"പെനാൽറ്റി ഷൂട്ടൗട്ട് ഗോളുകൾ കൂടി ഉൾപ്പെടുത്തുക",
+    leagueRoundTab: "1. ലീഗ് റൗണ്ട്",
+    knockoutRoundTab: "2. നോക്കൗട്ട് റൗണ്ട്",
+    knockoutTitle: "പ്ലേഓഫ്സ് & നോക്കൗട്ട് ബ്രാക്കറ്റ്",
+    knockoutSub: "സെമി ഫൈനൽ മത്സര ക്രമം, നോക്കൗട്ട് ട്രീ, ടൂർണമെന്റ് നിയമങ്ങൾ",
+    knockoutInfoTitle: "സൂപ്പർ ലീഗ് കേരള പ്ലേഓഫ്സ് ഘട്ടം",
+    knockoutInfoDesc: "പോയിന്റ് പട്ടികയിലെ ആദ്യ 4 സ്ഥാനക്കാരാണ് സെമി ഫൈനലിൽ ഏറ്റുമുട്ടുന്നത്. സെമി മത്സരങ്ങൾ ഹോം & എവേ അടിസ്ഥാനത്തിൽ രണ്ട് ലെഗ്ഗുകളിലായി നടക്കും. ഫൈനൽ ഒറ്റ മത്സരമായിരിക്കും.",
+    semifinalsTitle: "സെമി ഫൈനലുകൾ (2 Legs)",
+    championshipTitle: "ഗ്രാൻഡ് ഫൈനൽ",
+    championTitle: "ചാമ്പ്യൻമാർ 🏆",
+    semiFinal1: "സെമി ഫൈനൽ 1",
+    semiFinal2: "സെമി ഫൈനൽ 2",
+    grandFinal: "ഗ്രാൻഡ് ഫൈനൽ",
+    twoLegsHomeAway: "2 ലെഗ്ഗുകൾ (Home & Away)",
+    singleMatchBadge: "സിംഗിൾ മാച്ച്",
+    leg1Home: "ലെഗ് 1 ഹോം",
+    leg2Home: "ലെഗ് 2 ഹോം",
+    projected: "പ്രൊജക്റ്റഡ്",
+    winnerSf1: "വിന്നർ സെമി ഫൈനൽ 1",
+    winnerSf2: "വിന്നർ സെമി ഫൈനൽ 2",
+    aggregateWinner: "അഗ്രിഗേറ്റ് വിജയി",
+    slkChampionBadge: "സൂപ്പർ ലീഗ് കേരള ചാമ്പ്യൻസ് 2026",
+    tbd: "TBD",
+    rulesHeader: "ഔദ്യോഗിക നോക്കൗട്ട് ടൂർണമെന്റ് നിയമങ്ങൾ",
+    rulesHeaderSub: "സെമി ഫൈനൽ, ഫൈനൽ മത്സരങ്ങൾ നിയന്ത്രിക്കുന്ന ഔദ്യോഗിക നിയമങ്ങൾ",
+    rule1Title: "സെമി ഫൈനൽ ഘടന (Format)",
+    rule1Desc: "ലീഗ് റൗണ്ട് മത്സരങ്ങൾ പൂർത്തിയാകുമ്പോൾ പോയിന്റ് പട്ടികയിലെ ആദ്യ 4 ക്ലബ്ബുകളാണ് സെമി ഫൈനലിലേക്ക് യോഗ്യത നേടുക.",
+    rule1Point1: "സെമി ഫൈനൽ 1: 1-ാം സ്ഥാനക്കാർ 4-ാം സ്ഥാനക്കാരുമായി രണ്ട് മത്സരങ്ങൾ കളിക്കുന്നു.",
+    rule1Point2: "സെമി ഫൈനൽ 2: 2-ാം സ്ഥാനക്കാർ 3-ാം സ്ഥാനക്കാരുമായി രണ്ട് മത്സരങ്ങൾ കളിക്കുന്നു.",
+    rule1Point3: "ഓരോ ടീമിനും സ്വന്തം ഗ്രൗണ്ടിൽ ഒരു മത്സരം വീതം (Home & Away) ആതിഥേയത്വം വഹിക്കാം.",
+    rule2Title: "ടൈബ്രേക്കർ നടപടിക്രമം (Tiebreaker)",
+    rule2Desc: "സെമി ഫൈനൽ രണ്ടാം മത്സരത്തിന് ശേഷം ആകെ ഗോളുകൾ (Aggregate) തുല്യമായാൽ, അല്ലെങ്കിൽ ഫൈനലിൽ 90 മിനിറ്റിന് ശേഷം സമനിലയായാൽ:",
+    rule2Point1: "5 മിനിറ്റ് ഇടവേളയ്ക്ക് ശേഷം 15 മിനിറ്റ് വീതമുള്ള രണ്ട് എക്സ്ട്രാ ടൈം (Extra Time) കളിക്കും.",
+    rule2Point2: "എക്സ്ട്രാ ടൈമിലും സമനില തുടർന്നാൽ പെനാൽറ്റി ഷൂട്ടൗട്ടിലൂടെ വിജയിയെ കണ്ടെത്തും.",
+    rule2Point3: "എവേ ഗോൾസ് ആനുകൂല്യം ഉണ്ടായിരിക്കില്ല.",
+    rule3Title: "കാലാവസ്ഥ / കളി തടസ്സപ്പെട്ടാൽ",
+    rule3Desc: "പ്രതികൂല കാലാവസ്ഥ കാരണം മത്സരം നടത്താനാവാതെ വരികയോ ഉപേക്ഷിക്കുകയോ ചെയ്താൽ:",
+    rule3Point1: "ലീഗ് മത്സരം: ഫലം 0-0 സമനിലയായി കണക്കാക്കും.",
+    rule3Point2: "ഫൈനൽ മത്സരം: പോയിന്റ് പട്ടികയിൽ ഏറ്റവും കൂടുതൽ പോയിന്റുള്ള ടീമിനെ സൂപ്പർ ലീഗ് ചാമ്പ്യന്മാരായി പ്രഖ്യാപിക്കും!",
+    scrollHint: "പൂർണ്ണ ബ്രാക്കറ്റ് ട്രീ കാണാൻ ഇടത്തോട്ടും വലത്തോട്ടും സ്ക്രോൾ ചെയ്യുക"
+  }
 } as const;
 const leaderboardCopy = {
   en: { serial:"S.No.",winner:"Who will win the match?",score:"What will the score be?",first:"Who will score first?",round:"Round" },
@@ -188,6 +268,7 @@ export function PublicSportsHub({data}:{data:Row}) {
     const {lang} = useLanguage(), t=copy[lang], [menu,setMenu]=useState(false), [showShareModal, setShowShareModal] = useState(false);
     const [shootoutTop, setShootoutTop] = useState(false);
     const [shootoutContrib, setShootoutContrib] = useState(false);
+    const [stageTab, setStageTab] = useState<"league" | "knockout">("league");
     const upcoming=[...data.fixtures].filter((f:Row)=>f.status==="scheduled"&&toDate(f.kickoff)>new Date()).sort((a:Row,b:Row)=>+toDate(a.kickoff)-+toDate(b.kickoff))[0];
     const finals=[...data.fixtures].filter((f:Row)=>f.status==="finalized").sort((a:Row,b:Row)=>+toDate(b.kickoff)-+toDate(a.kickoff));
     const latest=finals[0];
@@ -201,7 +282,59 @@ export function PublicSportsHub({data}:{data:Row}) {
         <MatchFeature title={t.latest} fixture={latest} empty={t.noResults} lang={lang} result action={t.fullTime}/>
       </section>
       <section className="slk-data-section" id="table">
-        <article className="slk-data-card slk-table-card"><CardTitle icon={<Trophy/>} title={t.table}/><div className="slk-points-note"><strong>{t.pointsRule}</strong><span>{t.tiebreakRule}</span><span>{t.predictionRule}</span></div><div className="slk-table-legend" aria-label="Standings highlights" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "10px" }}><div style={{ display: "flex", flexWrap: "wrap", gap: "10px 18px", alignItems: "center" }}><span><i className="shield"/>{t.shieldWinner}</span><span><i className="semifinal"/>{t.semiFinalist}</span><span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}><b className="slk-status-badge slk-badge-q" style={{ margin: 0, padding: "2px 6px" }}>Q</b><span>{t.qualifiedLegend}</span></span></div><button type="button" className="button primary small" style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "12px", fontWeight: 800, padding: "6px 14px", borderRadius: "8px", background: "var(--yellow)", color: "var(--navy)", cursor: "pointer", border: "none", boxShadow: "0 2px 6px rgba(0,0,0,0.1)", marginLeft: "auto" }} onClick={()=>setShowShareModal(true)}><Share2 size={14} /><span>Share Table</span></button></div><Standings rows={data.table} fixtures={data.fixtures} t={t} lang={lang}/>{showShareModal && <StandingsShareCard rows={data.table} fixtures={data.fixtures} onClose={()=>setShowShareModal(false)} />}</article>
+        <article className="slk-data-card slk-table-card">
+          <CardTitle
+            icon={<Trophy/>}
+            title={stageTab === "league" ? t.table : t.knockoutTitle}
+            action={
+              <div className="slk-segmented-toggle" role="group" aria-label="Tournament stage toggle">
+                <button
+                  type="button"
+                  className={`slk-segment-btn ${stageTab === "league" ? "active" : ""}`}
+                  onClick={() => setStageTab("league")}
+                >
+                  <span>📊</span>
+                  <span>{t.leagueRoundTab}</span>
+                </button>
+                <button
+                  type="button"
+                  className={`slk-segment-btn ${stageTab === "knockout" ? "active" : ""}`}
+                  onClick={() => setStageTab("knockout")}
+                >
+                  <span>⚔️</span>
+                  <span>{t.knockoutRoundTab}</span>
+                </button>
+              </div>
+            }
+          />
+          {stageTab === "league" ? (
+            <>
+              <div className="slk-points-note">
+                <strong>{t.pointsRule}</strong>
+                <span>{t.tiebreakRule}</span>
+                <span>{t.predictionRule}</span>
+              </div>
+              <div className="slk-table-legend" aria-label="Standings highlights" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "10px" }}>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "10px 18px", alignItems: "center" }}>
+                  <span><i className="shield"/>{t.shieldWinner}</span>
+                  <span><i className="semifinal"/>{t.semiFinalist}</span>
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
+                    <b className="slk-status-badge slk-badge-q" style={{ margin: 0, padding: "2px 6px" }}>Q</b>
+                    <span>{t.qualifiedLegend}</span>
+                  </span>
+                </div>
+                <button type="button" className="button primary small" style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "12px", fontWeight: 800, padding: "6px 14px", borderRadius: "8px", background: "var(--yellow)", color: "var(--navy)", cursor: "pointer", border: "none", boxShadow: "0 2px 6px rgba(0,0,0,0.1)", marginLeft: "auto" }} onClick={()=>setShowShareModal(true)}>
+                  <Share2 size={14} />
+                  <span>Share Table</span>
+                </button>
+              </div>
+              <Standings rows={data.table} fixtures={data.fixtures} t={t} lang={lang}/>
+              {showShareModal && <StandingsShareCard rows={data.table} fixtures={data.fixtures} onClose={()=>setShowShareModal(false)} />}
+            </>
+          ) : (
+            <KnockoutStage rows={data.table} fixtures={data.fixtures} t={t} lang={lang} />
+          )}
+        </article>
         <div className="slk-stat-cards" id="players" style={{ scrollMarginTop: "90px" }}>
           <article className="slk-data-card slk-stat-card">
             <CardTitle
@@ -417,6 +550,283 @@ function MatchFeature({title,fixture,empty,lang,result,action}:{title:string;fix
               </div>
             );
           })}
+        </div>
+      </div>
+    );
+  }
+
+  function KnockoutStage({
+    rows,
+    fixtures,
+    t,
+    lang,
+  }: {
+    rows: Row[];
+    fixtures: Row[];
+    t: any;
+    lang: "en" | "ml";
+  }) {
+    const qualMap = useMemo(() => computeQualificationStatus(rows, fixtures), [rows, fixtures]);
+
+    const sorted = [...rows].sort((a, b) => Number(a.table_position) - Number(b.table_position));
+    const team1 = sorted[0];
+    const team2 = sorted[1];
+    const team3 = sorted[2];
+    const team4 = sorted[3];
+
+    const q1 = team1 ? qualMap[team1.team_id] : null;
+    const q2 = team2 ? qualMap[team2.team_id] : null;
+    const q3 = team3 ? qualMap[team3.team_id] : null;
+    const q4 = team4 ? qualMap[team4.team_id] : null;
+
+    return (
+      <div className="slk-knockout-container">
+        <div className="slk-points-note" style={{ background: "#f0f6ff", borderLeftColor: "#2563eb", marginBottom: "16px" }}>
+          <strong style={{ color: "#1d4ed8", display: "flex", alignItems: "center", gap: "6px" }}>
+            <span>⚔️</span>
+            <span>{t.knockoutInfoTitle}</span>
+          </strong>
+          <span style={{ color: "#334155" }}>{t.knockoutInfoDesc}</span>
+        </div>
+
+        <div className="slk-bracket-scroll-hint">
+          <small>{t.scrollHint}</small>
+        </div>
+
+        <div className="slk-bracket-tree-wrapper">
+          <div className="slk-bracket-tree">
+
+            {/* Column 1: Semifinals */}
+            <div className="slk-bracket-col slk-bracket-semis">
+              <div className="slk-bracket-col-header">
+                <span>{t.semifinalsTitle}</span>
+              </div>
+
+              <div className="slk-bracket-matches-stack">
+                {/* Semi-Final 1: #1 vs #4 */}
+                <div className="slk-match-box slk-match-sf">
+                  <div className="slk-match-box-head">
+                    <div className="slk-match-title-wrap">
+                      <span className="slk-match-number-badge">SF 1</span>
+                      <strong>{t.semiFinal1}</strong>
+                    </div>
+                    <span className="slk-leg-badge">{t.twoLegsHomeAway}</span>
+                  </div>
+
+                  <div className="slk-match-team-row">
+                    <div className="slk-team-info">
+                      <span className="slk-team-seed seed-1">1</span>
+                      <Badge src={team1?.badge} label={team1 ? name(team1, "name", lang) : "Seed 1"} />
+                      <div className="slk-team-name-wrap">
+                        <strong className="slk-team-name">{team1 ? name(team1, "name", lang) : "1st Place"}</strong>
+                        <span className="slk-team-leg-sub">{t.leg2Home}</span>
+                      </div>
+                    </div>
+                    <div className="slk-team-status">
+                      {q1?.isQualified ? (
+                        <span className="slk-status-badge slk-badge-q" title={t.qualifiedLegend}>Q</span>
+                      ) : (
+                        <span className="slk-projected-badge">{t.projected}</span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="slk-match-team-row">
+                    <div className="slk-team-info">
+                      <span className="slk-team-seed">4</span>
+                      <Badge src={team4?.badge} label={team4 ? name(team4, "name", lang) : "Seed 4"} />
+                      <div className="slk-team-name-wrap">
+                        <strong className="slk-team-name">{team4 ? name(team4, "name", lang) : "4th Place"}</strong>
+                        <span className="slk-team-leg-sub">{t.leg1Home}</span>
+                      </div>
+                    </div>
+                    <div className="slk-team-status">
+                      {q4?.isQualified ? (
+                        <span className="slk-status-badge slk-badge-q" title={t.qualifiedLegend}>Q</span>
+                      ) : (
+                        <span className="slk-projected-badge">{t.projected}</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Semi-Final 2: #2 vs #3 */}
+                <div className="slk-match-box slk-match-sf">
+                  <div className="slk-match-box-head">
+                    <div className="slk-match-title-wrap">
+                      <span className="slk-match-number-badge">SF 2</span>
+                      <strong>{t.semiFinal2}</strong>
+                    </div>
+                    <span className="slk-leg-badge">{t.twoLegsHomeAway}</span>
+                  </div>
+
+                  <div className="slk-match-team-row">
+                    <div className="slk-team-info">
+                      <span className="slk-team-seed seed-2">2</span>
+                      <Badge src={team2?.badge} label={team2 ? name(team2, "name", lang) : "Seed 2"} />
+                      <div className="slk-team-name-wrap">
+                        <strong className="slk-team-name">{team2 ? name(team2, "name", lang) : "2nd Place"}</strong>
+                        <span className="slk-team-leg-sub">{t.leg2Home}</span>
+                      </div>
+                    </div>
+                    <div className="slk-team-status">
+                      {q2?.isQualified ? (
+                        <span className="slk-status-badge slk-badge-q" title={t.qualifiedLegend}>Q</span>
+                      ) : (
+                        <span className="slk-projected-badge">{t.projected}</span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="slk-match-team-row">
+                    <div className="slk-team-info">
+                      <span className="slk-team-seed">3</span>
+                      <Badge src={team3?.badge} label={team3 ? name(team3, "name", lang) : "Seed 3"} />
+                      <div className="slk-team-name-wrap">
+                        <strong className="slk-team-name">{team3 ? name(team3, "name", lang) : "3rd Place"}</strong>
+                        <span className="slk-team-leg-sub">{t.leg1Home}</span>
+                      </div>
+                    </div>
+                    <div className="slk-team-status">
+                      {q3?.isQualified ? (
+                        <span className="slk-status-badge slk-badge-q" title={t.qualifiedLegend}>Q</span>
+                      ) : (
+                        <span className="slk-projected-badge">{t.projected}</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* SVG Connector 1: Semis to Final */}
+            <div className="slk-bracket-connector-wrap">
+              <svg className="slk-bracket-svg" viewBox="0 0 48 270" fill="none" preserveAspectRatio="none">
+                <path d="M 0 55 H 24 V 135 H 48" stroke="#93c5fd" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M 0 215 H 24 V 135" stroke="#93c5fd" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
+
+            {/* Column 2: Final Match */}
+            <div className="slk-bracket-col slk-bracket-final">
+              <div className="slk-bracket-col-header final-header">
+                <span>⚡ {t.championshipTitle}</span>
+              </div>
+
+              <div className="slk-match-box slk-final-box">
+                <div className="slk-match-box-head final-head">
+                  <div className="slk-match-title-wrap">
+                    <span className="slk-match-number-badge final-badge">FINAL</span>
+                    <strong>{t.grandFinal}</strong>
+                  </div>
+                  <span className="slk-leg-badge final-leg">{t.singleMatchBadge}</span>
+                </div>
+
+                <div className="slk-match-team-row">
+                  <div className="slk-team-info">
+                    <span className="slk-team-seed final-seed">SF1</span>
+                    <div className="slk-team-placeholder-final">🏆</div>
+                    <div className="slk-team-name-wrap">
+                      <strong className="slk-team-name">{t.winnerSf1}</strong>
+                      <span className="slk-team-leg-sub">#1 vs #4 {t.aggregateWinner}</span>
+                    </div>
+                  </div>
+                  <span className="slk-final-score-ph">—</span>
+                </div>
+
+                <div className="slk-match-team-row">
+                  <div className="slk-team-info">
+                    <span className="slk-team-seed final-seed">SF2</span>
+                    <div className="slk-team-placeholder-final">🏆</div>
+                    <div className="slk-team-name-wrap">
+                      <strong className="slk-team-name">{t.winnerSf2}</strong>
+                      <span className="slk-team-leg-sub">#2 vs #3 {t.aggregateWinner}</span>
+                    </div>
+                  </div>
+                  <span className="slk-final-score-ph">—</span>
+                </div>
+
+                <div className="slk-final-footer">
+                  <small>90 Mins + Extra Time + Penalties</small>
+                </div>
+              </div>
+            </div>
+
+            {/* SVG Connector 2: Final to Champion */}
+            <div className="slk-bracket-connector-wrap">
+              <svg className="slk-bracket-svg" viewBox="0 0 48 270" fill="none" preserveAspectRatio="none">
+                <path d="M 0 135 H 48" stroke="#f59e0b" strokeWidth="2.5" strokeLinecap="round" strokeDasharray="4 4" />
+              </svg>
+            </div>
+
+            {/* Column 3: Champions */}
+            <div className="slk-bracket-col slk-bracket-champ">
+              <div className="slk-bracket-col-header champ-header">
+                <span>{t.championTitle}</span>
+              </div>
+
+              <div className="slk-champ-box">
+                <div className="slk-champ-trophy">
+                  <Trophy size={24} />
+                </div>
+                <span className="slk-champ-badge-label">{t.slkChampionBadge}</span>
+                <strong className="slk-champ-winner-name">{t.tbd}</strong>
+                <small className="slk-champ-sub">Super League Kerala Trophy</small>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        {/* Tournament Rules Section */}
+        <div className="slk-rules-section">
+          <div className="slk-rules-title-bar">
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <span style={{ fontSize: "17px" }}>📜</span>
+              <h3 style={{ margin: 0, fontSize: "14px", fontWeight: 800, color: "var(--navy)" }}>{t.rulesHeader}</h3>
+            </div>
+            <small style={{ color: "var(--muted)", fontWeight: 500 }}>{t.rulesHeaderSub}</small>
+          </div>
+
+          <div className="slk-rules-grid">
+            <div className="slk-rule-card">
+              <h4>
+                <span className="slk-rule-badge">4</span>
+                <span>{t.rule1Title}</span>
+              </h4>
+              <p>{t.rule1Desc}</p>
+              <ul>
+                <li>{t.rule1Point1}</li>
+                <li>{t.rule1Point2}</li>
+                <li>{t.rule1Point3}</li>
+              </ul>
+            </div>
+
+            <div className="slk-rule-card">
+              <h4>
+                <span className="slk-rule-badge" style={{ background: "#ecfdf5", color: "#059669" }}>6</span>
+                <span>{t.rule2Title}</span>
+              </h4>
+              <p>{t.rule2Desc}</p>
+              <ul>
+                <li>{t.rule2Point1}</li>
+                <li>{t.rule2Point2}</li>
+                <li><strong>{t.rule2Point3}</strong></li>
+              </ul>
+            </div>
+
+            <div className="slk-rule-card">
+              <h4>
+                <span className="slk-rule-badge" style={{ background: "#fffbeb", color: "#d97706" }}>7</span>
+                <span>{t.rule3Title}</span>
+              </h4>
+              <p>{t.rule3Desc}</p>
+              <ul>
+                <li><strong>{t.rule3Point1}</strong></li>
+                <li><strong>{t.rule3Point2}</strong></li>
+              </ul>
+            </div>
+          </div>
         </div>
       </div>
     );
