@@ -283,30 +283,37 @@ export function PublicSportsHub({data}:{data:Row}) {
       </section>
       <section className="slk-data-section" id="table">
         <article className="slk-data-card slk-table-card">
-          <CardTitle
-            icon={<Trophy/>}
-            title={stageTab === "league" ? t.table : t.knockoutTitle}
-            action={
-              <div className="slk-segmented-toggle" role="group" aria-label="Tournament stage toggle">
-                <button
-                  type="button"
-                  className={`slk-segment-btn ${stageTab === "league" ? "active" : ""}`}
-                  onClick={() => setStageTab("league")}
-                >
-                  <span>📊</span>
-                  <span>{t.leagueRoundTab}</span>
-                </button>
-                <button
-                  type="button"
-                  className={`slk-segment-btn ${stageTab === "knockout" ? "active" : ""}`}
-                  onClick={() => setStageTab("knockout")}
-                >
-                  <span>⚔️</span>
-                  <span>{t.knockoutRoundTab}</span>
-                </button>
-              </div>
-            }
-          />
+          <div className="slk-table-card-header">
+            {/* Left: Prominent Stage Switcher (Swapped to start!) */}
+            <div className="slk-stage-nav-toggle" role="tablist" aria-label="Tournament stage toggle">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={stageTab === "league"}
+                className={`slk-stage-nav-btn ${stageTab === "league" ? "active" : ""}`}
+                onClick={() => setStageTab("league")}
+              >
+                <span className="slk-stage-icon">📊</span>
+                <span>{t.leagueRoundTab}</span>
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={stageTab === "knockout"}
+                className={`slk-stage-nav-btn ${stageTab === "knockout" ? "active" : ""}`}
+                onClick={() => setStageTab("knockout")}
+              >
+                <span className="slk-stage-icon">⚔️</span>
+                <span>{t.knockoutRoundTab}</span>
+              </button>
+            </div>
+
+            {/* Right: Stage Title with Trophy Icon (Swapped) */}
+            <div className="slk-table-header-title">
+              <span><Trophy size={18} /></span>
+              <h2>{stageTab === "league" ? t.table : t.knockoutTitle}</h2>
+            </div>
+          </div>
           {stageTab === "league" ? (
             <>
               <div className="slk-points-note">

@@ -3592,6 +3592,106 @@ html[lang="ml"] .sidebar nav a {
 /* ============================================================
    SLK PLAYOFFS KNOCKOUT BRACKET TREE & TOURNAMENT RULES
    ============================================================ */
+/* Prominent Swapped Stage Header Bar for Points Table / Knockout */
+.slk-table-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 20px;
+  border-bottom: 1px solid #e8edf5;
+  background: #ffffff;
+  flex-wrap: wrap;
+}
+
+/* Big Aesthetic Segmented Toggle on the Left */
+.slk-stage-nav-toggle {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px;
+  background: #edf2f9;
+  border-radius: 12px;
+  border: 1px solid #dce4f0;
+  gap: 4px;
+  box-shadow: inset 0 1px 2px rgba(13, 43, 92, 0.05);
+}
+.slk-stage-nav-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 18px;
+  border: none;
+  border-radius: 9px;
+  background: transparent;
+  color: #475569;
+  font-size: 13.5px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+  font-family: inherit;
+  line-height: 1.35;
+}
+.slk-stage-nav-btn:hover:not(.active) {
+  color: var(--navy);
+  background: rgba(255, 255, 255, 0.7);
+}
+.slk-stage-nav-btn.active {
+  background: #ffffff;
+  color: #0c49cb;
+  font-weight: 900;
+  box-shadow: 0 2px 8px rgba(12, 73, 203, 0.16), 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+.slk-stage-icon {
+  font-size: 15px;
+  line-height: 1;
+}
+
+/* Swapped Title on the Right */
+.slk-table-header-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.slk-table-header-title span {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: #e9f0ff;
+  color: #0c49cb;
+}
+.slk-table-header-title h2 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--navy);
+  letter-spacing: -0.01em;
+}
+
+@media (max-width: 768px) {
+  .slk-table-card-header {
+    flex-direction: column-reverse;
+    align-items: stretch;
+    gap: 12px;
+    padding: 14px 16px;
+  }
+  .slk-stage-nav-toggle {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  .slk-stage-nav-btn {
+    justify-content: center;
+    padding: 9px 10px;
+    font-size: 12.5px;
+  }
+  .slk-table-header-title {
+    justify-content: flex-start;
+  }
+}
+
 .slk-knockout-container {
   padding: 16px 20px 24px;
 }
