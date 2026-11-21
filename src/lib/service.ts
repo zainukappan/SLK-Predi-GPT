@@ -146,6 +146,7 @@ export const schemas = {
     body_ml: text.min(10),
     contact: text.max(500),
   }),
+  syncKnockouts: z.object({ force: z.boolean().optional() }).default({}),
 };
 export const fixtureSelect = `SELECT f.*,h.name_en home_en,h.name_ml home_ml,h.short_name home_short,h.badge home_badge,a.name_en away_en,a.name_ml away_ml,a.short_name away_short,a.badge away_badge,o.name_en round_en,o.name_ml round_ml,p.home_goals predicted_home,p.away_goals predicted_away,p.predicted_winner,p.first_goal predicted_first_goal,p.updated_at saved_at,r.home_goals result_home,r.away_goals result_away,r.winner result_winner,r.first_goal result_first_goal,r.shootout_winner result_shootout_winner,r.updated_at result_at,sbk.fixture_prediction_count(f.id) prediction_count,CASE WHEN f.status='finalized' THEN sbk.prediction_points(p.home_goals,p.away_goals,p.predicted_winner,p.first_goal,r.home_goals,r.away_goals,r.winner,r.first_goal) ELSE NULL END points FROM sbk.fixtures f JOIN sbk.teams h ON h.id=f.home_id JOIN sbk.teams a ON a.id=f.away_id JOIN sbk.rounds o ON o.id=f.round_id LEFT JOIN sbk.predictions p ON p.fixture_id=f.id AND p.member_id=sbk.uid() LEFT JOIN sbk.results r ON r.fixture_id=f.id`;
 export async function loadPublicSportsData() {
@@ -633,7 +634,16 @@ export async function mutate(
           "INSERT INTO sbk.shootout_kicks(fixture_id,team_id,player_id,scored,sort_order,updated_by) VALUES($1,$2,$3,$4,$5,$6)",
           [value.fixture_id,kick.team_id,kick.player_id,kick.scored,index,id],
         );
+      try {
+        await db.query("SELECT sbk.sync_knockout_fixtures()");
+      } catch (syncErr) {
+        console.error("Auto sync knockout fixtures error:", syncErr);
+      }
       return result;
+    }
+    if (kind === "syncKnockouts") {
+      const res = await db.query("SELECT sbk.sync_knockout_fixtures() as result");
+      return res.rows[0]?.result;
     }
     const table = kind === "rules" ? "rules_revisions" : kind,
       recordId = value.id;

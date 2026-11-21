@@ -608,7 +608,7 @@ function MatchFeature({title,fixture,empty,lang,result,action}:{title:string;fix
         (f.home_id === teamLower.team_id && f.away_id === teamHigher.team_id);
       if (!isBothTeams) return false;
       const rName = String(f.round || f.round_en || f.stage_en || "").toLowerCase();
-      return rName.includes("semi") || rName.includes("knockout") || rName.includes("playoff");
+      return Boolean(f.knockout) || rName.includes("semi") || rName.includes("knockout") || rName.includes("playoff");
     }).sort((a, b) => +new Date(a.kickoff) - +new Date(b.kickoff));
 
     const leg1 = koFixtures[0];
@@ -665,6 +665,14 @@ function MatchFeature({title,fixture,empty,lang,result,action}:{title:string;fix
       }
     }
 
+    let winnerTeamId: string | null = null;
+    if (leg1 && leg2 && leg1.status === "finalized" && leg2.status === "finalized") {
+      if (totalHigher > totalLower) winnerTeamId = teamHigher.team_id;
+      else if (totalLower > totalHigher) winnerTeamId = teamLower.team_id;
+      else if (leg2.shootout_winner === "home") winnerTeamId = leg2.home_id;
+      else if (leg2.shootout_winner === "away") winnerTeamId = leg2.away_id;
+    }
+
     return {
       tHigherL1,
       tHigherL2,
@@ -675,6 +683,7 @@ function MatchFeature({title,fixture,empty,lang,result,action}:{title:string;fix
       statusText,
       higherLeads,
       lowerLeads,
+      winnerTeamId,
     };
   }
 
@@ -704,6 +713,31 @@ function MatchFeature({title,fixture,empty,lang,result,action}:{title:string;fix
 
     const sf1Tie = useMemo(() => getKnockoutTieInfo(team1, team4, fixtures, t), [team1, team4, fixtures, t]);
     const sf2Tie = useMemo(() => getKnockoutTieInfo(team2, team3, fixtures, t), [team2, team3, fixtures, t]);
+
+    const sf1Winner = sf1Tie.winnerTeamId ? rows.find((r) => r.team_id === sf1Tie.winnerTeamId) : null;
+    const sf2Winner = sf2Tie.winnerTeamId ? rows.find((r) => r.team_id === sf2Tie.winnerTeamId) : null;
+
+    const finalFixture = useMemo(() => {
+      return fixtures.find((f) => {
+        const rName = String(f.round || f.round_en || f.stage_en || "").toLowerCase();
+        return (
+          f.match_number === 35 ||
+          (Boolean(f.knockout) && rName.includes("final") && !rName.includes("semi"))
+        );
+      });
+    }, [fixtures]);
+
+    const championTeam = useMemo(() => {
+      if (!finalFixture || finalFixture.status !== "finalized") return null;
+      const hGoals = Number(finalFixture.home_goals ?? 0);
+      const aGoals = Number(finalFixture.away_goals ?? 0);
+      if (hGoals > aGoals) return rows.find((r) => r.team_id === finalFixture.home_id) || null;
+      if (aGoals > hGoals) return rows.find((r) => r.team_id === finalFixture.away_id) || null;
+      if (finalFixture.shootout_winner === "home") return rows.find((r) => r.team_id === finalFixture.home_id) || null;
+      if (finalFixture.shootout_winner === "away") return rows.find((r) => r.team_id === finalFixture.away_id) || null;
+      if (finalFixture.winner_id) return rows.find((r) => r.team_id === finalFixture.winner_id) || null;
+      return null;
+    }, [finalFixture, rows]);
 
     return (
       <div className="slk-knockout-container">
@@ -891,25 +925,53 @@ function MatchFeature({title,fixture,empty,lang,result,action}:{title:string;fix
                 <div className="slk-match-team-row">
                   <div className="slk-team-info">
                     <span className="slk-team-seed final-seed">SF1</span>
-                    <div className="slk-team-placeholder-final">🏆</div>
+                    {sf1Winner ? (
+                      <Badge src={sf1Winner.badge} label={name(sf1Winner, "name", lang)} />
+                    ) : (
+                      <div className="slk-team-placeholder-final">🏆</div>
+                    )}
                     <div className="slk-team-name-wrap">
-                      <strong className="slk-team-name">{t.winnerSf1}</strong>
-                      <span className="slk-team-leg-sub">#1 vs #4 {t.aggregateWinner}</span>
+                      <strong className="slk-team-name">
+                        {sf1Winner ? name(sf1Winner, "name", lang) : t.winnerSf1}
+                      </strong>
+                      <span className="slk-team-leg-sub">
+                        {sf1Winner ? t.qualifiedLegend || "Qualified" : `#1 vs #4 ${t.aggregateWinner}`}
+                      </span>
                     </div>
                   </div>
-                  <span className="slk-final-score-ph">—</span>
+                  <span className="slk-final-score-ph">
+                    {finalFixture && finalFixture.status === "finalized"
+                      ? (finalFixture.home_id === (sf1Winner?.team_id ?? team1?.team_id)
+                          ? finalFixture.home_goals
+                          : finalFixture.away_goals) ?? "—"
+                      : "—"}
+                  </span>
                 </div>
 
                 <div className="slk-match-team-row">
                   <div className="slk-team-info">
                     <span className="slk-team-seed final-seed">SF2</span>
-                    <div className="slk-team-placeholder-final">🏆</div>
+                    {sf2Winner ? (
+                      <Badge src={sf2Winner.badge} label={name(sf2Winner, "name", lang)} />
+                    ) : (
+                      <div className="slk-team-placeholder-final">🏆</div>
+                    )}
                     <div className="slk-team-name-wrap">
-                      <strong className="slk-team-name">{t.winnerSf2}</strong>
-                      <span className="slk-team-leg-sub">#2 vs #3 {t.aggregateWinner}</span>
+                      <strong className="slk-team-name">
+                        {sf2Winner ? name(sf2Winner, "name", lang) : t.winnerSf2}
+                      </strong>
+                      <span className="slk-team-leg-sub">
+                        {sf2Winner ? t.qualifiedLegend || "Qualified" : `#2 vs #3 ${t.aggregateWinner}`}
+                      </span>
                     </div>
                   </div>
-                  <span className="slk-final-score-ph">—</span>
+                  <span className="slk-final-score-ph">
+                    {finalFixture && finalFixture.status === "finalized"
+                      ? (finalFixture.home_id === (sf2Winner?.team_id ?? team2?.team_id)
+                          ? finalFixture.home_goals
+                          : finalFixture.away_goals) ?? "—"
+                      : "—"}
+                  </span>
                 </div>
 
                 <div className="slk-final-footer">
@@ -936,7 +998,14 @@ function MatchFeature({title,fixture,empty,lang,result,action}:{title:string;fix
                   <Trophy size={24} />
                 </div>
                 <span className="slk-champ-badge-label">{t.slkChampionBadge}</span>
-                <strong className="slk-champ-winner-name">{t.tbd}</strong>
+                {championTeam ? (
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
+                    <Badge src={championTeam.badge} label={name(championTeam, "name", lang)} />
+                    <strong className="slk-champ-winner-name">{name(championTeam, "name", lang)}</strong>
+                  </div>
+                ) : (
+                  <strong className="slk-champ-winner-name">{t.tbd}</strong>
+                )}
                 <small className="slk-champ-sub">Super League Kerala Trophy</small>
               </div>
             </div>

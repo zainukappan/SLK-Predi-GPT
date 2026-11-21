@@ -19,6 +19,7 @@ import {
   Trash2,
   Eye,
   Bell,
+  Sparkles,
 } from "lucide-react";
 import { useLanguage, action, ErrorMessage } from "./provider";
 import { PageTitle, Pagination, localized } from "./dashboard";
@@ -1070,20 +1071,42 @@ export function Admin({
         <>
           <div className="section-heading">
             <p className="fine">{t("fixtureHelp")}</p>
-            <button
-              className="button primary"
-              onClick={() =>
-                open(
-                  "fixtures",
-                  { status: "scheduled", knockout: false, demo: false, match_number: Math.max(0, ...(data.fixtures ?? []).filter((f: Row) => !f.demo).map((f: Row) => Number(f.match_number) || 0)) + 1 },
-                  fixtureFields,
-                  t("fixtureHelp") + " " + t("identityHelp"),
-                )
-              }
-            >
-              <Plus size={18} />
-              {t("create")}
-            </button>
+            <div style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
+              <button
+                className="button secondary"
+                type="button"
+                disabled={busy}
+                onClick={async () => {
+                  setBusy(true);
+                  try {
+                    await action("syncKnockouts", {});
+                    router.refresh();
+                  } catch (err: any) {
+                    setError(err.message || "Failed to sync knockouts");
+                  } finally {
+                    setBusy(false);
+                  }
+                }}
+                title={lang === "ml" ? "സെമി ഫൈനൽ, ഫൈനൽ ഫിക്സ്ചറുകൾ പോയിന്റ് പട്ടികയനുസരിച്ച് സ്വയം ക്രമീകരിക്കുക" : "Automatically sync semi-final and final fixtures based on points table standings"}
+              >
+                <Sparkles size={16} />
+                {lang === "ml" ? "സെമി & ഫൈനൽ ഫിക്സ്ചർ സിങ്ക്" : "Sync Knockouts (SF & Final)"}
+              </button>
+              <button
+                className="button primary"
+                onClick={() =>
+                  open(
+                    "fixtures",
+                    { status: "scheduled", knockout: false, demo: false, match_number: Math.max(0, ...(data.fixtures ?? []).filter((f: Row) => !f.demo).map((f: Row) => Number(f.match_number) || 0)) + 1 },
+                    fixtureFields,
+                    t("fixtureHelp") + " " + t("identityHelp"),
+                  )
+                }
+              >
+                <Plus size={18} />
+                {t("create")}
+              </button>
+            </div>
           </div>
           <div className="admin-fixtures">
             {data.fixtures.map((f: Row) => (
