@@ -46,14 +46,21 @@ export function computeQualificationStatus(
     const gd = Number(r.goal_difference);
     const pos = Number(r.table_position);
 
-    // Remaining non-finalized, non-cancelled fixtures for this team
+    // Remaining non-finalized, non-cancelled LEAGUE fixtures for this team (knockouts excluded!)
     const remList = fixtures
-      .filter(
-        (f) =>
+      .filter((f) => {
+        const isKnockout =
+          Boolean(f.knockout) ||
+          (f.match_number != null && Number(f.match_number) > 30) ||
+          String(f.round_en || "").toLowerCase().includes("semi") ||
+          String(f.round_en || "").toLowerCase().includes("final");
+        return (
+          !isKnockout &&
           f.status !== "finalized" &&
           f.status !== "cancelled" &&
           (f.home_id === teamId || f.away_id === teamId)
-      )
+        );
+      })
       .sort((a, b) => new Date(a.kickoff).getTime() - new Date(b.kickoff).getTime());
 
     const remainingFixtures = remList.map((f) => {
@@ -93,29 +100,34 @@ export function computeQualificationStatus(
   teamsData.forEach((team) => {
     const others = teamsData.filter((o) => o.teamId !== team.teamId);
 
+    const allMatchesFinished = teamsData.every((t) => t.played >= totalMatchesPerTeam);
+
     // Shield Winner Condition:
     // No other team can reach team 1's current points
     const highestOtherMaxPts = Math.max(...others.map((o) => o.maxPts));
     const isShieldWinner =
       team.pos === 1 &&
-      (team.pts > highestOtherMaxPts || (team.remCount === 0 && highestOtherMaxPts <= team.pts));
+      (team.pts > highestOtherMaxPts || (allMatchesFinished && highestOtherMaxPts <= team.pts));
 
     // Qualified for Top 4 (Semi-Finals):
-    // Top 4 qualify out of 6. At least 2 other teams must be mathematically capped below team's current points.
+    // Top 4 qualify out of 6. At least 2 other teams must be mathematically capped below team's current points,
+    // OR all matches in the league have finished and team is in top 4.
     const teamsThatCannotCatch = others.filter((o) => o.maxPts < team.pts).length;
     const isQualified =
-      teamsThatCannotCatch >= 2 || (team.played === totalMatchesPerTeam && team.pos <= 4);
+      teamsThatCannotCatch >= 2 || (allMatchesFinished && team.pos <= 4);
 
     // Guaranteed Top 2:
-    // At least 4 other teams cannot mathematically catch this team's current points
+    // At least 4 other teams cannot mathematically catch this team's current points,
+    // OR all matches in the league have finished and team is in top 2.
     const isGuaranteedTop2 =
-      teamsThatCannotCatch >= 4 || (team.played === totalMatchesPerTeam && team.pos <= 2);
+      teamsThatCannotCatch >= 4 || (allMatchesFinished && team.pos <= 2);
 
     // Eliminated from Top 4:
-    // At least 4 other teams have current points strictly greater than team's max possible points
+    // At least 4 other teams have current points strictly greater than team's max possible points,
+    // OR all matches in the league have finished and team is outside top 4.
     const teamsGuaranteedAhead = others.filter((o) => o.pts > team.maxPts).length;
     const isEliminated =
-      teamsGuaranteedAhead >= 4 || (team.played === totalMatchesPerTeam && team.pos > 4);
+      teamsGuaranteedAhead >= 4 || (allMatchesFinished && team.pos > 4);
 
     let statusBadgeEn = "";
     let statusBadgeMl = "";
@@ -184,7 +196,14 @@ export function computeQualificationStatus(
           }
         } else {
           // Leader's current points are strictly higher than this team's max possible points
-          if (canGuaranteeTop2) {
+          if (team.remCount === 0) {
+            needEn = isGuaranteedTop2
+              ? "Guaranteed 2nd place in the league. All 10 league matches completed."
+              : "Officially qualified for the semi-finals. All 10 league matches completed.";
+            needMl = isGuaranteedTop2
+              ? "ലീഗിൽ രണ്ടാം സ്ഥാനം ഔദ്യോഗികമായി ഉറപ്പിച്ചു. എല്ലാ 10 ലീഗ് മത്സരങ്ങളും പൂർത്തിയായി."
+              : "സെമി ഫൈനൽ യോഗ്യത ഉറപ്പിച്ചു. എല്ലാ 10 ലീഗ് മത്സരങ്ങളും പൂർത്തിയായി.";
+          } else if (canGuaranteeTop2) {
             needEn = `${finishEn} Needs ${ptsForTop2} point${ptsForTop2 > 1 ? "s" : ""} from remaining ${team.remCount} matches to secure a top-2 finish.`;
             needMl = `${finishMl} ടോപ്-2 സ്ഥാനം ഉറപ്പിക്കാൻ ശേഷിക്കുന്ന ${team.remCount} മത്സരങ്ങളിൽ നിന്ന് ${ptsForTop2} പോയിന്റ് വേണം.`;
           } else {
@@ -214,19 +233,29 @@ export function computeQualificationStatus(
 
       if (team.pos <= 4) {
         // Currently inside top 4 qualification zone
-        const isVeryClose = ptsToGuarantee <= 3;
-        statusBadgeEn = isVeryClose ? "Virtually Qualified" : "In Top 4";
-        statusBadgeMl = isVeryClose ? "യോഗ്യത ഏതാണ്ട് ഉറപ്പിച്ചു" : "സെമി സോണിൽ (Top 4)";
-        statusClass = isVeryClose ? "contender-high" : "contender-mid";
-        chancePct = isVeryClose ? 95 : 65;
-
-        const winWordMl = ptsToGuarantee <= 3 ? "ഒരു ജയം" : `${Math.ceil(ptsToGuarantee / 3)} ജയം`;
-        if (ptsToGuarantee <= team.remCount * 3) {
-          needEn = `Currently in position #${team.pos}. Needs ${ptsToGuarantee > 0 ? `${ptsToGuarantee} more point${ptsToGuarantee > 1 ? "s" : ""} from remaining ${team.remCount} matches` : "to maintain position"} to officially guarantee a semi-final spot.`;
-          needMl = `നിലവിൽ #${team.pos}-ാം സ്ഥാനത്ത്. ശേഷിക്കുന്ന ${team.remCount} മത്സരങ്ങളിൽ നിന്ന് ${ptsToGuarantee > 0 ? `${ptsToGuarantee} പോയിന്റ് (${winWordMl})` : "പോയിന്റുകൾ"} നേടിയാൽ മറ്റാരുടെയും ഫലങ്ങളെ ആശ്രയിക്കാതെ സെമി ഫൈനൽ ഔദ്യോഗികമായി ഉറപ്പിക്കാം.`;
+        if (team.remCount === 0) {
+          // Completed all matches, but awaiting other results
+          statusBadgeEn = "In Top 4 (All Matches Played)";
+          statusBadgeMl = "സെമി സോണിൽ (മത്സരങ്ങൾ കഴിഞ്ഞു)";
+          statusClass = "contender-mid";
+          chancePct = 70;
+          needEn = `Completed all ${totalMatchesPerTeam} league matches with ${team.pts} points. Semi-final qualification depends on the remaining matches of other teams.`;
+          needMl = `എല്ലാ ${totalMatchesPerTeam} ലീഗ് മത്സരങ്ങളും പൂർത്തിയായി (${team.pts} പോയിന്റ്). സെമി ഫൈനൽ യോഗ്യത മറ്റ് ടീമുകളുടെ ശേഷിക്കുന്ന മത്സരഫലങ്ങളെ ആശ്രയിച്ചിരിക്കുന്നു.`;
         } else {
-          needEn = `Currently in position #${team.pos}. Needs maximum points (${team.remCount * 3}) from remaining ${team.remCount} matches and favorable results to guarantee a semi-final spot.`;
-          needMl = `നിലവിൽ #${team.pos}-ാം സ്ഥാനത്ത്. സെമി ഫൈനൽ ഉറപ്പിക്കാൻ ശേഷിക്കുന്ന ${team.remCount} മത്സരങ്ങളിൽ പരമാവധി പോയിന്റും (${team.remCount * 3}) മറ്റ് മത്സരങ്ങളിലെ അനുകൂല ഫലങ്ങളും വേണം.`;
+          const isVeryClose = ptsToGuarantee <= 3;
+          statusBadgeEn = isVeryClose ? "Virtually Qualified" : "In Top 4";
+          statusBadgeMl = isVeryClose ? "യോഗ്യത ഏതാണ്ട് ഉറപ്പിച്ചു" : "സെമി സോണിൽ (Top 4)";
+          statusClass = isVeryClose ? "contender-high" : "contender-mid";
+          chancePct = isVeryClose ? 95 : 65;
+
+          const winWordMl = ptsToGuarantee <= 3 ? "ഒരു ജയം" : `${Math.ceil(ptsToGuarantee / 3)} ജയം`;
+          if (ptsToGuarantee <= team.remCount * 3) {
+            needEn = `Currently in position #${team.pos}. Needs ${ptsToGuarantee > 0 ? `${ptsToGuarantee} more point${ptsToGuarantee > 1 ? "s" : ""} from remaining ${team.remCount} matches` : "to maintain position"} to officially guarantee a semi-final spot.`;
+            needMl = `നിലവിൽ #${team.pos}-ാം സ്ഥാനത്ത്. ശേഷിക്കുന്ന ${team.remCount} മത്സരങ്ങളിൽ നിന്ന് ${ptsToGuarantee > 0 ? `${ptsToGuarantee} പോയിന്റ് (${winWordMl})` : "പോയിന്റുകൾ"} നേടിയാൽ മറ്റാരുടെയും ഫലങ്ങളെ ആശ്രയിക്കാതെ സെമി ഫൈനൽ ഔദ്യോഗികമായി ഉറപ്പിക്കാം.`;
+          } else {
+            needEn = `Currently in position #${team.pos}. Needs maximum points (${team.remCount * 3}) from remaining ${team.remCount} matches and favorable results to guarantee a semi-final spot.`;
+            needMl = `നിലവിൽ #${team.pos}-ാം സ്ഥാനത്ത്. സെമി ഫൈനൽ ഉറപ്പിക്കാൻ ശേഷിക്കുന്ന ${team.remCount} മത്സരങ്ങളിൽ പരമാവധി പോയിന്റും (${team.remCount * 3}) മറ്റ് മത്സരങ്ങളിലെ അനുകൂല ഫലങ്ങളും വേണം.`;
+          }
         }
       } else {
         // Outside top 4 (chasing positions 5 & 6)
